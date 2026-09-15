@@ -1,0 +1,32 @@
+# Dependencies
+**/node_modules/
+
+# Environment files
+**/.env
+frontend/.env.development
+
+# Logs
+*.log
+*.err
+
+# Build output / archives
+frontend/build/
+frontend/build.zip
+
+# Backend runtime data
+backend/data/
+backend/uploads/
+
+# Temp/Test files
+google_test.json
+mm1.json
+mm2.json
+mymemory_test.json
+quota-test.ps1
+backend/test-gemini.cjs
+backend/chk-*.tmp.cjs
+frontend/fix-*.mjs
+frontend/probe*
+frontend/read-probe.cjs
+frontend/test-*.mjs
+frontend/test-*.cjs
