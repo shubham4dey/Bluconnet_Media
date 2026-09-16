@@ -30,7 +30,6 @@ const RealOutcomes = () => {
       ],
       bgColor: "bg-gradient-to-br from-yellow-400 via-orange-500 to-orange-600",
       image: leColImage,
-      link: "#",
     },
     {
       company: "TUI",
@@ -47,7 +46,6 @@ const RealOutcomes = () => {
       ],
       bgColor: "bg-gradient-to-br from-cyan-400 via-blue-500 to-blue-600",
       image: tuiImage,
-      link: "#",
     },
     {
       company: "Vistaprint",
@@ -61,7 +59,6 @@ const RealOutcomes = () => {
       ],
       bgColor: "bg-gradient-to-br from-blue-400 via-cyan-500 to-cyan-600",
       image: vistaprintImage,
-      link: "#",
     },
     {
       company: "TikTok",
@@ -80,7 +77,6 @@ const RealOutcomes = () => {
       bgColor:
         "bg-gradient-to-br from-green-400 via-emerald-500 to-emerald-600",
       image: tiktokImage,
-      link: "#",
     },
     {
       company: "Swarovski",
@@ -94,7 +90,6 @@ const RealOutcomes = () => {
       ],
       bgColor: "bg-gradient-to-br from-purple-500 via-pink-500 to-pink-600",
       image: swarovskiImage,
-      link: "#",
     },
   ];
 

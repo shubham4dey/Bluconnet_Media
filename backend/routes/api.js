@@ -16,6 +16,9 @@ const admin = require("../controllers/adminController");
 const ai = require("../controllers/aiController");
 const leads = require("../controllers/leadController");
 
+/* ---------------- NEWS: public (global, published-only) ---------------- */
+const news = require("../controllers/newsController");
+
 /* ---------------- public ---------------- */
 router.post("/lead", submitLimiter, submissions.createLead);
 router.post("/meeting", submitLimiter, submissions.createMeeting);
@@ -28,8 +31,17 @@ router.post("/upload", uploadLimiter, upload.single("file"), visitors.uploadFile
 /* general-knowledge / off-topic questions → Gemini */
 router.post("/ai/chat", aiLimiter, ai.aiChat);
 
+/* public news (global, published-only) */
+router.get("/news", news.listPublished);
+router.get("/news/:id", news.getPublished);
+
 /* ---------------- admin ---------------- */
 router.post("/admin/login", authLimiter, admin.login);
+/* /admin/news must be registered before the generic /admin/:collection route */
+router.get("/admin/news", requireAuth, news.listAll);
+router.post("/admin/news", requireAuth, news.create);
+router.put("/admin/news/:id", requireAuth, news.update);
+router.delete("/admin/news/:id", requireAuth, news.remove);
 router.get("/admin/dashboard", requireAuth, admin.dashboard);
 router.get("/admin/settings", requireAuth, admin.getSettings);
 router.get("/admin/:collection", requireAuth, admin.listCollection);

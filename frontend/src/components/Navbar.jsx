@@ -33,8 +33,17 @@ const Navbar = () => {
   const [mobileActiveSubmenu, setMobileActiveSubmenu] = useState(null);
 
   const isActive = (link) => {
+    if (!link || link.startsWith("http")) return false;
     if (link === "/") return location.pathname === "/";
     return location.pathname.startsWith(link);
+  };
+
+  const isExternal = (link) => /^https?:\/\//i.test(link || "");
+
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+    setMobileActiveDropdown(null);
+    setMobileActiveSubmenu(null);
   };
 
   const isDropdownActive = (item) => {
@@ -112,7 +121,7 @@ const Navbar = () => {
         {
           name: "More",
           hasSubmenu: true,
-          link: "#",
+          link: null,
           submenu: [
             { name: "Web Design & Development", link: "/services/web" },
             { name: "SEO Marketing", link: "/services/seo" },
@@ -136,7 +145,7 @@ const Navbar = () => {
           name: "Affiliate SignUp",
           link: "https://bluconnet.affise.com/v2/sign/up",
         },
-        { name: "Advertiser SignUp", link: "/register" },
+        { name: "Advertiser SignUp", link: "https://bluconnet.affise.com/v2/sign/up" },
         { name: "Admin Panel", link: "/admin-news" }
       ],
     },
@@ -206,10 +215,23 @@ const Navbar = () => {
                     setActiveSubmenu(null);
                   }}
                 >
-                  <Link
-                    to={item.link || "#"}
-                    className={`relative px-2 lg:px-3 xl:px-4 py-2 text-[11px] lg:text-xs xl:text-sm font-bold uppercase tracking-wider rounded-lg overflow-hidden group flex items-center justify-center whitespace-nowrap transition-colors duration-300 ${active ? activeText : textColor} ${hoverText}`}
-                  >
+                  {item.hasDropdown || !item.link ? (
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      aria-haspopup="true"
+                      aria-expanded={activeDropdown === index}
+                      onClick={() =>
+                        setActiveDropdown(activeDropdown === index ? null : index)
+                      }
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          setActiveDropdown(activeDropdown === index ? null : index);
+                        }
+                      }}
+                      className={`relative px-2 lg:px-3 xl:px-4 py-2 text-[11px] lg:text-xs xl:text-sm font-bold uppercase tracking-wider rounded-lg overflow-hidden group flex items-center justify-center whitespace-nowrap transition-colors duration-300 cursor-pointer ${active ? activeText : textColor} ${hoverText}`}
+                    >
                     {active && (
                       <span
                         className={`absolute inset-0 bg-gradient-to-r rounded-lg ${activeBg}`}
@@ -232,7 +254,30 @@ const Navbar = () => {
                         />
                       )}
                     </span>
-                  </Link>
+                    </span>
+                  ) : (
+                    <Link
+                      to={item.link}
+                      className={`relative px-2 lg:px-3 xl:px-4 py-2 text-[11px] lg:text-xs xl:text-sm font-bold uppercase tracking-wider rounded-lg overflow-hidden group flex items-center justify-center whitespace-nowrap transition-colors duration-300 ${active ? activeText : textColor} ${hoverText}`}
+                    >
+                      {active && (
+                        <span
+                          className={`absolute inset-0 bg-gradient-to-r rounded-lg ${activeBg}`}
+                        />
+                      )}
+                      <span
+                        className={`absolute inset-0 bg-gradient-to-r ${hoverBg} rounded-lg transition-all duration-300 ease-out ${activeDropdown === index ? "scale-100 opacity-100" : "scale-x-0 opacity-0 group-hover:scale-x-100 group-hover:opacity-100"}`}
+                        style={{ transformOrigin: "center" }}
+                      />
+                      <span
+                        className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r ${gradientLine} transition-transform duration-300 ${active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"}`}
+                      ></span>
+
+                      <span className="relative z-10 flex items-center space-x-1 lg:space-x-2">
+                        <span className="min-w-0 truncate">{tt(item.name)}</span>
+                      </span>
+                    </Link>
+                  )}
 
                   <AnimatePresence>
                     {activeDropdown === index && item.hasDropdown && (
@@ -272,16 +317,19 @@ const Navbar = () => {
                               }
                               onMouseLeave={() => setActiveSubmenu(null)}
                             >
-                              <Link
-                                to={subItem.link || "#"}
-                                className={`flex items-center justify-between px-4 sm:px-5 py-3 text-sm font-semibold transition-all duration-200 group/item relative overflow-hidden ${
-                                  subActive
-                                    ? isDarkMode
-                                      ? "text-[#d4e157] bg-gradient-to-r from-[#d4e157]/10 to-[#06b6d4]/10"
-                                      : "text-emerald-600 bg-gradient-to-r from-emerald-50 to-cyan-50"
-                                    : textGray
-                                } ${isDarkMode ? "hover:text-white" : "hover:text-gray-900"}`}
-                              >
+                              {isExternal(subItem.link) ? (
+                                <a
+                                  href={subItem.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`flex items-center justify-between px-4 sm:px-5 py-3 text-sm font-semibold transition-all duration-200 group/item relative overflow-hidden ${
+                                    subActive
+                                      ? isDarkMode
+                                        ? "text-[#d4e157] bg-gradient-to-r from-[#d4e157]/10 to-[#06b6d4]/10"
+                                        : "text-emerald-600 bg-gradient-to-r from-emerald-50 to-cyan-50"
+                                      : textGray
+                                  } ${isDarkMode ? "hover:text-white" : "hover:text-gray-900"}`}
+                                >
                                 <span
                                   className={`absolute inset-0 bg-gradient-to-r ${hoverBg} scale-x-0 group-hover/item:scale-x-100 transition-transform duration-300 origin-left`}
                                 ></span>
@@ -299,7 +347,30 @@ const Navbar = () => {
                                     className={`relative z-10 ${isDarkMode ? "text-[#d4e157]" : "text-emerald-600"} group-hover/item:translate-x-1 transition-transform`}
                                   />
                                 )}
-                              </Link>
+                                </a>
+                              ) : (
+                                <Link
+                                  to={subItem.link}
+                                  className={`flex items-center justify-between px-4 sm:px-5 py-3 text-sm font-semibold transition-all duration-200 group/item relative overflow-hidden ${
+                                    subActive
+                                      ? isDarkMode
+                                        ? "text-[#d4e157] bg-gradient-to-r from-[#d4e157]/10 to-[#06b6d4]/10"
+                                        : "text-emerald-600 bg-gradient-to-r from-emerald-50 to-cyan-50"
+                                      : textGray
+                                  } ${isDarkMode ? "hover:text-white" : "hover:text-gray-900"}`}
+                                >
+                                  <span
+                                    className={`absolute inset-0 bg-gradient-to-r ${hoverBg} scale-x-0 group-hover/item:scale-x-100 transition-transform duration-300 origin-left`}
+                                  ></span>
+                                  <span
+                                    className={`absolute left-0 top-0 bottom-0 w-0.5 bg-gradient-to-b ${gradientLine} transition-transform duration-300 ${subActive ? "scale-y-100" : "scale-y-0 group-hover/item:scale-y-100"}`}
+                                  ></span>
+
+                                  <span className="relative z-10 flex items-center gap-2">
+                                    <span>{tt(subItem.name)}</span>
+                                  </span>
+                                </Link>
+                              )}
 
                               {subItem.hasSubmenu &&
                                 activeSubmenu === subIndex && (

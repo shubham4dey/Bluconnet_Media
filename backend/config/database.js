@@ -12,13 +12,14 @@ const path = require("path");
 const DATA_DIR = path.join(__dirname, "..", "data");
 
 const COLLECTIONS = [
-  "leads",
+    "leads",
   "meetings",
   "applications",
   "handoffs",
   "feedback",
   "sessions",
   "visitors",
+  "news",
 ];
 
 function filePath(collection) {

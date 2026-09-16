@@ -11,6 +11,14 @@ import {
   FaCamera,
   FaEdit,
 } from "react-icons/fa";
+import {
+  listAdminNews,
+  createNews,
+  updateNews,
+  deleteNews,
+  uploadNewsImageFile,
+  resolveUrl,
+} from "../services/newsApi";
 
 const AdminNews = () => {
   const { isDarkMode } = useTheme();
@@ -28,34 +36,99 @@ const AdminNews = () => {
     date: new Date().toISOString().split("T")[0],
   });
 
-  // Security Check & Load Data
+  // Non-blocking upload error shown inline under the image area (no new design).
+  const [uploadError, setUploadError] = useState(null);
+
+    // Security Check & Load Data (from the central database, never localStorage)
   useEffect(() => {
     const isAuth = localStorage.getItem("bluconnet_admin_auth");
     if (isAuth !== "true") {
       navigate("/login");
+      return;
     }
 
-    const savedNews = localStorage.getItem("bluconnet_news");
-    if (savedNews) {
-      setNewsList(JSON.parse(savedNews));
-    }
+    let cancelled = false;
+    (async () => {
+      // Load this admin's view of ALL news from the central DB.
+      const initial = await listAdminNews();
+      const reachable = Boolean(initial && initial.ok);
+      let list = (initial && initial.ok && initial.data) || [];
+
+      // One-time migration: if the central DB is empty, pull any legacy
+      // per-browser localStorage news into the shared database (so
+      // pre-existing content becomes visible globally). Guards against
+      // duplicates by only running when the DB is empty — and only when the
+      // backend actually answered, otherwise an offline backend would delete
+      // the legacy data without ever migrating it.
+      const legacyRaw = localStorage.getItem("bluconnet_news");
+      if (reachable && list.length === 0 && legacyRaw) {
+        try {
+          const legacy = JSON.parse(legacyRaw);
+          if (Array.isArray(legacy)) {
+            for (const item of legacy) {
+              // eslint-disable-next-line no-await-in-loop
+              await createNews({
+                title: item.title,
+                shortDesc: item.shortDesc,
+                fullContent: item.fullContent,
+                imageUrl: item.imageUrl,
+                date: item.date,
+              });
+            }
+            localStorage.removeItem("bluconnet_news");
+          }
+        } catch (e) {
+          /* migration is best-effort */
+        }
+        const again = await listAdminNews();
+        list = (again && again.ok && again.data) || [];
+      }
+
+      if (!cancelled) setNewsList(list);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [navigate]);
+
+  const loadNews = async () => {
+    const res = await listAdminNews();
+    setNewsList((res && res.ok && res.data) || []);
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleImageUpload = (e) => {
+    const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result;
-        setImageBase64(base64String);
-        setImagePreview(base64String);
-      };
-      reader.readAsDataURL(file);
-    }
+    if (!file) return;
+
+    // Clear any prior upload error as soon as the admin picks a new file.
+    setUploadError(null);
+
+    // Instant local preview (preserves existing UX).
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+    };
+    reader.readAsDataURL(file);
+
+    // Upload to the central backend and store the PUBLIC server URL with the
+    // article. We never store a browser-only base64/blob: the public /news page
+    // must load the very same image for every visitor, so only a backend-served
+    // URL is acceptable. On failure the real backend error is shown below.
+    uploadNewsImageFile(file).then(({ url, error }) => {
+      if (url) {
+        setImageBase64(null);
+        setFormData((f) => ({ ...f, imageUrl: url }));
+      } else {
+        setUploadError(error || "Image upload failed.");
+        setImageBase64(null);
+        setFormData((f) => ({ ...f, imageUrl: "" }));
+      }
+    });
   };
 
   const removeImage = () => {
@@ -64,28 +137,30 @@ const AdminNews = () => {
     setFormData({ ...formData, imageUrl: "" });
   };
 
-  const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (editingId) {
-      const updatedList = newsList.map((item) =>
-        item.id === editingId
-          ? { ...item, ...formData, imageUrl: imageBase64 || formData.imageUrl }
-          : item,
-      );
-      setNewsList(updatedList);
-      localStorage.setItem("bluconnet_news", JSON.stringify(updatedList));
-      alert("News updated successfully!");
-    } else {
-      const newArticle = {
-        id: Date.now().toString(),
-        ...formData,
-        imageUrl: imageBase64 || formData.imageUrl,
-      };
-      const updatedList = [newArticle, ...newsList];
-      setNewsList(updatedList);
-      localStorage.setItem("bluconnet_news", JSON.stringify(updatedList));
-      alert("News published successfully!");
+    try {
+      if (editingId) {
+        const res = await updateNews(editingId, formData);
+        alert(
+          res && res.ok
+            ? "News updated successfully!"
+            : (res && res.error) || "Could not update news."
+        );
+      } else {
+        // Publish explicitly — the backend stores status "published"
+        // plus publishedAt (single global source of truth).
+        const res = await createNews({ ...formData, status: "published" });
+        alert(
+          res && res.ok
+            ? "News published successfully!"
+            : (res && res.error) || "Could not publish news."
+        );
+      }
+      await loadNews();
+    } catch {
+      alert("Could not save news.");
     }
 
     resetForm();
@@ -105,11 +180,10 @@ const AdminNews = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleDelete = (id) => {
+    const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this news?")) {
-      const updatedList = newsList.filter((item) => item.id !== id);
-      setNewsList(updatedList);
-      localStorage.setItem("bluconnet_news", JSON.stringify(updatedList));
+      await deleteNews(id);
+      await loadNews();
 
       if (editingId === id) {
         resetForm();
@@ -230,8 +304,8 @@ const AdminNews = () => {
                   </label>
                 ) : (
                   <div className="relative">
-                    <img
-                      src={imagePreview}
+                                        <img
+                      src={resolveUrl(imagePreview)}
                       alt="Preview"
                       className="w-full h-40 sm:h-44 sm:h-40 object-cover rounded-lg border border-gray-200"
                     />
@@ -245,6 +319,13 @@ const AdminNews = () => {
                   </div>
                 )}
               </div>
+
+              {/* Real backend upload error (reuses the existing text style) */}
+              {uploadError && (
+                <p className="text-red-500 text-sm font-bold">
+                  Image upload failed: {uploadError}
+                </p>
+              )}
 
               <input
                 type="date"
@@ -304,10 +385,10 @@ const AdminNews = () => {
                     key={item.id}
                     className={`flex flex-col md:flex-row gap-4 p-3 md:p-4 rounded-xl border ${isDarkMode ? "border-white/5 bg-white/5" : "border-gray-100 bg-gray-50"}`}
                   >
-                    {/* Image */}
+                                        {/* Image */}
                     {item.imageUrl ? (
                       <img
-                        src={item.imageUrl}
+                        src={resolveUrl(item.imageUrl)}
                         alt={item.title}
                         onError={(e) => {
                           e.target.onerror = null;

@@ -1,11 +1,12 @@
 import React, { Suspense, lazy, useState, useEffect, useCallback } from "react";
-import { HashRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import PortfolioPage from "./pages/PortfolioPage";
 
 import Navbar from "./components/Navbar";
 import MetaPixel from "./components/MetaPixel";
 import Preloader from "./components/Preloader";
 import ScrollToTop from "./components/ScrollToTop";
+import RouteScrollToTop from "./components/RouteScrollToTop";
 import Hero from "./components/Hero";
 import AwardsBar from "./components/AwardsBar";
 import Stats from "./components/Stats";
@@ -154,6 +155,7 @@ function App() {
           className={`${isLoading ? "opacity-0" : "opacity-100"} transition-opacity duration-700`}
         >
           <Navbar />
+          <RouteScrollToTop />
           <ScrollToTop isOpen={isChatOpen} onToggleChat={toggleChat} unread={unread} />
           <Routes>
             <Route

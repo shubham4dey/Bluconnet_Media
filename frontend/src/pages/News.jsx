@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { FaSearch, FaTimes } from "react-icons/fa";
+import { getPublishedNews, resolveUrl } from "../services/newsApi";
 import "./News.css";
 
 const News = () => {
@@ -12,13 +13,12 @@ const News = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   useEffect(() => {
-    // LocalStorage se news data fetch karega
-    const savedNews = localStorage.getItem("bluconnet_news");
-    if (savedNews) {
-      const parsedNews = JSON.parse(savedNews);
-      setNewsList(parsedNews);
-      setFilteredNews(parsedNews);
-    }
+    // Global published-news API — no admin/user/portal scoping.
+    getPublishedNews().then((res) => {
+      const list = (res && res.ok && res.data) || [];
+      setNewsList(list);
+      setFilteredNews(list);
+    });
   }, []);
 
   // Real-time search filter (ONLY BY HEADING/TITLE)
@@ -127,7 +127,7 @@ const News = () => {
                   <div className="news-image-wrapper">
                     {post.imageUrl ? (
                       <img
-                        src={post.imageUrl}
+                        src={resolveUrl(post.imageUrl)}
                         alt={post.title}
                         className="news-image"
                         loading="lazy"

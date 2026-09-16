@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { FaArrowLeft, FaCalendarAlt, FaClock } from "react-icons/fa";
+import { getPublishedNewsById, resolveUrl } from "../services/newsApi";
 
 const NewsDetails = () => {
   const { id } = useParams();
@@ -10,12 +11,10 @@ const NewsDetails = () => {
   const [article, setArticle] = useState(null);
 
   useEffect(() => {
-    const savedNews = localStorage.getItem("bluconnet_news");
-    if (savedNews) {
-      const parsedNews = JSON.parse(savedNews);
-      const found = parsedNews.find((item) => item.id === id);
-      setArticle(found);
-    }
+    // Public article comes from the global published-news API.
+    getPublishedNewsById(id).then((res) => {
+      setArticle((res && res.ok && res.data) || null);
+    });
   }, [id]);
 
   if (!article) {
@@ -58,11 +57,11 @@ const NewsDetails = () => {
         <article
           className={`rounded-3xl overflow-hidden shadow-2xl border ${isDarkMode ? "bg-[#0f1535] border-white/10" : "bg-white border-gray-200"}`}
         >
-          {/* FULL WIDTH IMAGE - No cropping, shows complete image */}
+                                         {/* FULL WIDTH IMAGE - No cropping, shows complete image */}
           {article.imageUrl && (
             <div className="w-full bg-gray-100 dark:bg-gray-900">
               <img
-                src={article.imageUrl}
+                src={resolveUrl(article.imageUrl)}
                 alt={article.title}
                 className="w-full h-auto max-h-[600px] object-contain"
               />

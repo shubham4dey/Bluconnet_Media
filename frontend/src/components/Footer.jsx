@@ -47,7 +47,7 @@ const Footer = () => {
     },
     {
       icon: FaRss, 
-      href: "https://bluconnetmedia.com/#/blog", 
+      href: "https://bluconnetmedia.com/blog", 
       label: "RSS",
     },
   ];
@@ -142,12 +142,12 @@ const Footer = () => {
             </h4>
             <ul className="space-y-4 text-start">
               <li>
-                <a
-                  href="#services"
+                <Link
+                  to="/services"
                   className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} ${isDarkMode ? "hover:text-[#d4e157]" : "hover:text-emerald-600"} transition text-base text-start block hover:translate-x-1 transform duration-300`}
                 >
                   Services
-                </a>
+                </Link>
               </li>
               <li>
                 <a
@@ -160,12 +160,12 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a
-                  href="#contact"
+                <Link
+                  to="/contact"
                   className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} ${isDarkMode ? "hover:text-[#d4e157]" : "hover:text-emerald-600"} transition text-base text-start block hover:translate-x-1 transform duration-300`}
                 >
                   Contact
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
