@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { FaSearch, FaTimes } from "react-icons/fa";
+import { wpGet } from "../services/wpApi";
 import "./Blog.css";
 
 const POSTS_PER_PAGE = 6;
@@ -30,16 +31,15 @@ const Blog = () => {
 
       setError("");
 
-      const response = await fetch(
-        `https://bluconnetmedia.com/wp-json/wp/v2/posts?_embed&per_page=${POSTS_PER_PAGE}&page=${pageNumber}`,
-      );
+      const { ok, data, totalPages } = await wpGet("/wp/v2/posts", {
+        _embed: "",
+        per_page: POSTS_PER_PAGE,
+        page: pageNumber,
+      });
 
-      if (!response.ok) {
+      if (!ok || !Array.isArray(data)) {
         throw new Error("Failed to fetch blogs");
       }
-
-      const data = await response.json();
-      const totalPages = Number(response.headers.get("X-WP-TotalPages") || 1);
 
       if (pageNumber === 1) {
         setPosts(data);

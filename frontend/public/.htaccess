@@ -1,9 +1,39 @@
+# ---------------------------------------------------------------------------
+# BluConnet Media - the React SPA and WordPress share this document root.
+#
+# The SPA owns the client-side routes (/blog, /news, /services/...), while
+# WordPress owns the REST API that the public /blog page consumes.
+#
+# A blanket "everything -> /index.html" rule ALSO swallowed /wp-json/... so the
+# WordPress REST API answered with the SPA shell (text/html) instead of JSON.
+# Calling response.json() on that HTML produced:
+#     SyntaxError: Unexpected token "<", "<!doctype ..." is not valid JSON
+#
+# WordPress REST requests are therefore routed to WordPress own front
+# controller using the ?rest_route= form (the same form WordPress uses
+# internally), and only non-WordPress paths fall through to the SPA shell.
+# ---------------------------------------------------------------------------
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
-  RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteCond %{REQUEST_FILENAME} !-l
+
+  # 1) Real files and directories (built JS/CSS, images, logo, wp-login.php,
+  #    wp-content assets, ...) are always served as-is.
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d [OR]
+  RewriteCond %{REQUEST_FILENAME} -l
+  RewriteRule ^ - [L]
+
+  # 2) WordPress REST API -> WordPress front controller.
+  #    /wp-json/wp/v2/posts -> /index.php?rest_route=/wp/v2/posts
+  #    the original query string is preserved via [QSA], so _embed, per_page,
+  #    page, slug, ... keep working.
+  RewriteRule ^wp-json/?$ /index.php?rest_route=/ [L,QSA]
+  RewriteRule ^wp-json/(.*)$ /index.php?rest_route=/$1 [L,QSA]
+
+  # 3) WordPress own front controller must never be rewritten.
+  RewriteRule ^index\.php$ - [L]
+
+  # 4) Every other path is a React client-side route -> serve the SPA shell.
   RewriteRule . /index.html [L]
 </IfModule>

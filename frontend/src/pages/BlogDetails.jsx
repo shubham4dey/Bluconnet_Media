@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
+import { wpGet } from "../services/wpApi";
 import "./BlogDetails.css";
 
 const BlogDetails = () => {
@@ -17,15 +18,14 @@ const BlogDetails = () => {
         setLoading(true);
         setError("");
 
-        const response = await fetch(
-          `https://bluconnetmedia.com/wp-json/wp/v2/posts?slug=${encodeURIComponent(slug)}&_embed`,
-        );
+        const { ok, data } = await wpGet("/wp/v2/posts", {
+          slug,
+          _embed: "",
+        });
 
-        if (!response.ok) {
+        if (!ok || !Array.isArray(data)) {
           throw new Error("Failed to fetch blog");
         }
-
-        const data = await response.json();
 
         if (!data.length) {
           throw new Error("Blog not found");

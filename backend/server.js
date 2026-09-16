@@ -56,15 +56,38 @@ const allowed = Array.from(
     )
   )
 );
-console.log("[cors] allowed origins:", allowed.join(", "));
+/* Hosts that are always trusted, whatever the scheme (http/https) or port.
+   An exact-string origin comparison is brittle: the very same site can appear
+   as "https://bluconnetmedia.com", "https://www.bluconnetmedia.com" or — when
+   a visitor lands on plain HTTP — "http://bluconnetmedia.com". Any origin that
+   does not match exactly is rejected, the browser then blocks the response and
+   the console reports a CORS error (e.g. on /api/visitor/heartbeat). Matching
+   on hostname instead removes that whole class of failure. */
+const ALLOWED_HOSTS = new Set(["bluconnetmedia.com", "www.bluconnetmedia.com"]);
+const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
+
+function isAllowedOrigin(origin) {
+  if (!origin) return true; // same-origin / non-browser caller
+  if (allowed.includes("*") || allowed.includes(origin)) return true;
+  try {
+    const host = new URL(origin).hostname.toLowerCase();
+    if (ALLOWED_HOSTS.has(host)) return true; // apex + www, any scheme/port
+    if (host.endsWith(".bluconnetmedia.com")) return true; // any subdomain
+    if (LOCAL_HOSTS.has(host)) return true; // local development
+  } catch (e) {
+    /* malformed Origin header -> reject */
+  }
+  return false;
+}
+
+console.log(
+  "[cors] allowed origins:",
+  allowed.join(", "),
+  "+ any scheme/port/subdomain of bluconnetmedia.com"
+);
 app.use(
   cors({
-    origin: (origin, cb) => {
-      if (!origin || allowed.includes("*") || allowed.includes(origin)) {
-        return cb(null, true);
-      }
-      return cb(null, false);
-    },
+    origin: (origin, cb) => cb(null, isAllowedOrigin(origin)),
     credentials: true,
   })
 );
