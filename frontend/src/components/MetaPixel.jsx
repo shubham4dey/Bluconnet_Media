@@ -35,13 +35,16 @@ let lastTrackedPath = null;
 const sendPageView = (path) => {
   if (lastTrackedPath === path) return;
 
-  lastTrackedPath = path;
-
+  // If the Pixel base code is unavailable (e.g. the inline snippet was removed
+  // by an ad blocker, a privacy extension or a consent tool), do NOT mark this
+  // route as tracked. Leaving it unmarked means the PageView is retried on the
+  // next navigation once window.fbq exists — instead of being recorded as
+  // "sent" and lost forever. Never throws.
   if (typeof window === "undefined" || typeof window.fbq !== "function") {
-    // Pixel base code unavailable (e.g. blocked) — fail silently, never throw.
     return;
   }
 
+  lastTrackedPath = path;
   window.fbq("track", "PageView");
 };
 

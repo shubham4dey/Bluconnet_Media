@@ -27,6 +27,7 @@ import {
 } from "react-icons/fa";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
+import SubscribeSection from "../components/SubscribeSection";
 // ===== IMPORT IMAGES =====
 import sarahImage from "../assets/img/logo.png";
 import michaelImage from "../assets/img/logo.png";
@@ -1445,52 +1446,7 @@ const PortfolioPage = () => {
           </div>
         </div>
       </section>
-
-      {/* ===== CTA SECTION ===== */}
-      <section className={`py-20 relative overflow-hidden ${theme.bg}`}>
-        <div
-          className={`absolute inset-0 ${isDarkMode ? "bg-gradient-to-r from-[#d4e157]/20 to-[#06b6d4]/20" : "bg-gradient-to-r from-emerald-500/10 to-cyan-500/10"}`}
-        />
-        <div className="absolute inset-0 backdrop-blur-sm" />
-        <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2 className={`text-3xl md:text-5xl font-bold ${theme.text} mb-6`}>
-              Ready to Start Your{" "}
-              <span
-                className={`text-transparent bg-clip-text bg-gradient-to-r ${theme.gradientText}`}
-              >
-                Journey?
-              </span>
-            </h2>
-            <p
-              className={`text-base md:text-xl max-w-3xl mx-auto mb-8 ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
-            >
-              Let's build something remarkable together. Transform your digital
-              presence today.
-            </p>
-            <motion.button
-              onClick={() => navigate("/contact")}
-              whileHover={{ scale: 1.05, y: -4 }}
-              whileTap={{ scale: 0.95 }}
-              className={`group relative px-8 py-4 bg-gradient-to-r ${theme.gradientText} ${
-                isDarkMode ? "text-[#0a0e27]" : "text-white"
-              } font-bold rounded-full shadow-[0_8px_30px_rgba(212,225,87,0.3)] hover:shadow-[0_15px_40px_rgba(212,225,87,0.5)] transition-all duration-300 overflow-hidden`}
-            >
-              {/* Animated Shine/Sweep Effect on Hover */}
-              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/40 to-transparent z-10" />
-
-              <span className="relative z-20 flex items-center gap-2">
-                Contact Us Today
-                <FaArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
-              </span>
-            </motion.button>
-          </motion.div>
-        </div>
-      </section>
+      <SubscribeSection />
     </div>
   );
 };

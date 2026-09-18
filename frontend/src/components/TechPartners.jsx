@@ -28,16 +28,16 @@ const TechPartners = () => {
     left: [
       { name: "Affise", logo: affiseLogo },
       { name: "Namecheap", logo: namecheapLogo },
-      { 
-        name: "Campaign Monitor", 
-        logo: isDarkMode ? campaignDarkLogo : campaignLogo 
+      {
+        name: "Campaign Monitor",
+        logo: isDarkMode ? campaignDarkLogo : campaignLogo,
       },
       { name: "Mindbaz", logo: mindbazLogo },
     ],
     right: [
-      { 
-        name: "Mailchimp", 
-        logo: isDarkMode ? mailchimpDarkLogo : mailchimpLogo 
+      {
+        name: "Mailchimp",
+        logo: isDarkMode ? mailchimpDarkLogo : mailchimpLogo,
       },
       { name: "Adobe", logo: adobeLogo },
       { name: "PlutoAstro", logo: plutoLogo },
@@ -392,22 +392,75 @@ const TechPartners = () => {
           transition={{ delay: 0.5 }}
           className="text-center mt-12"
         >
-          <motion.button
+          {/* BECOME A PARTNER - Design Only */}
+          {/* <motion.div
             whileHover={{ scale: 1.05, y: -4 }}
-            whileTap={{ scale: 0.95 }}
-            className={`relative overflow-hidden group inline-flex items-center px-8 py-4 rounded-xl font-black text-sm md:text-base uppercase tracking-widest transition-all duration-300 gap-3 ${
+            className={`relative overflow-hidden group inline-flex items-center px-8 py-4 rounded-xl font-black text-sm md:text-base uppercase tracking-widest transition-all duration-300 gap-3 cursor-default ${
               isDarkMode
-                ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_8px_30px_rgba(212,225,87,0.3)] hover:shadow-[0_15px_40px_rgba(212,225,87,0.5)]"
-                : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white shadow-[0_8px_30px_rgba(16,185,129,0.3)] hover:shadow-[0_15px_40px_rgba(16,185,129,0.5)]"
+                ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_8px_30px_rgba(212,225,87,0.3)]"
+                : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white shadow-[0_8px_30px_rgba(16,185,129,0.3)]"
             }`}
           >
+            Shine Effect
             <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/40 to-transparent z-10" />
-            
-            <span className="relative z-20 flex items-center gap-3">
-              BECOME A PARTNER
-              <FaArrowRight className="text-lg group-hover:translate-x-1 transition-transform duration-300" />
-            </span>
-          </motion.button>
+
+            <span className="relative z-20">BECOME A PARTNER</span>
+          </motion.div> */}
+
+          {/* Signup Buttons */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-6">
+            {/* Affiliate SignUp */}
+            <motion.button
+              onClick={() => {
+                window.open(
+                  "https://bluconnet.affise.com/v2/sign/up",
+                  "_blank",
+                  "noopener,noreferrer",
+                );
+              }}
+              whileHover={{ scale: 1.05, y: -4 }}
+              whileTap={{ scale: 0.95 }}
+              className={`relative overflow-hidden group w-full sm:w-auto px-8 py-4 lg:px-12 lg:py-5 lg:min-w-[340px] font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
+                isDarkMode
+                  ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_8px_30px_rgba(212,225,87,0.3)] hover:shadow-[0_15px_40px_rgba(212,225,87,0.5)]"
+                  : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white shadow-[0_8px_30px_rgba(16,185,129,0.3)] hover:shadow-[0_15px_40px_rgba(16,185,129,0.5)]"
+              }`}
+            >
+              {/* Shine */}
+              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/40 to-transparent z-10" />
+
+              <span className="relative z-20 flex items-center gap-2">
+                Affiliate SignUp
+                <FaArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
+              </span>
+            </motion.button>
+
+            {/* Advertiser SignUp */}
+            <motion.button
+              onClick={() => {
+                window.open(
+                  "https://bluconnet.affise.com/v2/sign/up",
+                  "_blank",
+                  "noopener,noreferrer",
+                );
+              }}
+              whileHover={{ scale: 1.05, y: -4 }}
+              whileTap={{ scale: 0.95 }}
+              className={`relative overflow-hidden group w-full sm:w-auto px-8 py-4 lg:px-12 lg:py-5 lg:min-w-[340px] rounded-lg font-bold transition-all duration-300 flex items-center justify-center gap-2 ${
+                isDarkMode
+                  ? "bg-white/5 border border-white/20 text-white hover:bg-white/10 shadow-[0_8px_30px_rgba(255,255,255,0.08)]"
+                  : "bg-white border border-slate-300 text-slate-800 hover:bg-slate-100 shadow-[0_8px_30px_rgba(15,23,42,0.1)]"
+              }`}
+            >
+              {/* Shine */}
+              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent z-10" />
+
+              <span className="relative z-20 flex items-center gap-2">
+                Advertiser SignUp
+                <FaArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
+              </span>
+            </motion.button>
+          </div>
         </motion.div>
       </div>
     </section>

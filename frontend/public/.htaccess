@@ -12,10 +12,22 @@
 # WordPress REST requests are therefore routed to WordPress own front
 # controller using the ?rest_route= form (the same form WordPress uses
 # internally), and only non-WordPress paths fall through to the SPA shell.
+#
+# Elementor editor / preview requests (?elementor-preview=..., ?preview=true,
+# &action=elementor, /wp-admin/...) must likewise never fall through to the
+# SPA shell, otherwise Elementor reports "The preview could not be loaded".
 # ---------------------------------------------------------------------------
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+
+  # 3c-0) Homepage preview ("/?p=123&elementor-preview=.."): path is empty,
+  #      docroot always matches -d, so handle BEFORE the file/dir passthrough.
+  #      Plain "/" (no query) still falls through to the SPA homepage.
+  RewriteCond %{QUERY_STRING} (^|&)(rest_route|elementor-preview|elementor|preview|preview_id|preview_nonce|theme_template_id|autosave)= [NC,OR]
+  RewriteCond %{QUERY_STRING} (^|&)action=elementor [NC,OR]
+  RewriteCond %{QUERY_STRING} (^|&)preview=true [NC]
+  RewriteRule ^$ /index.php [L,QSA]
 
   # 1) Real files and directories (built JS/CSS, images, logo, wp-login.php,
   #    wp-content assets, ...) are always served as-is.
@@ -33,6 +45,26 @@
 
   # 3) WordPress own front controller must never be rewritten.
   RewriteRule ^index\.php$ - [L]
+
+  # 3b) WordPress system paths must never fall through to the SPA shell.
+  #     Real files under these paths are already served by rule (1) above;
+  #     anything remaining (e.g. /wp-admin/ directory loads, admin-ajax.php)
+  #     belongs to WordPress / Elementor.
+  RewriteRule ^wp-admin(/|$) /index.php [L,QSA]
+  RewriteRule ^wp-login\.php$ - [L]
+  RewriteRule ^wp-cron\.php$ - [L]
+  RewriteRule ^xmlrpc\.php$ - [L]
+
+  # 3c) Elementor editor / preview / autosave query strings must go to WP.
+  #     NOTE: RewriteRule matches the URL-path only, never the query string,
+  #     so "?elementor-preview=..&preview=true" has to be matched via
+  #     QUERY_STRING. Without this, "/?p=123&elementor-preview=.." falls
+  #     through to /index.html and Elementor reports
+  #     "The preview could not be loaded".
+  RewriteCond %{QUERY_STRING} (^|&)(rest_route|elementor-preview|elementor|preview|preview_id|preview_nonce|theme_template_id|autosave)= [NC,OR]
+  RewriteCond %{QUERY_STRING} (^|&)action=elementor [NC,OR]
+  RewriteCond %{QUERY_STRING} (^|&)preview=true [NC]
+  RewriteRule ^ /index.php [L,QSA]
 
   # 4) Every other path is a React client-side route -> serve the SPA shell.
   RewriteRule . /index.html [L]

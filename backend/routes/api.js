@@ -16,6 +16,12 @@ const admin = require("../controllers/adminController");
 const ai = require("../controllers/aiController");
 const leads = require("../controllers/leadController");
 
+/* ---------------- CONTACT FORMS (MySQL-backed, one endpoint) ---------------- */
+const contactRoutes = require("./contactRoutes");
+
+/* ---------------- NEWSLETTER SUBSCRIPTION (MySQL-backed) ---------------- */
+const subscribeRoutes = require("./subscribeRoutes");
+
 /* ---------------- NEWS: public (global, published-only) ---------------- */
 const news = require("../controllers/newsController");
 
@@ -34,6 +40,18 @@ router.post("/ai/chat", aiLimiter, ai.aiChat);
 /* public news (global, published-only) */
 router.get("/news", news.listPublished);
 router.get("/news/:id", news.getPublished);
+
+/* ---------------- contact forms → MySQL ----------------
+   POST /api/contact is the SINGLE endpoint shared by Hero.jsx,
+   ContactForm.jsx and pages/contact.jsx (source = hero |
+   home-contact | contact-page). Submissions are stored in the
+   MySQL `contacts` table (see models/contactModel.js). */
+router.use("/contact", contactRoutes);
+
+/* ---------------- newsletter subscription → MySQL ----------------
+   POST /api/subscribe stores the SubscribeSection.jsx signup in
+   the MySQL `subscribers` table (see models/subscriberModel.js). */
+router.use("/subscribe", subscribeRoutes);
 
 /* ---------------- admin ---------------- */
 router.post("/admin/login", authLimiter, admin.login);

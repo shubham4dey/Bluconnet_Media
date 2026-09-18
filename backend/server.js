@@ -12,6 +12,8 @@ const cors = require("cors");
 const path = require("path");
 const multer = require("multer");
 const db = require("./config/database");
+const mysql = require("./config/mysql");
+const contacts = require("./models/contactModel");
 const { globalLimiter } = require("./middleware/rateLimit");
 const apiRoutes = require("./routes/api");
 
@@ -19,6 +21,22 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 db.ensure();
+
+/* Contact-form submissions live in MySQL (the JSON store keeps serving the
+   chatbot collections). Bootstrap the `contacts` schema on every boot, but
+   never let an unavailable database take the rest of the API down — the
+   failure is logged and POST /api/contact answers with a clean 500 until
+   MySQL is reachable (`npm run migrate` re-applies the schema manually). */
+contacts
+  .ensureSchema()
+  .then(() =>
+    console.log(`[mysql] ${mysql.describeTarget()} — \`${contacts.TABLE}\` table ready`)
+  )
+  .catch((err) =>
+    console.error(
+      `[mysql] contacts schema unavailable (${mysql.safeError(err)}) — run \`npm run migrate\` once MySQL is up`
+    )
+  );
 
 /* ---------------- security & parsing ---------------- */
 app.disable("x-powered-by");
