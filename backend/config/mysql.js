@@ -1,24 +1,28 @@
 /**
  * ============================================================
- *  MySQL connection — ONE pooled connection for the whole app.
+ * MySQL connection + optional Namecheap SSH tunnel.
  *
- *  Used by the contact-form API (POST /api/contact), whose
- *  submissions are stored in the MySQL `contacts` table.
+ * Render backend -> SSH tunnel -> Namecheap MySQL
  *
- *  Credentials come from environment variables only (never
- *  hard-coded, never logged):
- *    MYSQL_HOST, MYSQL_PORT, MYSQL_USER, MYSQL_PASSWORD,
- *    MYSQL_DATABASE, MYSQL_CONNECTION_LIMIT, MYSQL_SSL
- *  …or a single connection string:
- *    MYSQL_URL / DATABASE_URL
+ * Namecheap:
+ *   SSH host: 66.29.132.129
+ *   SSH port: 21098
+ *   Remote MySQL: 127.0.0.1:3306
  *
- *  NOTE: this is additive. The existing JSON store
- *  (`config/database.js`) keeps serving leads / meetings /
- *  applications / news untouched — no architecture was replaced.
+ * Render/local MySQL client endpoint:
+ *   127.0.0.1:5522
  * ============================================================
  */
+
 require("dotenv").config();
+
 const mysql = require("mysql2/promise");
+const net = require("net");
+const { Client } = require("ssh2");
+
+// ------------------------------------------------------------
+// Defaults
+// ------------------------------------------------------------
 
 const DEFAULTS = {
   host: "127.0.0.1",
@@ -28,53 +32,334 @@ const DEFAULTS = {
   database: "bluconnet_media",
 };
 
-/* Single connection string (Render / Railway / PlanetScale style) wins. */
-const CONNECTION_URI = (process.env.MYSQL_URL || process.env.DATABASE_URL || "").trim();
+// ------------------------------------------------------------
+// Environment
+// ------------------------------------------------------------
 
-const DATABASE = (process.env.MYSQL_DATABASE || DEFAULTS.database).trim();
+const CONNECTION_URI = (
+  process.env.MYSQL_URL ||
+  process.env.DATABASE_URL ||
+  ""
+).trim();
+
+const DATABASE = (
+  process.env.MYSQL_DATABASE ||
+  DEFAULTS.database
+).trim();
+
+const SSH_ENABLED =
+  Boolean(process.env.NAMECHEAP_SSH_HOST) &&
+  Boolean(process.env.NAMECHEAP_SSH_USER) &&
+  Boolean(process.env.NAMECHEAP_SSH_KEY_B64);
+
+const SSH_HOST = process.env.NAMECHEAP_SSH_HOST || "";
+const SSH_PORT = Number(process.env.NAMECHEAP_SSH_PORT || 21098) || 21098;
+const SSH_USER = process.env.NAMECHEAP_SSH_USER || "";
+const SSH_PASSPHRASE = process.env.NAMECHEAP_SSH_PASSPHRASE || "";
+
+const TUNNEL_LOCAL_HOST = "127.0.0.1";
+const TUNNEL_LOCAL_PORT =
+  Number(process.env.MYSQL_TUNNEL_LOCAL_PORT || 5522) || 5522;
+
+const TUNNEL_REMOTE_HOST = "127.0.0.1";
+const TUNNEL_REMOTE_PORT = 3306;
+
+// ------------------------------------------------------------
+// Namecheap SSH tunnel
+// ------------------------------------------------------------
+
+const tunnelState = {
+  ssh: null,
+  ready: false,
+  connecting: false,
+  server: null,
+  reconnectTimer: null,
+  queue: [],
+};
+
+function getPrivateKey() {
+  try {
+    return Buffer.from(process.env.NAMECHEAP_SSH_KEY_B64, "base64");
+  } catch (err) {
+    throw new Error("Invalid NAMECHEAP_SSH_KEY_B64");
+  }
+}
+
+function flushTunnelQueue() {
+  if (!tunnelState.ready) return;
+
+  const queued = tunnelState.queue.splice(0);
+
+  for (const socket of queued) {
+    if (!socket.destroyed) {
+      openForward(socket);
+    }
+  }
+}
+
+function openForward(socket) {
+  if (socket.destroyed) return;
+
+  if (!tunnelState.ready || !tunnelState.ssh) {
+    socket.pause();
+
+    tunnelState.queue.push(socket);
+
+    socket.once("close", () => {
+      const index = tunnelState.queue.indexOf(socket);
+
+      if (index !== -1) {
+        tunnelState.queue.splice(index, 1);
+      }
+    });
+
+    return;
+  }
+
+  const ssh = tunnelState.ssh;
+
+  ssh.forwardOut(
+    "127.0.0.1",
+    0,
+    TUNNEL_REMOTE_HOST,
+    TUNNEL_REMOTE_PORT,
+    (err, stream) => {
+      if (err) {
+        console.error("[mysql/ssh] forward error:", err.message);
+        socket.destroy();
+        return;
+      }
+
+      socket.pipe(stream);
+      stream.pipe(socket);
+
+      stream.on("error", (streamErr) => {
+        console.error(
+          "[mysql/ssh] stream error:",
+          streamErr.message
+        );
+
+        socket.destroy();
+      });
+
+      socket.on("error", () => {
+        stream.destroy();
+      });
+
+      socket.on("close", () => {
+        stream.destroy();
+      });
+
+      socket.resume();
+    }
+  );
+}
+
+function scheduleSSHReconnect() {
+  if (tunnelState.reconnectTimer) return;
+
+  tunnelState.reconnectTimer = setTimeout(() => {
+    tunnelState.reconnectTimer = null;
+    connectSSH();
+  }, 5000);
+}
+
+function connectSSH() {
+  if (!SSH_ENABLED) return;
+
+  if (tunnelState.connecting || tunnelState.ready) {
+    return;
+  }
+
+  tunnelState.connecting = true;
+
+  const ssh = new Client();
+
+  tunnelState.ssh = ssh;
+
+  ssh.on("ready", () => {
+    tunnelState.connecting = false;
+    tunnelState.ready = true;
+
+    console.log(
+      `[mysql/ssh] SSH tunnel connected to ${SSH_USER}@${SSH_HOST}:${SSH_PORT}`
+    );
+
+    console.log(
+      `[mysql/ssh] MySQL forwarding: ${TUNNEL_LOCAL_HOST}:${TUNNEL_LOCAL_PORT} -> ${TUNNEL_REMOTE_HOST}:${TUNNEL_REMOTE_PORT}`
+    );
+
+    flushTunnelQueue();
+  });
+
+  ssh.on("error", (err) => {
+    tunnelState.connecting = false;
+    tunnelState.ready = false;
+
+    console.error(
+      "[mysql/ssh] SSH error:",
+      err.message
+    );
+  });
+
+  ssh.on("close", () => {
+    tunnelState.connecting = false;
+    tunnelState.ready = false;
+
+    if (tunnelState.ssh === ssh) {
+      tunnelState.ssh = null;
+    }
+
+    console.error(
+      "[mysql/ssh] SSH connection closed. Reconnecting in 5 seconds..."
+    );
+
+    scheduleSSHReconnect();
+  });
+
+  try {
+    ssh.connect({
+      host: SSH_HOST,
+      port: SSH_PORT,
+      username: SSH_USER,
+      privateKey: getPrivateKey(),
+      passphrase: SSH_PASSPHRASE || undefined,
+      readyTimeout: 20000,
+      keepaliveInterval: 10000,
+      keepaliveCountMax: 3,
+    });
+  } catch (err) {
+    tunnelState.connecting = false;
+
+    console.error(
+      "[mysql/ssh] SSH connect failed:",
+      err.message
+    );
+
+    scheduleSSHReconnect();
+  }
+}
+
+function startNamecheapTunnel() {
+  if (!SSH_ENABLED) {
+    console.log(
+      "[mysql/ssh] SSH tunnel disabled. Using direct MySQL connection."
+    );
+
+    return;
+  }
+
+  tunnelState.server = net.createServer((socket) => {
+    openForward(socket);
+  });
+
+  tunnelState.server.on("error", (err) => {
+    console.error(
+      "[mysql/ssh] Local tunnel server error:",
+      err.message
+    );
+  });
+
+  tunnelState.server.listen(
+    TUNNEL_LOCAL_PORT,
+    TUNNEL_LOCAL_HOST,
+    () => {
+      console.log(
+        `[mysql/ssh] Local tunnel listening on ${TUNNEL_LOCAL_HOST}:${TUNNEL_LOCAL_PORT}`
+      );
+
+      connectSSH();
+    }
+  );
+}
+
+if (SSH_ENABLED) {
+  startNamecheapTunnel();
+}
+
+// ------------------------------------------------------------
+// MySQL pool options
+// ------------------------------------------------------------
 
 const poolOptions = {
   waitForConnections: true,
-  connectionLimit: Number(process.env.MYSQL_CONNECTION_LIMIT || 10) || 10,
+
+  connectionLimit:
+    Number(process.env.MYSQL_CONNECTION_LIMIT || 10) || 10,
+
   queueLimit: 0,
+
   charset: "utf8mb4_unicode_ci",
+
   enableKeepAlive: true,
+
   keepAliveInitialDelay: 10000,
-  // BIGINT columns (id, counts) stay exact instead of silently losing precision.
+
   supportBigNumbers: true,
+
   bigNumberStrings: false,
 };
 
-/* Managed MySQL (PlanetScale / Aiven / RDS / …) is TLS-only. Explicit opt-in:
-   MYSQL_SSL=true  [MYSQL_SSL_REJECT_UNAUTHORIZED=false for self-signed certs] */
-if (String(process.env.MYSQL_SSL || "").toLowerCase() === "true") {
+// ------------------------------------------------------------
+// Optional SSL
+// ------------------------------------------------------------
+
+if (
+  String(process.env.MYSQL_SSL || "").toLowerCase() === "true"
+) {
   poolOptions.ssl = {
     rejectUnauthorized:
-      String(process.env.MYSQL_SSL_REJECT_UNAUTHORIZED || "true").toLowerCase() !== "false",
+      String(
+        process.env.MYSQL_SSL_REJECT_UNAUTHORIZED || "true"
+      ).toLowerCase() !== "false",
   };
 }
 
+// ------------------------------------------------------------
+// MySQL pool
+// ------------------------------------------------------------
+
 const pool = CONNECTION_URI
-  ? mysql.createPool({ uri: CONNECTION_URI, ...poolOptions })
+  ? mysql.createPool({
+      uri: CONNECTION_URI,
+      ...poolOptions,
+    })
   : mysql.createPool({
-      host: process.env.MYSQL_HOST || DEFAULTS.host,
-      port: Number(process.env.MYSQL_PORT || DEFAULTS.port) || DEFAULTS.port,
-      user: process.env.MYSQL_USER || DEFAULTS.user,
-      password: process.env.MYSQL_PASSWORD || DEFAULTS.password,
+      host: SSH_ENABLED
+        ? TUNNEL_LOCAL_HOST
+        : process.env.MYSQL_HOST || DEFAULTS.host,
+
+      port: SSH_ENABLED
+        ? TUNNEL_LOCAL_PORT
+        : Number(
+            process.env.MYSQL_PORT || DEFAULTS.port
+          ) || DEFAULTS.port,
+
+      user:
+        process.env.MYSQL_USER ||
+        DEFAULTS.user,
+
+      password:
+        process.env.MYSQL_PASSWORD ||
+        DEFAULTS.password,
+
       database: DATABASE,
+
       ...poolOptions,
     });
+
+// ------------------------------------------------------------
+// Public helpers
+// ------------------------------------------------------------
 
 function getPool() {
   return pool;
 }
 
-/** Run a (non-prepared) statement on the pool. Only for trusted, static SQL. */
 function query(sql, params = []) {
   return pool.query(sql, params);
 }
 
-/** Run a PREPARED statement — every user-supplied value goes through here. */
 function execute(sql, params = []) {
   return pool.execute(sql, params);
 }
@@ -83,9 +368,9 @@ function getConnection() {
   return pool.getConnection();
 }
 
-/** Cheap connectivity probe. Throws when the database is unreachable. */
 async function ping() {
   const conn = await pool.getConnection();
+
   try {
     await conn.ping();
     return true;
@@ -95,81 +380,154 @@ async function ping() {
 }
 
 /**
- * Create the target schema if it does not exist yet.
- * Idempotent + safe: CREATE DATABASE IF NOT EXISTS is a no-op when it exists.
- * Only used at bootstrap/migration time, never on the request path.
+ * Database already exists on Namecheap.
+ *
+ * By default, DO NOT run CREATE DATABASE because the cPanel
+ * database user normally does not have CREATE DATABASE privilege.
+ *
+ * To explicitly allow creation elsewhere:
+ * MYSQL_CREATE_DATABASE=true
  */
 async function ensureDatabase() {
   const database = CONNECTION_URI
-    ? new URL(CONNECTION_URI).pathname.replace(/^\//, "") || DATABASE
+    ? new URL(CONNECTION_URI).pathname.replace(/^\//, "") ||
+      DATABASE
     : DATABASE;
 
-  // Connect WITHOUT selecting a schema so we can create it when missing.
+  const shouldCreate =
+    String(
+      process.env.MYSQL_CREATE_DATABASE || "false"
+    ).toLowerCase() === "true";
+
+  if (!shouldCreate) {
+    return database;
+  }
+
   const connection = await (CONNECTION_URI
-    ? mysql.createConnection({ uri: CONNECTION_URI.replace(/\/[^/?]*(\?|$)/, "/"), ...poolOptions })
+    ? mysql.createConnection({
+        uri: CONNECTION_URI.replace(
+          /\/[^/?]*(\?|$)/,
+          "/"
+        ),
+        ...poolOptions,
+      })
     : mysql.createConnection({
-        host: process.env.MYSQL_HOST || DEFAULTS.host,
-        port: Number(process.env.MYSQL_PORT || DEFAULTS.port) || DEFAULTS.port,
-        user: process.env.MYSQL_USER || DEFAULTS.user,
-        password: process.env.MYSQL_PASSWORD || DEFAULTS.password,
+        host: SSH_ENABLED
+          ? TUNNEL_LOCAL_HOST
+          : process.env.MYSQL_HOST || DEFAULTS.host,
+
+        port: SSH_ENABLED
+          ? TUNNEL_LOCAL_PORT
+          : Number(
+              process.env.MYSQL_PORT || DEFAULTS.port
+            ) || DEFAULTS.port,
+
+        user:
+          process.env.MYSQL_USER ||
+          DEFAULTS.user,
+
+        password:
+          process.env.MYSQL_PASSWORD ||
+          DEFAULTS.password,
+
         ...poolOptions,
       }));
 
   try {
     await connection.query(
-      `CREATE DATABASE IF NOT EXISTS \`${database.replace(/`/g, "")}\`
-       CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`
+      `CREATE DATABASE IF NOT EXISTS \`${database.replace(
+        /`/g,
+        ""
+      )}\`
+       CHARACTER SET utf8mb4
+       COLLATE utf8mb4_unicode_ci`
     );
+
     return database;
   } finally {
     await connection.end();
   }
 }
 
-/** Target description for logs — never contains the password. */
 function describeTarget() {
   if (CONNECTION_URI) {
     try {
       const u = new URL(CONNECTION_URI);
-      return `${u.username ? u.username + "@" : ""}${u.hostname}:${u.port || 3306}/${u.pathname.replace(/^\//, "")}`;
+
+      return `${
+        u.username ? u.username + "@" : ""
+      }${u.hostname}:${u.port || 3306}/${u.pathname.replace(
+        /^\//,
+        ""
+      )}`;
     } catch (e) {
       return "MYSQL_URL (unparseable)";
     }
   }
-  return `${process.env.MYSQL_USER || DEFAULTS.user}@${process.env.MYSQL_HOST || DEFAULTS.host}:${
-    process.env.MYSQL_PORT || DEFAULTS.port
+
+  return `${
+    process.env.MYSQL_USER || DEFAULTS.user
+  }@${
+    SSH_ENABLED
+      ? TUNNEL_LOCAL_HOST
+      : process.env.MYSQL_HOST || DEFAULTS.host
+  }:${
+    SSH_ENABLED
+      ? TUNNEL_LOCAL_PORT
+      : process.env.MYSQL_PORT || DEFAULTS.port
   }/${DATABASE}`;
 }
 
-/**
- * Error text that is safe for LOGS (never returned to a client).
- * Keeps the driver's error code/message so operators can debug, and
- * deliberately drops anything that could carry credentials.
- */
 function safeError(err) {
   if (!err) return "unknown error";
+
   const code = err.code || err.sqlState || "";
-  const message = String(err.message || "").replace(/password[^,;]*/gi, "password=***");
+
+  const message = String(
+    err.message || ""
+  ).replace(/password[^,;]*/gi, "password=***");
+
   return `${code ? code + " " : ""}${message}`.trim();
 }
 
 function isConnectionError(err) {
-  return !err || !err.code
-    ? false
-    : [
-        "ECONNREFUSED",
-        "ENOTFOUND",
-        "ETIMEDOUT",
-        "EHOSTUNREACH",
-        "ER_ACCESS_DENIED_ERROR",
-        "ER_BAD_DB_ERROR",
-        "PROTOCOL_CONNECTION_LOST",
-        "ER_CON_COUNT_ERROR",
-        "ER_NOT_SUPPORTED_AUTH_MODE",
-      ].includes(err.code);
+  if (!err || !err.code) {
+    return false;
+  }
+
+  return [
+    "ECONNREFUSED",
+    "ENOTFOUND",
+    "ETIMEDOUT",
+    "EHOSTUNREACH",
+    "ER_ACCESS_DENIED_ERROR",
+    "ER_BAD_DB_ERROR",
+    "PROTOCOL_CONNECTION_LOST",
+    "ER_CON_COUNT_ERROR",
+    "ER_NOT_SUPPORTED_AUTH_MODE",
+  ].includes(err.code);
 }
 
 async function close() {
+  if (tunnelState.server) {
+    await new Promise((resolve) => {
+      tunnelState.server.close(() => resolve());
+    }).catch(() => {});
+  }
+
+  if (tunnelState.reconnectTimer) {
+    clearTimeout(tunnelState.reconnectTimer);
+    tunnelState.reconnectTimer = null;
+  }
+
+  if (tunnelState.ssh) {
+    tunnelState.ssh.end();
+    tunnelState.ssh = null;
+  }
+
+  tunnelState.ready = false;
+  tunnelState.connecting = false;
+
   await pool.end();
 }
 
