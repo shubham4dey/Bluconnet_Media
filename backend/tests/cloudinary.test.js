@@ -69,6 +69,47 @@ test("safeFilename strips unsafe characters but stays readable", () => {
   assert.equal(cloudinary.safeFilename("../../etc/passwd"), "etcpasswd");
 });
 
+test("urlFromPublicId rebuilds the permanent delivery URL of an asset", () => {
+  assert.equal(
+    cloudinary.urlFromPublicId("bluconnet/news/probe-test-blue_qo4pm3"),
+    `https://res.cloudinary.com/${
+      cloudinary.cloudName() || cloudinary.DEFAULT_CLOUD_NAME
+    }/image/upload/bluconnet/news/probe-test-blue_qo4pm3`
+  );
+  // A leading slash is tolerated, other resource types are honoured.
+  assert.match(
+    cloudinary.urlFromPublicId("/bluconnet/news/banner.png"),
+    /\/image\/upload\/bluconnet\/news\/banner\.png$/
+  );
+  assert.match(
+    cloudinary.urlFromPublicId("bluconnet/news/banner.png", { resourceType: "video" }),
+    /\/video\/upload\/bluconnet\/news\/banner\.png$/
+  );
+});
+
+test("urlFromPublicId refuses anything that is not a usable public_id", () => {
+  assert.equal(cloudinary.urlFromPublicId(""), "");
+  assert.equal(cloudinary.urlFromPublicId("   "), "");
+  assert.equal(cloudinary.urlFromPublicId(null), "");
+  // A full URL is not a public_id (that would build a nonsense double URL).
+  assert.equal(
+    cloudinary.urlFromPublicId("https://res.cloudinary.com/wyixfdon/image/upload/a.png"),
+    ""
+  );
+  assert.equal(cloudinary.urlFromPublicId("bluconnet/news/../../etc/passwd"), "");
+  assert.equal(cloudinary.urlFromPublicId("bluconnet/news/a b.png"), "");
+});
+
+test("every stored Cloudinary secure_url round-trips through its public_id", () => {
+  const url =
+    "https://res.cloudinary.com/wyixfdon/image/upload/v1790156372/bluconnet/news/probe-test-blue_qo4pm3.png";
+  const publicId = cloudinary.publicIdFromUrl(url);
+  assert.equal(publicId, "bluconnet/news/probe-test-blue_qo4pm3");
+  const rebuilt = cloudinary.urlFromPublicId(publicId);
+  assert.equal(rebuilt.endsWith("/bluconnet/news/probe-test-blue_qo4pm3"), true);
+  assert.equal(cloudinary.isCloudinaryUrl(rebuilt), true);
+});
+
 test("describe() always reports a usable status string", () => {
   const description = cloudinary.describe();
   assert.equal(typeof description, "string");

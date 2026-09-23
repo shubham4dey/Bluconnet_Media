@@ -86,9 +86,17 @@ export const getPublishedNewsById = (id) =>
  * Legacy `/uploads/...` paths (older articles) still resolve against the
  * backend origin so they keep rendering until they are migrated. */
 export const resolveUrl = (u) => {
-  if (!u) return "";
-  if (/^https?:\/\//i.test(u) || /^data:/.test(u)) return u;
-  return `${ORIGIN}${u.startsWith("/") ? "" : "/"}${u}`;
+  // Trim first: a stored value with stray whitespace (hand-edited database
+  // row, copy/paste) would otherwise be treated as a relative path and turn a
+  // perfectly valid Cloudinary URL into a broken one.
+  const raw = String(u == null ? "" : u).trim();
+  if (!raw) return "";
+  if (/^data:/i.test(raw)) return raw;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  // Protocol-relative CDN URLs (<img src="//res.cloudinary.com/...">) are
+  // absolute too — do not glue the API origin in front of them.
+  if (/^\/\//.test(raw)) return `https:${raw}`;
+  return `${ORIGIN}${raw.startsWith("/") ? "" : "/"}${raw}`;
 };
 
 /* ---------- image upload → Cloudinary (admin-authenticated) ----------

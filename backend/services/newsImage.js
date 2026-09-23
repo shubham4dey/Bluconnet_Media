@@ -344,6 +344,28 @@ function createNewsImageService({
       const kind = classifyImageUrl(value);
 
       if (kind === CLASS.EMPTY) {
+        // A record can end up without its `imageUrl` (a publish interrupted
+        // mid-upload, a hand-edited row) while the asset itself is still on
+        // Cloudinary. The stored `public_id` is enough to rebuild the delivery
+        // URL, so an existing valid Cloudinary image is shown again instead of
+        // the placeholder.
+        const storedId = String((row && row.imagePublicId) || "").trim();
+        const rebuilt =
+          storedId && typeof cloud.urlFromPublicId === "function"
+            ? cloud.urlFromPublicId(storedId)
+            : "";
+        if (rebuilt) {
+          if (!dryRun) {
+            await store.update(row.id, { imageUrl: rebuilt, imagePublicId: storedId });
+          }
+          report.migrated += 1;
+          report.items.push({
+            id: row.id,
+            action: "url-rebuilt-from-public-id",
+            to: rebuilt,
+          });
+          continue;
+        }
         report.skipped += 1;
         continue;
       }

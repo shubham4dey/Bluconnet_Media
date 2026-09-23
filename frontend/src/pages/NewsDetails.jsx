@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { FaArrowLeft, FaCalendarAlt, FaClock } from "react-icons/fa";
 import { getPublishedNewsById, resolveUrl } from "../services/newsApi";
+import { NEWS_ARTICLE_FALLBACK } from "../utils/newsImageFallback";
 
 const NewsDetails = () => {
   const { id } = useParams();
@@ -64,6 +65,13 @@ const NewsDetails = () => {
                 src={resolveUrl(article.imageUrl)}
                 alt={article.title}
                 className="w-full h-auto max-h-[600px] object-contain"
+                onError={(e) => {
+                  // Never leave a broken image icon in the hero: swap in the
+                  // inline placeholder (same element/classes, so the layout
+                  // and the design are untouched).
+                  e.target.onerror = null;
+                  e.target.src = NEWS_ARTICLE_FALLBACK;
+                }}
               />
             </div>
           )}

@@ -38,6 +38,7 @@ function makeFakeCloud(overrides = {}) {
     // reuse the real URL parsing so the tests stay honest
     isCloudinaryUrl: cloudinary.isCloudinaryUrl,
     publicIdFromUrl: cloudinary.publicIdFromUrl,
+    urlFromPublicId: cloudinary.urlFromPublicId,
     uploadBuffer: async (buffer, opts) => {
       uploads.push({ buffer, opts });
       return {
@@ -284,6 +285,33 @@ test("migrateNewsImages upgrades recoverable references only", async () => {
   assert.equal(byId("3").imagePublicId, CLOUD_PUBLIC_ID);
   assert.equal(byId("4").imageUrl, "/uploads/missing.png"); // untouched
   assert.equal(byId("5").imageUrl, "https://blog.example.com/pic.jpg");
+});
+
+test("migrateNewsImages rebuilds a lost imageUrl from a stored public_id", async () => {
+  const store = makeStore([
+    // The URL was lost (publish interrupted mid-upload, hand-edited row) while
+    // the asset itself never left Cloudinary: the public_id is enough to bring
+    // the image back instead of the placeholder.
+    { id: "1", imageUrl: "", imagePublicId: "bluconnet/news/kept_pic" },
+    // Nothing to rebuild from -> left alone.
+    { id: "2", imageUrl: "", imagePublicId: "" },
+  ]);
+  const svc = makeService({ store });
+
+  const report = await svc.migrateNewsImages();
+
+  assert.equal(report.scanned, 2);
+  assert.equal(report.migrated, 1);
+  assert.equal(report.skipped, 1);
+  assert.match(store._data[0].imageUrl, /\/image\/upload\/bluconnet\/news\/kept_pic$/);
+  assert.equal(store._data[0].imagePublicId, "bluconnet/news/kept_pic");
+  assert.equal(store._data[1].imageUrl, "");
+
+  // Dry-run must report without touching the row.
+  const store2 = makeStore([{ id: "1", imageUrl: "", imagePublicId: "bluconnet/news/kept_pic" }]);
+  const dry = await makeService({ store: store2 }).migrateNewsImages({ dryRun: true });
+  assert.equal(dry.migrated, 1);
+  assert.equal(store2._data[0].imageUrl, "");
 });
 
 test("migrateNewsImages can also re-host external URLs and supports dry-run", async () => {

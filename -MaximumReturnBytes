@@ -1,0 +1,1 @@
+{"ok":true,"service":"bluconnet-ai-backend","time":"2026-09-23T09:03:14.123Z","news":{"store":{"durable":true,"table":"news","requireDb":true},"images":{"configured":true,"cloud":"wyixfdon","folder":"bluconnet/news"}}}

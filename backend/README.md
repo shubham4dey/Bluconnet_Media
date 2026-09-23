@@ -65,6 +65,14 @@ The server also runs the non-remote part on boot, so a deploy self-heals the
 images it can still recover. Nothing is written to `backend/uploads/` anymore
 (the `/uploads` static route only exists so old references keep resolving).
 
+The same pass also repairs a **half-stored image row**: when an article has no
+`imageUrl` but still carries its `imagePublicId` (a publish interrupted while
+the upload was running, a hand-edited row), the delivery URL is rebuilt from the
+`public_id` (`https://res.cloudinary.com/<cloud>/image/upload/<public_id>`), so
+an image that is already on Cloudinary shows up again instead of a placeholder.
+An article where *both* fields are empty cannot be recovered automatically — it
+has to be re-uploaded from the Admin panel.
+
 The Admin panel uploads through the authenticated `POST /api/admin/news/upload`
 route (Admin permissions unchanged); the legacy public `POST /api/upload`
 keeps the same contract but now also stores on Cloudinary.

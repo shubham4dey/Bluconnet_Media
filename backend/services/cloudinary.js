@@ -146,6 +146,41 @@ function publicIdFromUrl(url) {
   return [...publicSegments.slice(0, -1), last].join("/");
 }
 
+/**
+ * Build the permanent delivery URL of an asset from its Cloudinary
+ * `public_id`:
+ *
+ *     https://res.cloudinary.com/<cloud>/image/upload/<public_id>
+ *
+ * Cloudinary serves that URL directly (it is the very form the delivery
+ * URLs use, only without the version prefix), which makes it possible to
+ * repair a stored record whose `secure_url` was lost — while the asset
+ * itself never left Cloudinary. Returns "" when the public_id is unusable
+ * or the cloud name is unknown, so callers can treat it as "nothing to
+ * repair".
+ */
+function urlFromPublicId(publicId, opts = {}) {
+  const id = String(publicId == null ? "" : publicId)
+    .trim()
+    .replace(/^\/+/, "");
+  // A delivery path must not contain whitespace, control characters or any
+  // traversal sequence — such a value is not a public_id we generated.
+  if (!id || /\s/.test(id) || id.includes("..") || /^https?:/i.test(id)) return "";
+
+  // Same cloud the uploads use by default: when the SDK has no explicit cloud
+  // name configured, fall back to the BluConnet cloud the assets are uploaded
+  // to, so the repair still works on a bare service.
+  const name = cloudName() || DEFAULT_CLOUD_NAME;
+  if (!name) return "";
+
+  const resource =
+    String(opts.resourceType || "image")
+      .toLowerCase()
+      .replace(/[^a-z]/g, "") || "image";
+
+  return `https://res.cloudinary.com/${name}/${resource}/upload/${id}`;
+}
+
 /* ---------------- upload / destroy ---------------- */
 
 function safeFilename(name, fallback = "news-image") {
@@ -244,6 +279,7 @@ module.exports = {
   cloudName,
   isCloudinaryUrl,
   publicIdFromUrl,
+  urlFromPublicId,
   uploadBuffer,
   destroy,
   safeFilename,

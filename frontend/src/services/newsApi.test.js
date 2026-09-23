@@ -54,6 +54,29 @@ describe("resolveUrl", () => {
   it("returns an empty string for nothing", () => {
     expect(resolveUrl("")).toBe("");
     expect(resolveUrl(undefined)).toBe("");
+    expect(resolveUrl(null)).toBe("");
+  });
+
+  it("trims stray whitespace instead of turning a CDN URL into a relative one", () => {
+    expect(resolveUrl(`  ${CLOUD_URL}  `)).toBe(CLOUD_URL);
+    expect(resolveUrl(" https://res.cloudinary.com/wyixfdon/image/upload/v1/a.png")).toBe(
+      "https://res.cloudinary.com/wyixfdon/image/upload/v1/a.png"
+    );
+  });
+
+  it("keeps a protocol-relative CDN URL absolute", () => {
+    expect(resolveUrl("//res.cloudinary.com/wyixfdon/image/upload/v1/a.png")).toBe(
+      "https://res.cloudinary.com/wyixfdon/image/upload/v1/a.png"
+    );
+  });
+
+  it("resolves a relative path that has no leading slash", () => {
+    expect(resolveUrl("uploads/old.png")).toMatch(/^https?:\/\/.+\/uploads\/old\.png$/);
+  });
+
+  it("leaves inline data URLs untouched", () => {
+    const inline = "data:image/png;base64,AAAA";
+    expect(resolveUrl(inline)).toBe(inline);
   });
 });
 

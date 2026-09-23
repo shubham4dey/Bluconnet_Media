@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { FaSearch, FaTimes } from "react-icons/fa";
 import { getPublishedNews, resolveUrl } from "../services/newsApi";
+import { NEWS_CARD_FALLBACK } from "../utils/newsImageFallback";
 import "./News.css";
 
 const News = () => {
@@ -132,9 +133,13 @@ const News = () => {
                         className="news-image"
                         loading="lazy"
                         onError={(e) => {
+                          // An inline placeholder is used instead of an
+                          // external placeholder service: those no longer
+                          // serve images, so a failing image used to end up
+                          // as a broken icon. The card (class, size, layout)
+                          // is unchanged.
                           e.target.onerror = null;
-                          e.target.src =
-                            "https://via.placeholder.com/400x300?text=BluConnet+Media";
+                          e.target.src = NEWS_CARD_FALLBACK;
                         }}
                       />
                     ) : (

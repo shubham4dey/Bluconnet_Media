@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import {
@@ -20,6 +20,7 @@ import {
   migrateNewsImages,
   resolveUrl,
 } from "../services/newsApi";
+import { NEWS_THUMB_FALLBACK } from "../utils/newsImageFallback";
 
 const AdminNews = () => {
   const { isDarkMode } = useTheme();
@@ -39,6 +40,24 @@ const AdminNews = () => {
 
   // Non-blocking upload error shown inline under the image area (no new design).
   const [uploadError, setUploadError] = useState(null);
+
+  // Track an in-flight image upload so the submit handler waits for the
+  // Cloudinary `secure_url` before publishing.
+  //
+  // The promise is kept in a REF as well as in state on purpose:
+  //   • state (`pendingUpload`) drives the disabled submit button,
+  //   • the ref lets `handleSubmit` await the upload and read the URL from the
+  //     RESOLVED VALUE. Merely awaiting the promise is not enough — the handler
+  //     keeps the `formData` snapshot of the render it was created in, so
+  //     `setFormData({... imageUrl: url})` inside the upload callback is NOT
+  //     visible to it. That stale-closure gap is what published articles with
+  //     an empty `imageUrl` while the image was already on Cloudinary.
+  const [pendingUpload, setPendingUpload] = useState(null);
+  const [uploadInProgress, setUploadInProgress] = useState(false);
+  const pendingUploadRef = useRef(null);
+  // Monotonic id of the latest image selection: an older, slower upload must
+  // never overwrite the image the admin picked afterwards.
+  const uploadSeqRef = useRef(0);
 
     // Security Check & Load Data (from the central database, never localStorage)
   useEffect(() => {
@@ -148,7 +167,23 @@ const AdminNews = () => {
     // base64/blob or a local /uploads path: Render wipes the local filesystem on
     // every restart/redeploy, so only a Cloudinary URL is acceptable. On failure
     // the real backend error is shown below and no URL is kept.
-    uploadNewsImageFile(file).then(({ url, error }) => {
+    //
+    // The submit handler awaits this promise (via `pendingUploadRef`) and reads
+    // the Cloudinary URL from its RESOLVED value, so the article is never
+    // published with an empty `imageUrl` while the upload is still in flight —
+    // the exact failure that previously saved "imageUrl: ''" for images that
+    // were already visible in Cloudinary.
+    const seq = uploadSeqRef.current + 1;
+    uploadSeqRef.current = seq;
+
+    const upload = uploadNewsImageFile(file);
+    pendingUploadRef.current = upload;
+    setPendingUpload(upload);
+    setUploadInProgress(true);
+    upload.then(({ url, error }) => {
+      // A slower, superseded upload (another file was picked, or the image was
+      // removed) must not touch the form any more.
+      if (uploadSeqRef.current !== seq) return;
       if (url) {
         setImageBase64(null);
         setFormData((f) => ({ ...f, imageUrl: url }));
@@ -157,35 +192,63 @@ const AdminNews = () => {
         setImageBase64(null);
         setFormData((f) => ({ ...f, imageUrl: "" }));
       }
+    }).finally(() => {
+      if (uploadSeqRef.current !== seq) return;
+      pendingUploadRef.current = null;
+      setPendingUpload(null);
+      setUploadInProgress(false);
     });
   };
 
   const removeImage = () => {
+    // Invalidate a still-running upload, otherwise its late response would put
+    // the removed image back into the form.
+    uploadSeqRef.current += 1;
+    pendingUploadRef.current = null;
+    setPendingUpload(null);
+    setUploadInProgress(false);
     setImagePreview(null);
     setImageBase64(null);
-    setFormData({ ...formData, imageUrl: "" });
+    setFormData((f) => ({ ...f, imageUrl: "" }));
   };
 
     const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Wait for an in-flight image upload and take the Cloudinary `secure_url`
+    // from the RESOLVED promise value. Reading it here — instead of relying on
+    // `formData.imageUrl` — makes the saved article independent of React state
+    // timing, so publishing while an upload is still running can no longer
+    // store an empty image (the previous cause of articles showing the
+    // placeholder although the image was already on Cloudinary).
+    const inFlight = pendingUploadRef.current;
+    const settled = inFlight ? await inFlight : null;
+    const uploadedUrl = (settled && settled.url) || "";
+    const payload = { ...formData, imageUrl: uploadedUrl || formData.imageUrl };
+
     try {
       if (editingId) {
-        const res = await updateNews(editingId, formData);
-        alert(
-          res && res.ok
-            ? "News updated successfully!"
-            : (res && res.error) || "Could not update news."
-        );
+        const res = await updateNews(editingId, payload);
+        // A success must never hide the fact that the backend had to drop the
+        // image — the panel would otherwise publish an article without one.
+        const imageLost =
+          Boolean(payload.imageUrl) &&
+          Boolean(res && res.ok) &&
+          !(res.data && res.data.imageUrl);
+        const okText = imageLost
+          ? "News updated successfully, but the image could not be stored — please upload it again."
+          : "News updated successfully!";
+        alert(res && res.ok ? okText : (res && res.error) || "Could not update news.");
       } else {
         // Publish explicitly — the backend stores status "published"
         // plus publishedAt (single global source of truth).
-        const res = await createNews({ ...formData, status: "published" });
-        alert(
-          res && res.ok
-            ? "News published successfully!"
-            : (res && res.error) || "Could not publish news."
-        );
+        const res = await createNews({ ...payload, status: "published" });
+        const imageLost =
+          Boolean(payload.imageUrl) && Boolean(res && res.ok) && res.imageStored === false;
+        const okText = imageLost
+          ? "News published successfully, but the image could not be stored — please upload it again."
+          : "News published successfully!";
+        alert(res && res.ok ? okText : (res && res.error) || "Could not publish news.");
       }
       await loadNews();
     } catch {
@@ -196,6 +259,12 @@ const AdminNews = () => {
   };
 
   const handleEdit = (item) => {
+    // Drop any upload started for the previous article, so its (late) result
+    // cannot be attached to this one.
+    uploadSeqRef.current += 1;
+    pendingUploadRef.current = null;
+    setPendingUpload(null);
+    setUploadInProgress(false);
     setEditingId(item.id);
     setFormData({
       title: item.title,
@@ -221,6 +290,11 @@ const AdminNews = () => {
   };
 
   const resetForm = () => {
+    // Nothing in flight may leak into the next article.
+    uploadSeqRef.current += 1;
+    pendingUploadRef.current = null;
+    setPendingUpload(null);
+    setUploadInProgress(false);
     setEditingId(null);
     setFormData({
       title: "",
@@ -375,11 +449,12 @@ const AdminNews = () => {
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   type="submit"
+                  disabled={uploadInProgress}
                   className={`flex-1 py-3 rounded-lg font-bold bg-gradient-to-r ${
                     isDarkMode
                       ? "from-[#d4e157] to-[#06b6d4] text-black"
                       : "from-emerald-500 to-cyan-600 text-white"
-                  } hover:opacity-90 transition flex items-center justify-center gap-2`}
+                  } hover:opacity-90 transition flex items-center justify-center gap-2 ${uploadInProgress ? "opacity-60 cursor-not-allowed" : ""}`}
                 >
                   <FaUpload /> {editingId ? "Update News" : "Publish News"}
                 </button>
@@ -420,9 +495,12 @@ const AdminNews = () => {
                         src={resolveUrl(item.imageUrl)}
                         alt={item.title}
                         onError={(e) => {
+                          // Inline fallback instead of an external placeholder
+                          // service (which no longer serves images, so a broken
+                          // URL showed up as a broken icon). The tile keeps its
+                          // existing class/size.
                           e.target.onerror = null;
-                          e.target.src =
-                            "https://via.placeholder.com/80?text=No+Image";
+                          e.target.src = NEWS_THUMB_FALLBACK;
                         }}
                         className="w-full h-48 md:w-24 md:h-24 object-cover rounded-lg flex-shrink-0 bg-gray-200"
                       />
