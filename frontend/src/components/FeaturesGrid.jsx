@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { FaRocket, FaUsers, FaGlobe, FaHandshake } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 
 // Apni image import karein
@@ -8,6 +9,12 @@ import featuresImage from "../assets/img/h3.png";
 
 const FeaturesGrid = () => {
   const { isDarkMode } = useTheme();
+  const navigate = useNavigate();
+
+  // Entire section click → About Us
+  const handleSectionClick = () => {
+    navigate("/about");
+  };
 
   const features = [
     {
@@ -54,32 +61,55 @@ const FeaturesGrid = () => {
 
   return (
     <section
-      className={`py-20 md:py-28 px-4 ${isDarkMode ? "bg-[#050508]" : "bg-white"} relative overflow-hidden transition-colors duration-500`}
+      onClick={handleSectionClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handleSectionClick();
+        }
+      }}
+      tabIndex={0}
+      role="link"
+      aria-label="Learn more about BluConnet Media"
+      className={`py-20 md:py-28 px-4 ${
+        isDarkMode ? "bg-[#050508]" : "bg-white"
+      } relative overflow-hidden transition-colors duration-500 cursor-pointer`}
     >
       {/* Background Glow Effects */}
       <div
-        className={`absolute top-1/4 left-0 w-96 h-96 ${isDarkMode ? "bg-[#d4e157]/10" : "bg-emerald-500/10"} rounded-full blur-3xl`}
+        className={`absolute top-1/4 left-0 w-96 h-96 ${
+          isDarkMode ? "bg-[#d4e157]/10" : "bg-emerald-500/10"
+        } rounded-full blur-3xl`}
       ></div>
+
       <div
-        className={`absolute bottom-1/4 right-0 w-96 h-96 ${isDarkMode ? "bg-[#06b6d4]/10" : "bg-cyan-600/10"} rounded-full blur-3xl`}
+        className={`absolute bottom-1/4 right-0 w-96 h-96 ${
+          isDarkMode ? "bg-[#06b6d4]/10" : "bg-cyan-600/10"
+        } rounded-full blur-3xl`}
       ></div>
 
       {/* Subtle Grid Pattern */}
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: `radial-gradient(circle, ${isDarkMode ? "#d4e157" : "#10b981"} 1px, transparent 1px)`,
+          backgroundImage: `radial-gradient(circle, ${
+            isDarkMode ? "#d4e157" : "#10b981"
+          } 1px, transparent 1px)`,
           backgroundSize: "30px 30px",
         }}
       ></div>
 
       {/* Background Geometric Shapes */}
       <div
-        className={`absolute top-20 left-20 w-32 h-32 md:w-48 md:h-48 ${isDarkMode ? "opacity-10" : "opacity-20"} pointer-events-none`}
+        className={`absolute top-20 left-20 w-32 h-32 md:w-48 md:h-48 ${
+          isDarkMode ? "opacity-10" : "opacity-20"
+        } pointer-events-none`}
       >
         <svg
           viewBox="0 0 100 100"
-          className={`w-full h-full ${isDarkMode ? "text-[#d4e157]" : "text-emerald-500"}`}
+          className={`w-full h-full ${
+            isDarkMode ? "text-[#d4e157]" : "text-emerald-500"
+          }`}
         >
           <path
             d="M20 30 L50 10 L80 30 L80 70 L50 90 L20 70 Z"
@@ -87,6 +117,7 @@ const FeaturesGrid = () => {
             stroke="currentColor"
             strokeWidth="2"
           />
+
           <path
             d="M20 30 L50 50 L80 30 M50 50 L50 90"
             fill="none"
@@ -95,12 +126,17 @@ const FeaturesGrid = () => {
           />
         </svg>
       </div>
+
       <div
-        className={`absolute bottom-20 right-20 w-24 h-24 md:w-40 md:h-40 ${isDarkMode ? "opacity-10" : "opacity-20"} pointer-events-none rotate-12`}
+        className={`absolute bottom-20 right-20 w-24 h-24 md:w-40 md:h-40 ${
+          isDarkMode ? "opacity-10" : "opacity-20"
+        } pointer-events-none rotate-12`}
       >
         <svg
           viewBox="0 0 100 100"
-          className={`w-full h-full ${isDarkMode ? "text-[#06b6d4]" : "text-cyan-600"}`}
+          className={`w-full h-full ${
+            isDarkMode ? "text-[#06b6d4]" : "text-cyan-600"
+          }`}
         >
           <path
             d="M20 30 L50 10 L80 30 L80 70 L50 90 L20 70 Z"
@@ -108,6 +144,7 @@ const FeaturesGrid = () => {
             stroke="currentColor"
             strokeWidth="2"
           />
+
           <path
             d="M20 30 L50 50 L80 30 M50 50 L50 90"
             fill="none"
@@ -125,9 +162,13 @@ const FeaturesGrid = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className={`relative w-full aspect-square lg:aspect-auto lg:min-h-full rounded-2xl overflow-hidden border-2 ${isDarkMode ? "border-[#d4e157]/30" : "border-emerald-500/30"} shadow-2xl`}
+            className={`relative w-full aspect-square lg:aspect-auto lg:min-h-full rounded-2xl overflow-hidden border-2 ${
+              isDarkMode
+                ? "border-[#d4e157]/30"
+                : "border-emerald-500/30"
+            } shadow-2xl`}
           >
-            {/* Main Image - UPDATED FOR BETTER FIT */}
+            {/* Main Image */}
             <div className="absolute inset-0 flex items-center justify-center p-4">
               <img
                 src={featuresImage}
@@ -135,20 +176,35 @@ const FeaturesGrid = () => {
                 className="w-full h-full object-contain max-h-[700px]"
                 onError={(e) => {
                   e.target.style.display = "none";
-                  e.target.nextElementSibling.style.display = "flex";
+
+                  if (e.target.nextElementSibling) {
+                    e.target.nextElementSibling.style.display = "flex";
+                  }
                 }}
               />
 
               {/* Fallback Placeholder */}
               <div
-                className={`hidden absolute inset-0 flex items-center justify-center bg-gradient-to-br ${isDarkMode ? "from-[#0f1535] to-[#0a0e27]" : "from-white to-slate-50"}`}
+                className={`hidden absolute inset-0 items-center justify-center bg-gradient-to-br ${
+                  isDarkMode
+                    ? "from-[#0f1535] to-[#0a0e27]"
+                    : "from-white to-slate-50"
+                }`}
               >
                 <div className="text-center px-4">
                   <div
-                    className={`w-20 h-20 mx-auto mb-4 ${isDarkMode ? "bg-[#d4e157]/20" : "bg-emerald-100"} rounded-full flex items-center justify-center`}
+                    className={`w-20 h-20 mx-auto mb-4 ${
+                      isDarkMode
+                        ? "bg-[#d4e157]/20"
+                        : "bg-emerald-100"
+                    } rounded-full flex items-center justify-center`}
                   >
                     <svg
-                      className={`w-10 h-10 ${isDarkMode ? "text-[#d4e157]" : "text-emerald-600"}`}
+                      className={`w-10 h-10 ${
+                        isDarkMode
+                          ? "text-[#d4e157]"
+                          : "text-emerald-600"
+                      }`}
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -161,8 +217,11 @@ const FeaturesGrid = () => {
                       />
                     </svg>
                   </div>
+
                   <p
-                    className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} text-sm`}
+                    className={`${
+                      isDarkMode ? "text-gray-400" : "text-gray-600"
+                    } text-sm`}
                   >
                     Add your image to
                     <br />
@@ -172,12 +231,16 @@ const FeaturesGrid = () => {
               </div>
             </div>
 
-            {/* Gradient Overlay - REDUCED OPACITY FOR CLEARER IMAGE */}
+            {/* Gradient Overlay */}
             <div
-              className={`absolute inset-0 ${isDarkMode ? "bg-gradient-to-t from-[#0a0e27]/30 via-transparent to-transparent" : "bg-gradient-to-t from-black/10 via-transparent to-transparent"} pointer-events-none`}
+              className={`absolute inset-0 ${
+                isDarkMode
+                  ? "bg-gradient-to-t from-[#0a0e27]/30 via-transparent to-transparent"
+                  : "bg-gradient-to-t from-black/10 via-transparent to-transparent"
+              } pointer-events-none`}
             ></div>
 
-            {/* Glowing lines effect - REDUCED OPACITY */}
+            {/* Glowing lines effect */}
             <div
               className="absolute inset-0 opacity-5 pointer-events-none"
               style={{
@@ -187,9 +250,13 @@ const FeaturesGrid = () => {
               }}
             ></div>
 
-            {/* Animated Border Glow - REDUCED OPACITY */}
+            {/* Animated Border Glow */}
             <div
-              className={`absolute inset-0 border-2 border-transparent rounded-2xl bg-gradient-to-r ${isDarkMode ? "from-[#d4e157]/10 via-[#06b6d4]/10 to-[#d4e157]/10" : "from-emerald-500/10 via-cyan-600/10 to-emerald-500/10"} animate-pulse pointer-events-none`}
+              className={`absolute inset-0 border-2 border-transparent rounded-2xl bg-gradient-to-r ${
+                isDarkMode
+                  ? "from-[#d4e157]/10 via-[#06b6d4]/10 to-[#d4e157]/10"
+                  : "from-emerald-500/10 via-cyan-600/10 to-emerald-500/10"
+              } animate-pulse pointer-events-none`}
             ></div>
 
             {/* Yellow Diamond Logo at Bottom Center */}
@@ -197,19 +264,31 @@ const FeaturesGrid = () => {
               initial={{ opacity: 0, scale: 0, rotate: -180 }}
               whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.5, type: "spring", stiffness: 150 }}
+              transition={{
+                delay: 0.5,
+                type: "spring",
+                stiffness: 150,
+              }}
               className="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-24 md:w-32 md:h-32 z-10"
             >
               <div className="relative w-full h-full">
                 {/* Glow behind diamond */}
                 <div
-                  className={`absolute inset-0 ${isDarkMode ? "bg-[#d4e157]/40" : "bg-emerald-400/30"} rounded-full blur-2xl`}
+                  className={`absolute inset-0 ${
+                    isDarkMode
+                      ? "bg-[#d4e157]/40"
+                      : "bg-emerald-400/30"
+                  } rounded-full blur-2xl`}
                 ></div>
 
                 {/* Diamond Shape */}
                 <svg
                   viewBox="0 0 100 100"
-                  className={`w-full h-full ${isDarkMode ? "text-[#d4e157]" : "text-emerald-500"} fill-current drop-shadow-lg relative z-10`}
+                  className={`w-full h-full ${
+                    isDarkMode
+                      ? "text-[#d4e157]"
+                      : "text-emerald-500"
+                  } fill-current drop-shadow-lg relative z-10`}
                 >
                   <path d="M50 10 L90 50 L50 90 L10 50 Z" />
                 </svg>
@@ -222,7 +301,11 @@ const FeaturesGrid = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
-              className={`absolute top-6 left-6 ${isDarkMode ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27]" : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white"} px-4 py-2 rounded-lg font-bold text-sm shadow-lg z-10`}
+              className={`absolute top-6 left-6 ${
+                isDarkMode
+                  ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27]"
+                  : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white"
+              } px-4 py-2 rounded-lg font-bold text-sm shadow-lg z-10`}
             >
               10+ Years Excellence
             </motion.div>
@@ -241,16 +324,40 @@ const FeaturesGrid = () => {
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  transition={{ delay: index * 0.15, duration: 0.5 }}
+                  transition={{
+                    delay: index * 0.15,
+                    duration: 0.5,
+                  }}
                   whileHover={{ y: -8 }}
-                  className={`group relative bg-gradient-to-br ${isDarkMode ? "from-[#0f1535] to-[#0a0e27] border-white/10" : "from-white to-slate-50 border-gray-200"} border-2 rounded-2xl p-6 md:p-8 flex flex-col justify-between overflow-hidden ${isDarkMode ? "hover:border-[#d4e157]/50" : "hover:border-emerald-500/50"} ${isDarkMode ? "shadow-black/50" : "shadow-gray-200/50"} shadow-lg transition-all duration-500`}
+                  className={`group relative bg-gradient-to-br ${
+                    isDarkMode
+                      ? "from-[#0f1535] to-[#0a0e27] border-white/10"
+                      : "from-white to-slate-50 border-gray-200"
+                  } border-2 rounded-2xl p-6 md:p-8 flex flex-col justify-between overflow-hidden ${
+                    isDarkMode
+                      ? "hover:border-[#d4e157]/50"
+                      : "hover:border-emerald-500/50"
+                  } ${
+                    isDarkMode
+                      ? "shadow-black/50"
+                      : "shadow-gray-200/50"
+                  } shadow-lg transition-all duration-500`}
                 >
                   {/* Card Glow on Hover */}
                   <div
-                    className={`absolute -top-20 -right-20 w-40 h-40 ${isDarkMode ? "bg-[#d4e157]/10" : "bg-emerald-500/10"} rounded-full blur-3xl transition-all duration-500`}
+                    className={`absolute -top-20 -right-20 w-40 h-40 ${
+                      isDarkMode
+                        ? "bg-[#d4e157]/10"
+                        : "bg-emerald-500/10"
+                    } rounded-full blur-3xl transition-all duration-500`}
                   ></div>
+
                   <div
-                    className={`absolute -bottom-20 -left-20 w-40 h-40 ${isDarkMode ? "bg-[#06b6d4]/10" : "bg-cyan-600/10"} rounded-full blur-3xl transition-all duration-500`}
+                    className={`absolute -bottom-20 -left-20 w-40 h-40 ${
+                      isDarkMode
+                        ? "bg-[#06b6d4]/10"
+                        : "bg-cyan-600/10"
+                    } rounded-full blur-3xl transition-all duration-500`}
                   ></div>
 
                   {/* Top Accent Line */}
@@ -276,7 +383,11 @@ const FeaturesGrid = () => {
 
                     {/* Title */}
                     <h3
-                      className={`text-lg md:text-xl font-bold text-start mb-4 leading-tight transition-colors duration-300 ${isDarkMode ? "text-white group-hover:text-[#d4e157]" : "text-gray-900 group-hover:text-emerald-600"}`}
+                      className={`text-lg md:text-xl font-bold text-start mb-4 leading-tight transition-colors duration-300 ${
+                        isDarkMode
+                          ? "text-white group-hover:text-[#d4e157]"
+                          : "text-gray-900 group-hover:text-emerald-600"
+                      }`}
                     >
                       {feature.title}
                     </h3>
@@ -290,12 +401,19 @@ const FeaturesGrid = () => {
                         initial={{ opacity: 0, x: -10 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
-                        transition={{ delay: 0.4 + index * 0.1 + i * 0.1 }}
-                        className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} text-sm text-start md:text-base leading-relaxed flex items-start gap-2`}
+                        transition={{
+                          delay: 0.4 + index * 0.1 + i * 0.1,
+                        }}
+                        className={`${
+                          isDarkMode
+                            ? "text-gray-400"
+                            : "text-gray-600"
+                        } text-sm text-start md:text-base leading-relaxed flex items-start gap-2`}
                       >
                         <span
                           className={`flex-shrink-0 w-1.5 h-1.5 rounded-full bg-gradient-to-r ${activeColor} mt-2`}
                         ></span>
+
                         {point}
                       </motion.p>
                     ))}
@@ -303,7 +421,11 @@ const FeaturesGrid = () => {
 
                   {/* Bottom Accent Line */}
                   <div
-                    className={`mt-4 h-0.5 w-0 group-hover:w-full bg-gradient-to-r ${isDarkMode ? "from-[#d4e157] to-[#06b6d4]" : "from-emerald-500 to-cyan-600"} transition-all duration-500`}
+                    className={`mt-4 h-0.5 w-0 group-hover:w-full bg-gradient-to-r ${
+                      isDarkMode
+                        ? "from-[#d4e157] to-[#06b6d4]"
+                        : "from-emerald-500 to-cyan-600"
+                    } transition-all duration-500`}
                   ></div>
                 </motion.div>
               );

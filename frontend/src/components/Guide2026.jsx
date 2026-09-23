@@ -1,65 +1,97 @@
-import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { FaMinus, FaPlus, FaDownload, FaArrowRight } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import {
+  FaArrowRight,
+  FaCalendarAlt,
+  FaNewspaper,
+  FaExternalLinkAlt,
+  FaCheck,
+  FaEnvelope,
+} from "react-icons/fa";
 import { useTheme } from "../context/ThemeContext";
-
-// Import the guide image
-import guideImage from "../assets/img/h6.png";
+import { getPublishedNews, resolveUrl } from "../services/newsApi";
 
 const Guide2026 = () => {
   const { isDarkMode } = useTheme();
-  const [openIndex, setOpenIndex] = useState(null);
+  const [newsList, setNewsList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState("");
+  const [subscribed, setSubscribed] = useState(false);
 
-  const accordionItems = [
-    {
-      title: "WHAT'S CHANGING",
-      content:
-        "AI-driven discovery and value-focused spending are reshaping affiliate and influencer performance. Explore the consumer and market trends guiding partnership marketing in 2026.",
-    },
-    {
-      title: "WHAT'S DRIVING GROWTH",
-      content:
-        "High-intent channels like influencer, search, loyalty, and incentive partners are delivering efficient, measurable revenue. See which partnership types are scaling and why.",
-    },
-    {
-      title: "HOW BRANDS ARE ADAPTING",
-      content:
-        "Leading brands are connecting affiliate, influencer, and retail media into one full-funnel strategy powered by data and insights. Learn the frameworks guiding modern partnership marketing programs.",
-    },
-  ];
+  useEffect(() => {
+    let mounted = true;
 
-  const toggleAccordion = (index) => {
-    setOpenIndex(openIndex === index ? null : index);
+    const fetchNews = async () => {
+      try {
+        const res = await getPublishedNews();
+        const list =
+          res && res.ok && Array.isArray(res.data) ? res.data : [];
+
+        if (mounted) setNewsList(list);
+      } catch (error) {
+        console.error("News fetch error:", error);
+        if (mounted) setNewsList([]);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    fetchNews();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const latestNews = [...newsList]
+    .sort(
+      (a, b) =>
+        new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()
+    )
+    .slice(0, 6);
+
+  const getExcerpt = (post) => {
+    const text = post?.shortDesc || post?.description || post?.content || "";
+    return text.length > 145 ? `${text.slice(0, 145).trim()}...` : text;
   };
 
   return (
     <section
-      className={`py-20 md:py-28 px-4 ${isDarkMode ? "bg-[#050508]" : "bg-white"} relative overflow-hidden transition-colors duration-500`}
+      className={`relative overflow-hidden px-4 py-20 transition-colors duration-500 md:py-28 ${
+        isDarkMode ? "bg-[#050508]" : "bg-white"
+      }`}
     >
-      {/* Background Glow Effects */}
+      {/* PREMIUM BACKGROUND */}
       <div
-        className={`absolute top-0 right-0 w-96 h-96 ${isDarkMode ? "bg-[#d4e157]/10" : "bg-emerald-500/10"} rounded-full blur-3xl`}
-      ></div>
+        className={`pointer-events-none absolute -right-32 -top-32 h-[420px] w-[420px] rounded-full blur-3xl ${
+          isDarkMode ? "bg-[#d4e157]/10" : "bg-emerald-500/10"
+        }`}
+      />
       <div
-        className={`absolute bottom-0 left-0 w-96 h-96 ${isDarkMode ? "bg-[#06b6d4]/10" : "bg-cyan-600/10"} rounded-full blur-3xl`}
-      ></div>
-
-      {/* Subtle Grid Pattern */}
+        className={`pointer-events-none absolute -bottom-40 -left-40 h-[480px] w-[480px] rounded-full blur-3xl ${
+          isDarkMode ? "bg-[#06b6d4]/10" : "bg-cyan-500/10"
+        }`}
+      />
       <div
-        className="absolute inset-0 opacity-[0.03]"
+        className="pointer-events-none absolute inset-0 opacity-[0.035]"
         style={{
-          backgroundImage: `radial-gradient(circle, ${isDarkMode ? "#d4e157" : "#10b981"} 1px, transparent 1px)`,
+          backgroundImage: `radial-gradient(circle, ${
+            isDarkMode ? "#d4e157" : "#10b981"
+          } 1px, transparent 1px)`,
           backgroundSize: "30px 30px",
         }}
-      ></div>
+      />
 
-      {/* Background Geometric Shapes */}
+      {/* Decorative cube */}
       <div
-        className={`absolute top-20 right-20 w-32 h-32 md:w-48 md:h-48 ${isDarkMode ? "opacity-10" : "opacity-20"} pointer-events-none`}
+        className={`pointer-events-none absolute right-8 top-20 hidden h-40 w-40 md:block ${
+          isDarkMode ? "opacity-10" : "opacity-15"
+        }`}
       >
         <svg
           viewBox="0 0 100 100"
-          className={`w-full h-full ${isDarkMode ? "text-[#d4e157]" : "text-emerald-500"}`}
+          className={isDarkMode ? "text-[#d4e157]" : "text-emerald-500"}
         >
           <path
             d="M20 30 L50 10 L80 30 L80 70 L50 90 L20 70 Z"
@@ -76,291 +108,494 @@ const Guide2026 = () => {
         </svg>
       </div>
 
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header - Theme Colors */}
+      <div className="relative z-10 mx-auto max-w-7xl">
+        {/* HEADER */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
           className="mb-12 text-left"
         >
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mb-4"
+          <div
+            className={`mb-5 inline-flex items-center gap-3 rounded-full border px-4 py-2 ${
+              isDarkMode
+                ? "border-[#d4e157]/30 bg-[#d4e157]/10 text-[#d4e157]"
+                : "border-emerald-200 bg-emerald-50 text-emerald-700"
+            }`}
           >
-            <div
-              className={`inline-flex items-center gap-3 px-4 py-2 rounded-full ${
-                isDarkMode
-                  ? "bg-[#d4e157]/10 border border-[#d4e157]/30 text-[#d4e157]"
-                  : "bg-emerald-50 border border-emerald-200 text-emerald-700"
-              }`}
-            >
-              {/* Blinking Circle */}
-              <div className="relative flex items-center justify-center w-2.5 h-2.5">
-                <span
-                  className={`w-2.5 h-2.5 ${
-                    isDarkMode ? "bg-[#d4e157]" : "bg-emerald-500"
-                  } rounded-full`}
-                ></span>
-                <span
-                  className={`absolute inset-0 w-2.5 h-2.5 ${
-                    isDarkMode ? "bg-[#d4e157]" : "bg-emerald-500"
-                  } rounded-full animate-ping opacity-75`}
-                ></span>
-              </div>
-
+            <span className="relative flex h-2.5 w-2.5">
               <span
-                className={`text-[11px] sm:text-xs lg:text-sm font-bold uppercase tracking-wider ${isDarkMode ? "text-[#d4e157]" : "text-emerald-600"}`}
-              >
-                GUIDE
-              </span>
-            </div>
-          </motion.div>
-
-          <h2
-            className={`font-black leading-tight mb-6 ${
-              isDarkMode ? "text-white" : "text-gray-900"
-            } text-3xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl`}
-          >
-            <span className={isDarkMode ? "text-white" : "text-gray-900"}>
-              TRENDS AND STRATEGIES
-            </span>
-            <br />
-            <span
-              className={`text-transparent bg-clip-text bg-gradient-to-r ${isDarkMode ? "from-[#d4e157] to-[#06b6d4]" : "from-emerald-500 to-cyan-600"}`}
-            >
-              FOR 2026
-            </span>
-          </h2>
-
-          <p
-            className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} text-lg md:text-xl mt-4 font-semibold`}
-          >
-            POWERED BY PROPRIETARY INSIGHTS FROM APVISION™
-          </p>
-        </motion.div>
-
-        {/* Content Grid - Image Left, Text Right */}
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
-          {/* Left Side: Report Cover with Image */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="relative"
-          >
-            {/* Main Image Container */}
-            <div
-              className={`group relative aspect-[4/3] rounded-2xl overflow-hidden shadow-2xl border-2 ${isDarkMode ? "border-[#d4e157]/30" : "border-emerald-500/30"} cursor-pointer transition-all duration-500 hover:shadow-[0_20px_60px_rgba(0,0,0,0.3)]`}
-            >
-              <img
-                src={guideImage}
-                alt="2026 Partnership Marketing Guide"
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${
+                  isDarkMode ? "bg-[#d4e157]" : "bg-emerald-500"
+                }`}
               />
+              <span
+                className={`relative inline-flex h-2.5 w-2.5 rounded-full ${
+                  isDarkMode ? "bg-[#d4e157]" : "bg-emerald-500"
+                }`}
+              />
+            </span>
+            <span className="text-xs font-bold uppercase tracking-[0.18em]">
+              OUR NEWS
+            </span>
+          </div>
 
-              {/* Overlay Gradient */}
-              <div
-                className={`absolute inset-0 bg-gradient-to-br ${
-                  isDarkMode
-                    ? "from-[#0a0e27]/0 via-[#0a0e27]/0 to-[#0a0e27]/0 group-hover:from-[#0a0e27]/90 group-hover:via-[#0a0e27]/85 group-hover:to-[#0a0e27]/95"
-                    : "from-slate-900/0 via-slate-900/0 to-slate-900/0 group-hover:from-slate-900/85 group-hover:via-slate-900/80 group-hover:to-slate-900/90"
-                } transition-all duration-500`}
-              ></div>
-
-              {/* Cyan Circle Decoration */}
-              <div
-                className={`absolute top-1/2 right-4 md:right-8 w-24 h-24 md:w-40 md:h-40 border-2 ${isDarkMode ? "border-[#06b6d4]/50" : "border-cyan-600/50"} rounded-full opacity-0 group-hover:opacity-100 transition-all duration-500 transform group-hover:rotate-45`}
+          <div className="flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <h2
+                className={`max-w-4xl text-4xl font-black leading-[1.02] sm:text-5xl md:text-6xl lg:text-7xl ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}
               >
-                <div
-                  className={`absolute inset-0 border-2 ${isDarkMode ? "border-[#06b6d4]/30" : "border-cyan-600/30"} rounded-full transform rotate-45`}
-                ></div>
-              </div>
-
-              {/* Content Overlay */}
-              <div className="absolute inset-0 flex flex-col justify-between p-4 md:p-8 opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
-                <div>
-                  <p
-                    className={`${isDarkMode ? "text-[#d4e157]" : "text-emerald-500"} text-xs md:text-sm font-bold tracking-widest mb-2 uppercase drop-shadow-lg`}
-                  >
-                    GUIDED BY AP'S 2025 YEAR IN REVIEW
-                  </p>
-                  <h4
-                    className={`text-lg md:text-2xl lg:text-3xl font-black leading-tight ${
-                      isDarkMode
-                        ? "text-white"
-                        : "text-gray-900 group-hover:text-white"
-                    } drop-shadow-lg transition-colors duration-500`}
-                  >
-                    PARTNERSHIP MARKETING'S
-                    <br />
-                    MOST DEFINING YEAR YET
-                  </h4>
-                </div>
-
-                <div className="flex items-center gap-2 md:gap-3">
-                  <div
-                    className={`w-6 h-6 md:w-8 md:h-8 ${isDarkMode ? "bg-white" : "bg-gray-100"} rounded-full flex items-center justify-center shadow-lg`}
-                  >
-                    <div className="w-4 h-4 md:w-5 md:h-5 bg-gradient-to-br from-[#d4e157] to-[#06b6d4] rounded-full transform rotate-45"></div>
-                  </div>
-                  <span
-                    className="font-bold text-white text-sm md:text-lg drop-shadow-lg"
-                  >
-                    BluConnet Media
-                  </span>
-                </div>
-              </div>
-
-              {/* Hover Indicator */}
-              <div className="absolute inset-0 flex items-center justify-center opacity-100 group-hover:opacity-0 transition-opacity duration-500 pointer-events-none">
-                <div
-                  className={`${isDarkMode ? "bg-white/10 backdrop-blur-md border border-white/20" : "bg-slate-900/10 backdrop-blur-md border border-slate-900/20"} px-6 py-3 rounded-full`}
-                >
-                  <p
-                    className={`${isDarkMode ? "text-white" : "text-slate-900"} font-bold text-sm md:text-base`}
-                  >
-                    Explore the Report
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* FREE DOWNLOAD Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
-              className={`absolute bottom-4 right-4 md:-bottom-6 md:-right-6 px-4 py-2 md:px-6 md:py-4 rounded-lg md:rounded-xl shadow-xl font-bold text-xs md:text-sm lg:text-base whitespace-nowrap z-20 ${
-                isDarkMode
-                  ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27]"
-                  : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white"
-              }`}
-            >
-              2026 EDITION
-            </motion.div>
-          </motion.div>
-
-          {/* Right Side: Description & Accordion */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className="text-left"
-          >
-            {/* Description Paragraph */}
-            <p
-              className={`text-base md:text-xl max-w-3xl mx-auto ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
-            >
-              Partnership marketing is evolving as AI reshapes discovery,
-              consumers become more value-focused, and brands face increasing
-              pressure to prove ROI. Powered by proprietary APVision™ data and
-              insights from across our global portfolio, this guide explores the
-              trends, channels, and strategies driving efficient growth across
-              affiliate, influencer, and commerce media.
-            </p>
-
-            {/* Accordion */}
-            <div className="space-y-4 mb-10">
-              {accordionItems.map((item, index) => (
-                <div
-                  key={index}
-                  className={`border-b transition-all duration-300 ${
-                    openIndex === index
-                      ? isDarkMode
-                        ? "border-[#d4e157]/30"
-                        : "border-emerald-500/30"
-                      : isDarkMode
-                        ? "border-white/10"
-                        : "border-gray-200"
+                Latest News &{" "}
+                <span
+                  className={`bg-gradient-to-r bg-clip-text text-transparent ${
+                    isDarkMode
+                      ? "from-[#d4e157] to-[#06b6d4]"
+                      : "from-emerald-500 to-cyan-600"
                   }`}
                 >
-                  <button
-                    onClick={() => toggleAccordion(index)}
-                    className="w-full flex justify-between items-center text-left group py-4"
-                  >
-                    <span
-                      className={`text-base md:text-lg font-bold transition-colors duration-300 ${
-                        openIndex === index
-                          ? isDarkMode
-                            ? "text-[#d4e157]"
-                            : "text-emerald-600"
-                          : `${isDarkMode ? "text-white" : "text-gray-900"} ${isDarkMode ? "group-hover:text-[#06b6d4]" : "group-hover:text-cyan-600"}`
-                      }`}
-                    >
-                      {item.title}
-                    </span>
-                    <div
-                      className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ml-4 transition-all duration-300 ${
-                        openIndex === index
-                          ? isDarkMode
-                            ? "bg-gradient-to-br from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-lg shadow-[#d4e157]/30"
-                            : "bg-gradient-to-br from-emerald-500 to-cyan-600 text-white shadow-lg shadow-emerald-500/30"
-                          : `${isDarkMode ? "bg-white/5 border border-white/20 text-white group-hover:border-[#06b6d4]/50" : "bg-gray-50 border border-gray-200 text-gray-700 group-hover:border-cyan-600/50"}`
-                      }`}
-                    >
-                      <motion.div
-                        animate={{ rotate: openIndex === index ? 180 : 0 }}
-                        transition={{ duration: 0.3 }}
-                      >
-                        {openIndex === index ? (
-                          <FaMinus size={10} />
-                        ) : (
-                          <FaPlus size={10} />
-                        )}
-                      </motion.div>
-                    </div>
-                  </button>
+                  Insights
+                </span>
+              </h2>
 
-                  <AnimatePresence>
-                    {openIndex === index && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="pb-4 pl-4 border-l-2 border-[#d4e157]/30">
-                          <p
-                            className={`text-base md:text-xl max-w-3xl mx-auto ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
-                          >
-                            {item.content}
-                          </p>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              ))}
+              <p
+                className={`mt-5 max-w-2xl text-base leading-7 md:text-lg ${
+                  isDarkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                Discover the latest updates, industry trends, announcements,
+                and insights from BluConnet Media.
+              </p>
             </div>
 
-            {/* ===== STYLISH PREMIUM BUTTON ===== */}
-            <motion.button
-              whileHover={{ scale: 1.05, y: -4 }}
-              whileTap={{ scale: 0.95 }}
-              className={`relative overflow-hidden group w-full md:w-auto px-8 py-4 rounded-xl font-black text-sm md:text-base uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-3 ${
+            <Link
+              to="/news"
+              className={`group inline-flex w-fit shrink-0 items-center gap-3 rounded-full border px-6 py-3.5 text-sm font-bold transition-all duration-300 ${
                 isDarkMode
-                  ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_8px_30px_rgba(212,225,87,0.3)] hover:shadow-[0_15px_40px_rgba(212,225,87,0.5)]"
-                  : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white shadow-[0_8px_30px_rgba(16,185,129,0.3)] hover:shadow-[0_15px_40px_rgba(16,185,129,0.5)]"
+                  ? "border-white/15 bg-white/5 text-white hover:border-[#06b6d4]/50 hover:bg-[#06b6d4]/10"
+                  : "border-gray-200 bg-white text-gray-900 shadow-sm hover:border-emerald-300 hover:bg-emerald-50"
               }`}
             >
-              {/* Animated Shine/Sweep Effect on Hover */}
-              <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/40 to-transparent z-10" />
-              
-              <span className="relative z-20 flex items-center gap-3">
-                GET THE 2026 REPORT
-                {/* <FaArrowRight className="text-lg group-hover:translate-x-1 transition-transform duration-300" /> */}
-              </span>
-            </motion.button>
+              View All News
+              <FaArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
+          </div>
+        </motion.div>
 
+        {/* LOADING */}
+        {loading && (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((item) => (
+              <div
+                key={item}
+                className={`animate-pulse overflow-hidden rounded-3xl border ${
+                  isDarkMode
+                    ? "border-white/10 bg-white/[0.04]"
+                    : "border-gray-200 bg-gray-50"
+                }`}
+              >
+                <div
+                  className={`h-64 ${
+                    isDarkMode ? "bg-white/10" : "bg-gray-200"
+                  }`}
+                />
+                <div className="space-y-4 p-6">
+                  <div
+                    className={`h-3 w-24 rounded ${
+                      isDarkMode ? "bg-white/10" : "bg-gray-200"
+                    }`}
+                  />
+                  <div
+                    className={`h-6 w-4/5 rounded ${
+                      isDarkMode ? "bg-white/10" : "bg-gray-200"
+                    }`}
+                  />
+                  <div
+                    className={`h-4 w-full rounded ${
+                      isDarkMode ? "bg-white/10" : "bg-gray-200"
+                    }`}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* NEWS CARDS */}
+        {!loading && latestNews.length > 0 && (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {latestNews.map((post, index) => (
+              <motion.article
+                key={post.id}
+                initial={{ opacity: 0, y: 35 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.15 }}
+                transition={{ duration: 0.6, delay: (index % 3) * 0.08 }}
+                className="group"
+              >
+                <Link
+                  to={`/news/${post.id}`}
+                  className={`relative block h-full overflow-hidden rounded-3xl border transition-all duration-500 ${
+                    isDarkMode
+                      ? "border-white/10 bg-[#0b0c12]/90 hover:border-[#d4e157]/30 hover:bg-[#10121a]"
+                      : "border-gray-200 bg-white hover:border-emerald-300"
+                  }`}
+                  style={{
+                    boxShadow: isDarkMode
+                      ? "0 20px 60px rgba(0,0,0,0.25)"
+                      : "0 20px 60px rgba(15,23,42,0.08)",
+                  }}
+                >
+                  {/* IMAGE */}
+                  <div className="relative h-64 overflow-hidden sm:h-72">
+                    {post.imageUrl ? (
+                      <img
+                        src={resolveUrl(post.imageUrl)}
+                        alt={post.title || "BluConnet Media News"}
+                        className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.style.display = "none";
+                        }}
+                      />
+                    ) : (
+                      <div
+                        className={`flex h-full w-full items-center justify-center ${
+                          isDarkMode
+                            ? "bg-gradient-to-br from-[#111827] via-[#0f172a] to-[#062e2e]"
+                            : "bg-gradient-to-br from-emerald-50 via-white to-cyan-50"
+                        }`}
+                      >
+                        <FaNewspaper
+                          className={`text-6xl ${
+                            isDarkMode
+                              ? "text-[#d4e157]/40"
+                              : "text-emerald-500/30"
+                          }`}
+                        />
+                      </div>
+                    )}
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent opacity-80" />
+
+                    <div className="absolute left-5 top-5">
+                      <span
+                        className={`rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] backdrop-blur-md ${
+                          isDarkMode
+                            ? "border-white/15 bg-black/30 text-white"
+                            : "border-white/40 bg-white/80 text-slate-800"
+                        }`}
+                      >
+                        News
+                      </span>
+                    </div>
+
+                    {post.date && (
+                      <div className="absolute bottom-5 left-5 flex items-center gap-2 text-xs font-semibold text-white drop-shadow-lg">
+                        <FaCalendarAlt />
+                        <span>{post.date}</span>
+                      </div>
+                    )}
+
+                    <div
+                      className={`absolute right-5 top-5 flex h-11 w-11 translate-y-2 items-center justify-center rounded-full border opacity-0 backdrop-blur-md transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 ${
+                        isDarkMode
+                          ? "border-white/20 bg-black/30 text-white"
+                          : "border-white/50 bg-white/80 text-slate-900"
+                      }`}
+                    >
+                      <FaExternalLinkAlt size={13} />
+                    </div>
+                  </div>
+
+                  {/* CONTENT */}
+                  <div className="p-6 text-left">
+                    <h3
+                      className={`line-clamp-2 text-xl font-extrabold leading-tight transition-colors duration-300 md:text-2xl ${
+                        isDarkMode
+                          ? "text-white group-hover:text-[#d4e157]"
+                          : "text-gray-900 group-hover:text-emerald-600"
+                      }`}
+                    >
+                      {post.title}
+                    </h3>
+
+                    <p
+                      className={`mt-4 line-clamp-3 text-sm leading-6 md:text-base ${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      {getExcerpt(post) ||
+                        "Read the latest update and insights from BluConnet Media."}
+                    </p>
+
+                    <div
+                      className={`mt-6 flex items-center justify-between border-t pt-5 ${
+                        isDarkMode ? "border-white/10" : "border-gray-100"
+                      }`}
+                    >
+                      <span
+                        className={`text-sm font-bold ${
+                          isDarkMode ? "text-[#d4e157]" : "text-emerald-600"
+                        }`}
+                      >
+                        Read News
+                      </span>
+
+                      <span
+                        className={`flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 group-hover:translate-x-1 ${
+                          isDarkMode
+                            ? "bg-[#d4e157]/10 text-[#d4e157]"
+                            : "bg-emerald-50 text-emerald-600"
+                        }`}
+                      >
+                        <FaArrowRight size={12} />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </motion.article>
+            ))}
+          </div>
+        )}
+
+        {/* EMPTY STATE */}
+        {!loading && latestNews.length === 0 && (
+          <div
+            className={`rounded-3xl border p-12 text-center ${
+              isDarkMode
+                ? "border-white/10 bg-white/[0.03]"
+                : "border-gray-200 bg-gray-50"
+            }`}
+          >
+            <FaNewspaper
+              className={`mx-auto mb-5 text-5xl ${
+                isDarkMode ? "text-[#d4e157]/50" : "text-emerald-500/40"
+              }`}
+            />
+            <h3
+              className={`text-2xl font-black ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              News coming soon
+            </h3>
+            <p
+              className={`mx-auto mt-3 max-w-xl ${
+                isDarkMode ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              Latest BluConnet Media news and updates will appear here.
+            </p>
+            <Link
+              to="/news"
+              className={`mt-7 inline-flex items-center gap-3 rounded-full px-6 py-3 font-bold ${
+                isDarkMode
+                  ? "bg-[#d4e157] text-[#0a0e27]"
+                  : "bg-emerald-500 text-white"
+              }`}
+            >
+              Open News Page
+              <FaArrowRight />
+            </Link>
+          </div>
+        )}
+
+        {/* =========================================================
+            NEWSLETTER SUBSCRIBE
+        ========================================================= */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className={`mt-16 overflow-hidden rounded-[28px] border p-6 md:p-8 lg:p-10 ${
+            isDarkMode
+              ? "border-white/10 bg-gradient-to-br from-[#0b1118] via-[#0f172a] to-[#062e2e]"
+              : "border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-cyan-50"
+          }`}
+        >
+          <div className="flex flex-col gap-7 lg:flex-row lg:items-center lg:justify-between">
+            {/* Newsletter Text */}
+            <div className="max-w-2xl text-left">
+              <div
+                className={`mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 ${
+                  isDarkMode
+                    ? "border-[#06b6d4]/30 bg-[#06b6d4]/10 text-[#06b6d4]"
+                    : "border-cyan-200 bg-cyan-50 text-cyan-700"
+                }`}
+              >
+                <FaEnvelope className="text-xs" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.16em]">
+                  Stay Updated
+                </span>
+              </div>
+
+              <h3
+                className={`text-2xl font-black leading-tight md:text-3xl ${
+                  isDarkMode ? "text-white" : "text-gray-900"
+                }`}
+              >
+                Subscribe to Our Newsletter
+              </h3>
+
+              <p
+                className={`mt-3 max-w-xl text-sm leading-6 md:text-base ${
+                  isDarkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
+                Get the latest news, digital marketing insights, industry
+                updates, and announcements from BluConnet Media directly in
+                your inbox.
+              </p>
+            </div>
+
+            {/* Subscribe Form / Success */}
+            <div className="w-full lg:max-w-xl">
+              {!subscribed ? (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+
+                    if (!email.trim()) return;
+
+                    // Temporary frontend-only success state.
+                    // Replace this with the real API call when backend is ready.
+                    setSubscribed(true);
+                  }}
+                  className="flex flex-col gap-3 sm:flex-row"
+                >
+                  <div
+                    className={`flex min-h-[54px] flex-1 items-center rounded-full border px-5 transition-all duration-300 ${
+                      isDarkMode
+                        ? "border-white/10 bg-white/5 focus-within:border-[#06b6d4]/50"
+                        : "border-gray-200 bg-white focus-within:border-emerald-400 shadow-sm"
+                    }`}
+                  >
+                    <FaEnvelope
+                      className={`mr-3 flex-shrink-0 text-sm ${
+                        isDarkMode
+                          ? "text-gray-500"
+                          : "text-gray-400"
+                      }`}
+                    />
+
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Enter your email address"
+                      required
+                      className={`w-full bg-transparent text-sm outline-none ${
+                        isDarkMode
+                          ? "text-white placeholder:text-gray-500"
+                          : "text-gray-900 placeholder:text-gray-400"
+                      }`}
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    className={`group inline-flex min-h-[54px] items-center justify-center gap-2 rounded-full px-7 text-sm font-black uppercase tracking-wider transition-all duration-300 ${
+                      isDarkMode
+                        ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_10px_30px_rgba(212,225,87,0.18)] hover:-translate-y-0.5"
+                        : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white shadow-[0_10px_30px_rgba(16,185,129,0.2)] hover:-translate-y-0.5"
+                    }`}
+                  >
+                    Subscribe
+                    <FaArrowRight className="text-xs transition-transform duration-300 group-hover:translate-x-1" />
+                  </button>
+                </form>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.96, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className={`flex min-h-[100px] items-center gap-4 rounded-2xl border px-5 py-4 ${
+                    isDarkMode
+                      ? "border-emerald-400/20 bg-emerald-400/10"
+                      : "border-emerald-200 bg-white shadow-sm"
+                  }`}
+                >
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{
+                      delay: 0.1,
+                      type: "spring",
+                      stiffness: 220,
+                    }}
+                    className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
+                  >
+                    <FaCheck />
+                  </motion.div>
+
+                  <div className="text-left">
+                    <h4
+                      className={`text-base font-extrabold md:text-lg ${
+                        isDarkMode ? "text-white" : "text-gray-900"
+                      }`}
+                    >
+                      You're Subscribed!
+                    </h4>
+
+                    <p
+                      className={`mt-1 text-sm ${
+                        isDarkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
+                      Thanks for subscribing. You'll receive our latest
+                      updates and insights at{" "}
+                      <span
+                        className={`font-semibold ${
+                          isDarkMode
+                            ? "text-[#d4e157]"
+                            : "text-emerald-600"
+                        }`}
+                      >
+                        {email}
+                      </span>
+                      .
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
+              <p
+                className={`mt-3 px-2 text-xs ${
+                  isDarkMode ? "text-gray-500" : "text-gray-400"
+                }`}
+              >
+                No spam. Just useful updates, insights, and news.
+              </p>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* BOTTOM CTA */}
+        {!loading && latestNews.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-10 flex justify-center"
+          >
+            <Link
+              to="/news"
+              className={`group inline-flex items-center gap-3 rounded-full px-7 py-4 text-sm font-black uppercase tracking-wider transition-all duration-300 ${
+                isDarkMode
+                  ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_12px_35px_rgba(212,225,87,0.2)]"
+                  : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white shadow-[0_12px_35px_rgba(16,185,129,0.25)]"
+              }`}
+            >
+              Explore All News
+              <FaArrowRight className="transition-transform duration-300 group-hover:translate-x-1" />
+            </Link>
           </motion.div>
-        </div>
+        )}
       </div>
     </section>
   );

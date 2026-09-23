@@ -10,6 +10,8 @@ import plutoLogo from "../assets/clients/pluto.png";
 import mindbazLogo from "../assets/clients/mindbaz.png";
 import campaignLogo from "../assets/clients/campaign.png";
 import campaignDarkLogo from "../assets/clients/campaign-night.png";
+import metaLogo from "../assets/clients/meta.png";
+import googleLogo from "../assets/clients/google.png";
 
 const AwardsBar = () => {
   const { isDarkMode } = useTheme();
@@ -25,6 +27,8 @@ const AwardsBar = () => {
       lightLogo: campaignLogo,
       darkLogo: campaignDarkLogo,
     },
+    { name: "Meta", logo: metaLogo },
+    { name: "Google", logo: googleLogo },
   ];
 
   return (
@@ -110,7 +114,13 @@ const AwardsBar = () => {
                   className="flex items-center justify-center px-8 sm:px-10 md:px-12 lg:px-14 xl:px-16 flex-shrink-0"
                 >
                   <img
-                    src={company.logo}
+                    src={
+                      company.name === "Campaign"
+                        ? isDarkMode
+                          ? company.darkLogo
+                          : company.lightLogo
+                        : company.logo
+                    }
                     alt={company.name}
                     className="h-16 sm:h-16 md:h-16 lg:h-20 xl:h-24 w-auto object-contain opacity-100 hover:scale-110 transition-all duration-300"
                     onError={(e) => {

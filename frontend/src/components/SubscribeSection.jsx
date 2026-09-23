@@ -473,7 +473,7 @@ const SubscribeSection = () => {
                 <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/40 to-transparent z-10" />
 
                 <span className="relative z-20 flex items-center gap-3">
-                  Let's Connect
+                  SUBSCRIBE FOR UPDATES
                   <FaArrowRight className="text-lg group-hover:translate-x-1 transition-transform duration-300" />
                 </span>
               </motion.button>

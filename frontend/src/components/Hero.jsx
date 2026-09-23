@@ -16,43 +16,11 @@ import { Link } from "react-router-dom";
 // =========================================================
 
 const AFFILIATE_SIGNUP_URL = "https://bluconnet.affise.com/v2/sign/up";
-
 const ADVERTISER_SIGNUP_URL = "https://bluconnet.affise.com/v2/sign/up";
-
-// =========================================================
-// TRUSTED COMPANIES
-// =========================================================
-
-const trustedCompanies = [
-  {
-    name: "Affise",
-    logo: "https://res.cloudinary.com/wyixfdon/image/upload/v1786004101/affise-logo_g4dnxg.png",
-  },
-  {
-    name: "Namecheap",
-    logo: "https://res.cloudinary.com/wyixfdon/image/upload/v1786004095/namecheap-logo_jxewiq.webp",
-  },
-  {
-    name: "Campaign",
-    dayLogo:
-      "https://res.cloudinary.com/wyixfdon/image/upload/v1787912115/campaign-day_uxa4no.png",
-    nightLogo:
-      "https://res.cloudinary.com/wyixfdon/image/upload/v1787912194/campaign-night_nzwyax.png",
-  },
-  {
-    name: "Mindbaz",
-    logo: "https://res.cloudinary.com/wyixfdon/image/upload/v1786004080/mindbaz-logo_hhaqsn.png",
-  },
-];
 
 /* =========================================================
    CONTACT FORM API — the ONE existing endpoint: POST /api/contact
    (stores the enquiry in the MySQL `contacts` table).
-
-   Same environment convention as pages/contact.jsx, so localhost
-   is never used in a production build:
-     .env             → REACT_APP_API_URL=http://localhost:5000/api
-     .env.production  → REACT_APP_API_URL=https://bluconnet-backend-m2jl.onrender.com/api
    ========================================================= */
 
 const RAW_API_URL = (
@@ -60,7 +28,6 @@ const RAW_API_URL = (
   "https://bluconnet-backend-m2jl.onrender.com/api"
 ).replace(/\/+$/, "");
 
-/* Accepts both ".../api" (project default) and a bare origin ("...:5000"). */
 const API_BASE = /\/api$/.test(RAW_API_URL)
   ? RAW_API_URL
   : `${RAW_API_URL}/api`;
@@ -90,14 +57,8 @@ const Hero = () => {
     agreeToContact: false,
   });
 
-  // Pending-request flag — blocks duplicate submissions.
   const [submitting, setSubmitting] = useState(false);
-
-  /* Synchronous mirror of `submitting`: state updates are async, so a
-     double click could otherwise fire two POSTs before React re-renders. */
   const submittingRef = useRef(false);
-
-  // In-page success feedback (replaces the old success alert()).
   const [showSuccess, setShowSuccess] = useState(false);
 
   // =========================================================
@@ -107,20 +68,21 @@ const Hero = () => {
   const heroTitle = t("hero.title");
 
   const heroSplit = (() => {
-    const i = heroTitle.indexOf(". ");
+  const splitText = "Digital Growth.";
+  const i = heroTitle.indexOf(splitText);
 
-    if (i === -1) {
-      return {
-        first: heroTitle,
-        second: "",
-      };
-    }
-
+  if (i === -1) {
     return {
-      first: heroTitle.slice(0, i + 1),
-      second: heroTitle.slice(i + 2),
+      first: heroTitle,
+      second: "",
     };
-  })();
+  }
+
+  return {
+    first: heroTitle.slice(0, i).trim(),
+    second: heroTitle.slice(i).trim(),
+  };
+})();
 
   // =========================================================
   // FORM OPTIONS
@@ -170,7 +132,6 @@ const Hero = () => {
 
   const handleChange = (e) => {
     const { name, type, value, checked } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -179,8 +140,6 @@ const Hero = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // A request is already in flight — ignore extra clicks/submits.
     if (submittingRef.current) return;
 
     submittingRef.current = true;
@@ -189,9 +148,7 @@ const Hero = () => {
     try {
       const response = await fetch(CONTACT_ENDPOINT, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           firstName: formData.firstName,
           lastName: formData.lastName,
@@ -202,32 +159,24 @@ const Hero = () => {
           message: formData.message,
           hearAbout: formData.hearAbout,
           agreeToContact: formData.agreeToContact,
-          // Which form this enquiry came from (Admin Panel filtering).
           source: "hero",
         }),
       });
 
-      // A non-2xx status (400 validation, 500 server/database) is NOT
-      // a success — surface it instead of resetting the form.
       if (!response.ok) {
         let message = "Something went wrong. Please try again.";
-
         try {
           const errorBody = await response.json();
-
           if (errorBody && errorBody.message) {
             message = errorBody.message;
           }
         } catch (parseError) {
-          /* Non-JSON error body — keep the generic message. */
+          /* Non-JSON error body */
         }
-
         throw new Error(message);
       }
 
-      // HTTP 201 — the enquiry is stored in the MySQL `contacts` table.
       setShowSuccess(true);
-
       setFormData({
         firstName: "",
         lastName: "",
@@ -240,7 +189,6 @@ const Hero = () => {
         agreeToContact: false,
       });
     } catch (error) {
-      // Keep everything the visitor typed so nothing is lost on failure.
       alert(
         error && error.message
           ? error.message
@@ -258,19 +206,13 @@ const Hero = () => {
 
   useEffect(() => {
     const canvas = canvasRef.current;
-
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d");
-
     let animationFrameId;
     let particles = [];
 
-    const mouse = {
-      x: null,
-      y: null,
-      radius: 150,
-    };
+    const mouse = { x: null, y: null, radius: 150 };
 
     const resizeCanvas = () => {
       canvas.width = canvas.offsetWidth;
@@ -279,7 +221,6 @@ const Hero = () => {
 
     const createParticles = () => {
       particles = [];
-
       const particleCount =
         window.innerWidth < 480 ? 15 : window.innerWidth < 768 ? 25 : 50;
 
@@ -296,7 +237,6 @@ const Hero = () => {
 
     const handleMouseMove = (e) => {
       const rect = canvas.getBoundingClientRect();
-
       mouse.x = e.clientX - rect.left;
       mouse.y = e.clientY - rect.top;
     };
@@ -310,81 +250,46 @@ const Hero = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const particleColor = isDarkMode ? "212, 225, 87" : "16, 185, 129";
-
       const lineColor = isDarkMode ? "6, 182, 212" : "8, 145, 178";
 
       particles.forEach((particle, index) => {
-        // Update position
         particle.x += particle.vx;
         particle.y += particle.vy;
 
-        // Bounce off edges
-        if (particle.x < 0 || particle.x > canvas.width) {
-          particle.vx *= -1;
-        }
-
-        if (particle.y < 0 || particle.y > canvas.height) {
-          particle.vy *= -1;
-        }
-
-        // Draw particle
+        if (particle.x < 0 || particle.x > canvas.width) particle.vx *= -1;
+        if (particle.y < 0 || particle.y > canvas.height) particle.vy *= -1;
 
         ctx.beginPath();
-
         ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-
         ctx.fillStyle = `rgba(${particleColor}, 0.3)`;
-
         ctx.fill();
-
-        // Connect nearby particles
 
         for (let j = index + 1; j < particles.length; j++) {
           const dx = particle.x - particles[j].x;
-
           const dy = particle.y - particles[j].y;
-
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           if (distance < 120) {
             ctx.beginPath();
-
-            ctx.strokeStyle = `rgba(${lineColor}, ${
-              0.15 * (1 - distance / 120)
-            })`;
-
+            ctx.strokeStyle = `rgba(${lineColor}, ${0.15 * (1 - distance / 120)})`;
             ctx.lineWidth = 1;
-
             ctx.moveTo(particle.x, particle.y);
-
             ctx.lineTo(particles[j].x, particles[j].y);
-
             ctx.stroke();
           }
         }
 
-        // Connect to mouse
-
         if (mouse.x !== null && mouse.y !== null) {
           const dx = particle.x - mouse.x;
-
           const dy = particle.y - mouse.y;
-
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           if (distance < mouse.radius) {
             ctx.beginPath();
-
-            ctx.strokeStyle = `rgba(${lineColor}, ${
-              0.3 * (1 - distance / mouse.radius)
-            })`;
-
+            ctx.strokeStyle = `rgba(${lineColor}, ${0.3 * (1 - distance / mouse.radius)})`;
             ctx.lineWidth = 1.5;
-
             ctx.moveTo(particle.x, particle.y);
-
             ctx.lineTo(mouse.x, mouse.y);
-
             ctx.stroke();
           }
         }
@@ -403,18 +308,13 @@ const Hero = () => {
     };
 
     window.addEventListener("resize", handleResize);
-
     window.addEventListener("mousemove", handleMouseMove);
-
     window.addEventListener("mouseleave", handleMouseLeave);
 
     return () => {
       cancelAnimationFrame(animationFrameId);
-
       window.removeEventListener("resize", handleResize);
-
       window.removeEventListener("mousemove", handleMouseMove);
-
       window.removeEventListener("mouseleave", handleMouseLeave);
     };
   }, [isDarkMode]);
@@ -424,556 +324,191 @@ const Hero = () => {
   // =========================================================
 
   const inputClass = `
-    w-full
-    px-4
-    py-3
-    rounded-xl
-    border
-    ${colors.borderColor}
-    ${colors.innerCardBg}
-    ${colors.textColor}
-    placeholder-gray-400
-    text-sm
-    outline-none
-    transition-all
-    duration-300
+    w-full px-4 py-3 rounded-xl border
+    ${colors.borderColor} ${colors.innerCardBg} ${colors.textColor}
+    placeholder-gray-400 text-sm outline-none transition-all duration-300
     focus:ring-2
-    ${
-      isDarkMode
-        ? "focus:ring-[#06b6d4]/30 focus:border-[#06b6d4]"
-        : "focus:ring-emerald-500/20 focus:border-emerald-500"
-    }
+    ${isDarkMode ? "focus:ring-[#06b6d4]/30 focus:border-[#06b6d4]" : "focus:ring-emerald-500/20 focus:border-emerald-500"}
   `;
 
   return (
     <section
       className={`
-        relative
-        min-h-[85vh]
-        lg:min-h-screen
-        flex
-        items-center
-        pt-32
-        sm:pt-32
-        md:pt-36
-        lg:pt-36
-        pb-12
-        lg:pb-16
-        px-4
-        overflow-hidden
+        relative min-h-[85vh] lg:min-h-screen flex items-center
+        pt-32 sm:pt-32 md:pt-36 lg:pt-36 pb-12 lg:pb-16 px-4 overflow-hidden
         ${colors.sectionBg}
       `}
     >
-      {/* =====================================================
-          CANVAS
-      ===================================================== */}
-
       <canvas
         ref={canvasRef}
-        className="
-          absolute
-          inset-0
-          w-full
-          h-full
-          pointer-events-none
-        "
-        style={{
-          zIndex: 1,
-        }}
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        style={{ zIndex: 1 }}
       />
 
-      {/* =====================================================
-          DOT GRID
-      ===================================================== */}
-
       <div
-        className="
-          absolute
-          inset-0
-          opacity-[0.03]
-          pointer-events-none
-        "
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
           backgroundImage: `radial-gradient(circle, ${colors.gridDotColor} 1px, transparent 1px)`,
           backgroundSize: "30px 30px",
         }}
       />
 
-      {/* =====================================================
-          GLOW
-      ===================================================== */}
-
       <div
-        className={`
-          absolute
-          top-20
-          left-1/4
-          w-60
-          h-60
-          md:w-80
-          md:h-80
-          lg:w-96
-          lg:h-96
-          rounded-full
-          blur-3xl
-          pointer-events-none
-          ${colors.glowLeft}
-        `}
+        className={`absolute top-20 left-1/4 w-60 h-60 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full blur-3xl pointer-events-none ${colors.glowLeft}`}
       />
-
       <div
-        className={`
-          absolute
-          bottom-20
-          right-1/4
-          w-60
-          h-60
-          md:w-80
-          md:h-80
-          lg:w-96
-          lg:h-96
-          rounded-full
-          blur-3xl
-          pointer-events-none
-          ${colors.glowRight}
-        `}
+        className={`absolute bottom-20 right-1/4 w-60 h-60 md:w-80 md:h-80 lg:w-96 lg:h-96 rounded-full blur-3xl pointer-events-none ${colors.glowRight}`}
       />
-
-      {/* =====================================================
-          MAIN
-      ===================================================== */}
 
       <div className="max-w-7xl mx-auto relative z-10 w-full">
-        <div
-          className="
-            grid
-            lg:grid-cols-[0.9fr_1.1fr]
-            gap-10
-            lg:gap-14
-            items-center
-          "
-        >
+        <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-10 lg:gap-14 items-center">
           {/* =================================================
               LEFT HERO
           ================================================= */}
-
           <motion.div
-            initial={{
-              opacity: 0,
-              x: -50,
-            }}
-            animate={{
-              opacity: 1,
-              x: 0,
-            }}
-            transition={{
-              duration: 0.8,
-            }}
+            initial={{ opacity: 0, x: -50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
             className="text-left"
           >
-            {/* Badge */}
-
             <motion.div
-              initial={{
-                opacity: 0,
-                y: 20,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                delay: 0.1,
-              }}
-              className={`
-                inline-flex
-                items-center
-                gap-2
-                px-4
-                py-2
-                rounded-full
-                mb-6
-                shadow-md
-                ${
-                  isDarkMode
-                    ? "bg-[#d4e157]/10 border border-[#d4e157]/30"
-                    : "bg-gradient-to-r from-emerald-50 to-cyan-50 border border-emerald-200"
-                }
-              `}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-full mb-6 shadow-md ${
+                isDarkMode
+                  ? "bg-[#d4e157]/10 border border-[#d4e157]/30"
+                  : "bg-gradient-to-r from-emerald-50 to-cyan-50 border border-emerald-200"
+              }`}
             >
               <span
-                className={`
-                  w-2
-                  h-2
-                  rounded-full
-                  animate-pulse
-                  ${isDarkMode ? "bg-[#d4e157]" : "bg-emerald-500"}
-                `}
+                className={`w-2 h-2 rounded-full animate-pulse ${
+                  isDarkMode ? "bg-[#d4e157]" : "bg-emerald-500"
+                }`}
               />
-
               <span
-                className={`
-                  text-xs
-                  font-extrabold
-                  tracking-wider
-                  uppercase
-                  ${isDarkMode ? "text-[#d4e157]" : "text-emerald-700"}
-                `}
+                className={`text-xs font-extrabold tracking-wider uppercase ${
+                  isDarkMode ? "text-[#d4e157]" : "text-emerald-700"
+                }`}
               >
                 #1 DIGITAL MARKETING AGENCY
               </span>
             </motion.div>
 
-            {/* =================================================
-                HEADING
-            ================================================= */}
-
             <motion.h1
-              initial={{
-                opacity: 0,
-                y: 20,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                delay: 0.2,
-                duration: 0.8,
-              }}
-              data-i18n-skip
-              className={`
-                text-4xl
-                sm:text-5xl
-                md:text-6xl
-                lg:text-[4rem]
-                xl:text-7xl
-                font-extrabold
-                leading-[1.08]
-                ${isDarkMode ? "text-white" : "text-gray-900"}
-              `}
-            >
-              <span>{heroSplit.first} </span>
+  initial={{ opacity: 0, y: 20 }}
+  animate={{ opacity: 1, y: 0 }}
+  transition={{ delay: 0.2, duration: 0.8 }}
+  data-i18n-skip
+  className={`text-4xl sm:text-5xl md:text-6xl lg:text-[4rem] xl:text-7xl font-extrabold leading-[1.08] ${
+    isDarkMode ? "text-white" : "text-gray-900"
+  }`}
+>
+  <span>{heroSplit.first} </span>
 
-              <span
-                className={`
-                  text-transparent
-                  bg-clip-text
-                  bg-gradient-to-r
-                  ${
-                    isDarkMode
-                      ? "from-[#d4e157] to-[#06b6d4]"
-                      : "from-emerald-500 to-cyan-600"
-                  }
-                `}
-              >
-                {heroSplit.second}
-              </span>
-            </motion.h1>
-
-            {/* =================================================
-                DESCRIPTION
-            ================================================= */}
+  <span
+    className={`text-transparent bg-clip-text bg-gradient-to-r ${
+      isDarkMode
+        ? "from-[#d4e157] to-[#06b6d4]"
+        : "from-emerald-500 to-cyan-600"
+    }`}
+  >
+    {heroSplit.second}
+  </span>
+</motion.h1>
 
             <motion.p
-              initial={{
-                opacity: 0,
-                y: 20,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                delay: 0.4,
-                duration: 0.8,
-              }}
-              className={`
-                mt-6
-                ${colors.textMuted}
-                text-base
-                md:text-lg
-                leading-relaxed
-                max-w-xl
-              `}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+              className={`mt-6 ${colors.textMuted} text-base md:text-lg leading-relaxed max-w-xl`}
             >
-              We build intelligent digital solutions that transform businesses
-              worldwide
+              BluConnet Media delivers intelligent, AI-powered marketing
+              solutions that transform businesses worldwide. From digital
+              marketing, email marketing to mobile marketing, every campaign is
+              ROI-based and built for high returns, giving you measurable
+              results, smarter targeting, and sustainable growth.
             </motion.p>
 
-            {/* =================================================
-                AFFILIATE + ADVERTISER BUTTONS
-            ================================================= */}
-
             <motion.div
-              initial={{
-                opacity: 0,
-                y: 20,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                delay: 0.6,
-                duration: 0.8,
-              }}
-              className="
-                mt-8
-                flex
-                flex-col
-                sm:flex-row
-                gap-4
-              "
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6, duration: 0.8 }}
+              className="mt-8 flex flex-col sm:flex-row gap-4"
             >
-              {/* Affiliate SignUp */}
-
               <motion.button
                 type="button"
-                onClick={() => {
+                onClick={() =>
                   window.open(
                     AFFILIATE_SIGNUP_URL,
                     "_blank",
                     "noopener,noreferrer",
-                  );
-                }}
-                whileHover={{
-                  scale: 1.05,
-                  y: -4,
-                }}
-                whileTap={{
-                  scale: 0.95,
-                }}
-                className={`
-                  relative
-                  overflow-hidden
-                  group
-                  w-full
-                  sm:w-auto
-                  px-8
-                  py-4
-                  bg-gradient-to-r
-                  font-bold
-                  rounded-lg
-                  transition-all
-                  duration-300
-                  flex
-                  items-center
-                  justify-center
-                  gap-2
-                  ${
-                    isDarkMode
-                      ? "from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_8px_30px_rgba(212,225,87,0.3)] hover:shadow-[0_15px_40px_rgba(212,225,87,0.5)]"
-                      : "from-emerald-500 to-cyan-600 text-white shadow-[0_8px_30px_rgba(16,185,129,0.3)] hover:shadow-[0_15px_40px_rgba(16,185,129,0.5)]"
-                  }
-                `}
+                  )
+                }
+                whileHover={{ scale: 1.05, y: -4 }}
+                whileTap={{ scale: 0.95 }}
+                className={`relative overflow-hidden group w-full sm:w-auto px-8 py-4 bg-gradient-to-r font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
+                  isDarkMode
+                    ? "from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_8px_30px_rgba(212,225,87,0.3)] hover:shadow-[0_15px_40px_rgba(212,225,87,0.5)]"
+                    : "from-emerald-500 to-cyan-600 text-white shadow-[0_8px_30px_rgba(16,185,129,0.3)] hover:shadow-[0_15px_40px_rgba(16,185,129,0.5)]"
+                }`}
               >
-                <div
-                  className="
-                    absolute
-                    inset-0
-                    -translate-x-full
-                    group-hover:translate-x-full
-                    transition-transform
-                    duration-1000
-                    ease-in-out
-                    bg-gradient-to-r
-                    from-transparent
-                    via-white/40
-                    to-transparent
-                    z-10
-                  "
-                />
-
-                <span
-                  className="
-                    relative
-                    z-20
-                    flex
-                    items-center
-                    gap-2
-                  "
-                >
+                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/40 to-transparent z-10" />
+                <span className="relative z-20 flex items-center gap-2">
                   Affiliate SignUp
-                  <FaArrowRight
-                    className="
-                      group-hover:translate-x-1
-                      transition-transform
-                      duration-300
-                    "
-                  />
+                  <FaArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
                 </span>
               </motion.button>
 
-              {/* Advertiser SignUp */}
-
               <motion.button
                 type="button"
-                onClick={() => {
+                onClick={() =>
                   window.open(
                     ADVERTISER_SIGNUP_URL,
                     "_blank",
                     "noopener,noreferrer",
-                  );
-                }}
-                whileHover={{
-                  scale: 1.05,
-                  y: -4,
-                }}
-                whileTap={{
-                  scale: 0.95,
-                }}
-                className={`
-                  relative
-                  overflow-hidden
-                  group
-                  w-full
-                  sm:w-auto
-                  px-8
-                  py-4
-                  ${colors.secondaryBtnBg}
-                  border
-                  ${colors.secondaryBtnBorder}
-                  ${colors.secondaryBtnText}
-                  font-bold
-                  rounded-lg
-                  transition-all
-                  duration-300
-                  flex
-                  items-center
-                  justify-center
-                  gap-2
-                  ${isDarkMode ? "hover:bg-white/10" : "hover:bg-slate-200"}
-                `}
+                  )
+                }
+                whileHover={{ scale: 1.05, y: -4 }}
+                whileTap={{ scale: 0.95 }}
+                className={`relative overflow-hidden group w-full sm:w-auto px-8 py-4 ${colors.secondaryBtnBg} border ${colors.secondaryBtnBorder} ${colors.secondaryBtnText} font-bold rounded-lg transition-all duration-300 flex items-center justify-center gap-2 ${
+                  isDarkMode ? "hover:bg-white/10" : "hover:bg-slate-200"
+                }`}
               >
-                <div
-                  className="
-                    absolute
-                    inset-0
-                    -translate-x-full
-                    group-hover:translate-x-full
-                    transition-transform
-                    duration-1000
-                    ease-in-out
-                    bg-gradient-to-r
-                    from-transparent
-                    via-white/30
-                    to-transparent
-                    z-10
-                  "
-                />
-
-                <span
-                  className="
-                    relative
-                    z-20
-                    flex
-                    items-center
-                    gap-2
-                  "
-                >
+                <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/30 to-transparent z-10" />
+                <span className="relative z-20 flex items-center gap-2">
                   Advertiser SignUp
-                  <FaArrowRight
-                    className="
-                      group-hover:translate-x-1
-                      transition-transform
-                      duration-300
-                    "
-                  />
+                  <FaArrowRight className="group-hover:translate-x-1 transition-transform duration-300" />
                 </span>
               </motion.button>
             </motion.div>
 
             {/* =================================================
-                RATING
+                RATING (UPDATED WITH IMAGES)
             ================================================= */}
-
             <motion.div
-              initial={{
-                opacity: 0,
-                y: 20,
-              }}
-              animate={{
-                opacity: 1,
-                y: 0,
-              }}
-              transition={{
-                delay: 0.8,
-                duration: 0.8,
-              }}
-              className="
-                mt-8
-                flex
-                items-center
-                gap-3
-              "
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8, duration: 0.8 }}
+              className="mt-8 flex items-center gap-3"
             >
               <div className="flex -space-x-2">
-                <div
-                  className="
-                    w-10
-                    h-10
-                    rounded-full
-                    bg-gradient-to-br
-                    from-purple-400
-                    to-pink-400
-                    border-2
-                    border-white
-                    dark:border-[#0a0e27]
-                    flex
-                    items-center
-                    justify-center
-                    text-white
-                    text-xs
-                    font-bold
-                  "
-                >
-                  JD
-                </div>
-
-                <div
-                  className="
-                    w-10
-                    h-10
-                    rounded-full
-                    bg-gradient-to-br
-                    from-blue-400
-                    to-cyan-400
-                    border-2
-                    border-white
-                    dark:border-[#0a0e27]
-                    flex
-                    items-center
-                    justify-center
-                    text-white
-                    text-xs
-                    font-bold
-                  "
-                >
-                  SK
-                </div>
-
-                <div
-                  className="
-                    w-10
-                    h-10
-                    rounded-full
-                    bg-gradient-to-br
-                    from-yellow-400
-                    to-orange-400
-                    border-2
-                    border-white
-                    dark:border-[#0a0e27]
-                    flex
-                    items-center
-                    justify-center
-                    text-white
-                    text-xs
-                    font-bold
-                  "
-                >
-                  MR
-                </div>
+                {/* Aap in URLs ko apni actual images se replace kar sakte hain */}
+                <img
+                  src="https://randomuser.me/api/portraits/men/32.jpg"
+                  alt="User 1"
+                  className="w-10 h-10 rounded-full border-2 border-white dark:border-[#0a0e27] object-cover"
+                />
+                <img
+                  src="https://randomuser.me/api/portraits/women/44.jpg"
+                  alt="User 2"
+                  className="w-10 h-10 rounded-full border-2 border-white dark:border-[#0a0e27] object-cover"
+                />
+                <img
+                  src="https://randomuser.me/api/portraits/men/86.jpg"
+                  alt="User 3"
+                  className="w-10 h-10 rounded-full border-2 border-white dark:border-[#0a0e27] object-cover"
+                />
               </div>
 
               <div className="flex items-center gap-1">
@@ -982,110 +517,8 @@ const Hero = () => {
                     isDarkMode ? "text-yellow-400" : "text-emerald-500"
                   }
                 />
-
-                <span
-                  className={`
-                    ${colors.textColor}
-                    font-bold
-                  `}
-                >
-                  4.8
-                </span>
-
-                <span
-                  className={`
-                    ${colors.textMuted}
-                    text-sm
-                  `}
-                >
-                  (150K)
-                </span>
-              </div>
-            </motion.div>
-
-            {/* =================================================
-                TRUSTED COMPANIES
-            ================================================= */}
-
-            <motion.div
-              initial={{
-                opacity: 0,
-              }}
-              animate={{
-                opacity: 1,
-              }}
-              transition={{
-                delay: 1,
-                duration: 0.8,
-              }}
-              className="mt-10"
-            >
-              <p
-                className={`
-                  ${colors.textColor}
-                  text-sm
-                  mb-5
-                  text-left
-                  font-bold
-                `}
-              >
-                Trusted by top companies
-              </p>
-
-              <div
-                className="
-                  grid
-                  grid-cols-2
-                  sm:flex
-                  sm:flex-nowrap
-                  justify-start
-                  items-center
-                  gap-6
-                  sm:gap-8
-                  md:gap-10
-                "
-              >
-                {trustedCompanies.map((company, index) => (
-                  <div
-                    key={index}
-                    className="
-                        flex
-                        justify-start
-                        sm:justify-start
-                        w-full
-                        sm:w-auto
-                      "
-                  >
-                    <img
-                      src={
-                        company.nightLogo && isDarkMode
-                          ? company.nightLogo
-                          : company.logo || company.dayLogo
-                      }
-                      alt={company.name}
-                      className={`
-                          h-10
-                          sm:h-11
-                          md:h-12
-                          lg:h-12
-                          max-w-[150px]
-                          sm:max-w-[160px]
-                          md:max-w-[170px]
-                          w-auto
-                          object-contain
-                          opacity-90
-                          hover:opacity-100
-                          transition-all
-                          duration-300
-                          ${
-                            company.name === "Campaign" && isDarkMode
-                              ? "scale-[1.1]"
-                              : ""
-                          }
-                        `}
-                    />
-                  </div>
-                ))}
+                <span className={`${colors.textColor} font-bold`}>4.8</span>
+                <span className={`${colors.textMuted} text-sm`}>(150K)</span>
               </div>
             </motion.div>
           </motion.div>
@@ -1093,207 +526,75 @@ const Hero = () => {
           {/* =================================================
               RIGHT SIDE - CONTACT FORM
           ================================================= */}
-
           <motion.div
-            initial={{
-              opacity: 0,
-              x: 50,
-            }}
-            animate={{
-              opacity: 1,
-              x: 0,
-            }}
-            transition={{
-              delay: 0.35,
-              duration: 0.8,
-            }}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.35, duration: 0.8 }}
             className="relative w-full"
           >
-            {/* Outer Glow */}
-
             <div
-              className={`
-                absolute
-                -inset-1
-                rounded-[28px]
-                blur-xl
-                opacity-20
-                ${
-                  isDarkMode
-                    ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4]"
-                    : "bg-gradient-to-r from-emerald-400 to-cyan-500"
-                }
-              `}
+              className={`absolute -inset-1 rounded-[28px] blur-xl opacity-20 ${
+                isDarkMode
+                  ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4]"
+                  : "bg-gradient-to-r from-emerald-400 to-cyan-500"
+              }`}
             />
 
-            {/* Form Card */}
-
             <div
-              className={`
-                relative
-                rounded-[26px]
-                border
-                ${colors.borderColor}
-                ${isDarkMode ? "bg-[#0b1029]/90" : "bg-white/90"}
-                backdrop-blur-2xl
-                shadow-2xl
-                p-5
-                sm:p-6
-                md:p-7
-                overflow-hidden
-              `}
+              className={`relative rounded-[26px] border ${colors.borderColor} ${
+                isDarkMode ? "bg-[#0b1029]/90" : "bg-white/90"
+              } backdrop-blur-2xl shadow-2xl p-5 sm:p-6 md:p-7 overflow-hidden`}
             >
-              {/* Decorative glow */}
-
               <div
-                className={`
-                  absolute
-                  top-0
-                  right-0
-                  w-40
-                  h-40
-                  rounded-full
-                  blur-3xl
-                  pointer-events-none
-                  ${isDarkMode ? "bg-[#06b6d4]/10" : "bg-cyan-500/10"}
-                `}
+                className={`absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl pointer-events-none ${isDarkMode ? "bg-[#06b6d4]/10" : "bg-cyan-500/10"}`}
               />
-
               <div
-                className={`
-                  absolute
-                  bottom-0
-                  left-0
-                  w-40
-                  h-40
-                  rounded-full
-                  blur-3xl
-                  pointer-events-none
-                  ${isDarkMode ? "bg-[#d4e157]/10" : "bg-emerald-500/10"}
-                `}
+                className={`absolute bottom-0 left-0 w-40 h-40 rounded-full blur-3xl pointer-events-none ${isDarkMode ? "bg-[#d4e157]/10" : "bg-emerald-500/10"}`}
               />
-
-              {/* =================================================
-                  FORM HEADER
-              ================================================= */}
 
               <div className="relative z-10 mb-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 text-left">
                     <div
-                      className={`
-                        inline-flex
-                        items-center
-                        gap-2
-                        text-xs
-                        font-bold
-                        uppercase
-                        tracking-widest
-                        mb-2
-                        text-left
-                        ${isDarkMode ? "text-[#d4e157]" : "text-emerald-600"}
-                      `}
+                      className={`inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest mb-2 text-left ${isDarkMode ? "text-[#d4e157]" : "text-emerald-600"}`}
                     >
                       <span
-                        className={`
-                          w-2
-                          h-2
-                          rounded-full
-                          animate-pulse
-                          ${isDarkMode ? "bg-[#d4e157]" : "bg-emerald-500"}
-                        `}
+                        className={`w-2 h-2 rounded-full animate-pulse ${isDarkMode ? "bg-[#d4e157]" : "bg-emerald-500"}`}
                       />
                       Let's Connect
                     </div>
-
                     <h2
-                      className={`
-                        text-2xl
-                        sm:text-3xl
-                        font-extrabold
-                        text-left
-                        ${colors.textColor}
-                      `}
+                      className={`text-2xl sm:text-3xl font-extrabold text-left ${colors.textColor}`}
                     >
                       Let's build something{" "}
                       <span
-                        className={`
-                          text-transparent
-                          bg-clip-text
-                          bg-gradient-to-r
-                          ${
-                            isDarkMode
-                              ? "from-[#d4e157] to-[#06b6d4]"
-                              : "from-emerald-500 to-cyan-600"
-                          }
-                        `}
+                        className={`text-transparent bg-clip-text bg-gradient-to-r ${isDarkMode ? "from-[#d4e157] to-[#06b6d4]" : "from-emerald-500 to-cyan-600"}`}
                       >
                         great.
                       </span>
                     </h2>
-
                     <p
-                      className={`
-                        mt-2
-                        text-xs
-                        sm:text-sm
-                        leading-relaxed
-                        text-left
-                        whitespace-nowrap
-                        ${colors.textMuted}
-                      `}
+                      className={`mt-2 text-xs sm:text-sm leading-relaxed text-left whitespace-nowrap ${colors.textMuted}`}
                     >
-                      Tell us about your project and our team will get back to you within 24 hours.
+                      Tell us about your project and our team will get back to
+                      you within 24 hours.
                     </p>
                   </div>
 
                   <div
-                    className={`
-                      hidden
-                      sm:flex
-                      flex-shrink-0
-                      items-center
-                      gap-2
-                      px-3
-                      py-2
-                      rounded-full
-                      text-[10px]
-                      font-bold
-                      ${
-                        isDarkMode
-                          ? "bg-[#d4e157]/10 text-[#d4e157] border border-[#d4e157]/20"
-                          : "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                      }
-                    `}
+                    className={`hidden sm:flex flex-shrink-0 items-center gap-2 px-3 py-2 rounded-full text-[10px] font-bold ${isDarkMode ? "bg-[#d4e157]/10 text-[#d4e157] border border-[#d4e157]/20" : "bg-emerald-50 text-emerald-600 border border-emerald-100"}`}
                   >
                     AI Powered
                   </div>
                 </div>
               </div>
 
-              {/* =================================================
-                  FORM
-              ================================================= */}
-
               <form
                 onSubmit={handleSubmit}
                 aria-busy={submitting}
-                className="
-                  relative
-                  z-10
-                  space-y-3
-                "
+                className="relative z-10 space-y-3"
               >
-                {/* First + Last Name */}
-
-                <div
-                  className="
-                    grid
-                    grid-cols-1
-                    sm:grid-cols-2
-                    gap-3
-                  "
-                >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input
                     type="text"
                     name="firstName"
@@ -1303,7 +604,6 @@ const Hero = () => {
                     onChange={handleChange}
                     className={inputClass}
                   />
-
                   <input
                     type="text"
                     name="lastName"
@@ -1315,16 +615,7 @@ const Hero = () => {
                   />
                 </div>
 
-                {/* Email + Company */}
-
-                <div
-                  className="
-                    grid
-                    grid-cols-1
-                    sm:grid-cols-2
-                    gap-3
-                  "
-                >
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <input
                     type="email"
                     name="email"
@@ -1334,7 +625,6 @@ const Hero = () => {
                     onChange={handleChange}
                     className={inputClass}
                   />
-
                   <input
                     type="text"
                     name="companyName"
@@ -1346,32 +636,14 @@ const Hero = () => {
                   />
                 </div>
 
-                {/* =================================================
-                    HELP WITH + COUNTRY
-                ================================================= */}
-
-                <div
-                  className="
-                    grid
-                    grid-cols-1
-                    sm:grid-cols-2
-                    gap-3
-                  "
-                >
-                  {/* Help With */}
-
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="relative">
                     <select
                       name="helpWith"
                       value={formData.helpWith}
                       onChange={handleChange}
                       required
-                      className={`
-                        ${inputClass}
-                        appearance-none
-                        cursor-pointer
-                        pr-10
-                      `}
+                      className={`${inputClass} appearance-none cursor-pointer pr-10`}
                     >
                       <option
                         value=""
@@ -1384,7 +656,6 @@ const Hero = () => {
                       >
                         What can we help with? *
                       </option>
-
                       {helpOptions.map((option, index) => (
                         <option
                           key={index}
@@ -1399,19 +670,7 @@ const Hero = () => {
                         </option>
                       ))}
                     </select>
-
-                    {/* THIN SVG ARROW — SAME AS CONTACT FORM */}
-
-                    <div
-                      className="
-                        absolute
-                        right-4
-                        top-1/2
-                        -translate-y-1/2
-                        text-gray-500
-                        pointer-events-none
-                      "
-                    >
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
                       <svg
                         className="w-4 h-4"
                         fill="none"
@@ -1428,20 +687,13 @@ const Hero = () => {
                     </div>
                   </div>
 
-                  {/* Country */}
-
                   <div className="relative">
                     <select
                       name="country"
                       value={formData.country}
                       onChange={handleChange}
                       required
-                      className={`
-                        ${inputClass}
-                        appearance-none
-                        cursor-pointer
-                        pr-10
-                      `}
+                      className={`${inputClass} appearance-none cursor-pointer pr-10`}
                     >
                       <option
                         value=""
@@ -1454,7 +706,6 @@ const Hero = () => {
                       >
                         What Country Are You Located In? *
                       </option>
-
                       {countries.map((country, index) => (
                         <option
                           key={index}
@@ -1469,19 +720,7 @@ const Hero = () => {
                         </option>
                       ))}
                     </select>
-
-                    {/* THIN SVG ARROW — SAME AS CONTACT FORM */}
-
-                    <div
-                      className="
-                        absolute
-                        right-4
-                        top-1/2
-                        -translate-y-1/2
-                        text-gray-500
-                        pointer-events-none
-                      "
-                    >
+                    <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
                       <svg
                         className="w-4 h-4"
                         fill="none"
@@ -1499,10 +738,6 @@ const Hero = () => {
                   </div>
                 </div>
 
-                {/* =================================================
-                    MESSAGE
-                ================================================= */}
-
                 <textarea
                   name="message"
                   placeholder="Your Message..."
@@ -1510,15 +745,8 @@ const Hero = () => {
                   required
                   value={formData.message}
                   onChange={handleChange}
-                  className={`
-                    ${inputClass}
-                    resize-none
-                  `}
+                  className={`${inputClass} resize-none`}
                 />
-
-                {/* =================================================
-                    HOW DID YOU HEAR ABOUT US
-                ================================================= */}
 
                 <div className="relative">
                   <select
@@ -1526,12 +754,7 @@ const Hero = () => {
                     value={formData.hearAbout}
                     onChange={handleChange}
                     required
-                    className={`
-                      ${inputClass}
-                      appearance-none
-                      cursor-pointer
-                      pr-10
-                    `}
+                    className={`${inputClass} appearance-none cursor-pointer pr-10`}
                   >
                     <option
                       value=""
@@ -1544,7 +767,6 @@ const Hero = () => {
                     >
                       How Did You Hear About Us? *
                     </option>
-
                     {hearAboutOptions.map((option, index) => (
                       <option
                         key={index}
@@ -1559,19 +781,7 @@ const Hero = () => {
                       </option>
                     ))}
                   </select>
-
-                  {/* THIN SVG ARROW — SAME AS CONTACT FORM */}
-
-                  <div
-                    className="
-                      absolute
-                      right-4
-                      top-1/2
-                      -translate-y-1/2
-                      text-gray-500
-                      pointer-events-none
-                    "
-                  >
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none">
                     <svg
                       className="w-4 h-4"
                       fill="none"
@@ -1588,18 +798,7 @@ const Hero = () => {
                   </div>
                 </div>
 
-                {/* =================================================
-                    AGREEMENT
-                ================================================= */}
-
-                <div
-                  className="
-                    flex
-                    items-start
-                    gap-3
-                    pt-1
-                  "
-                >
+                <div className="flex items-start gap-3 pt-1">
                   <label
                     htmlFor="hero-agree-to-contact"
                     className="relative mt-0.5 w-5 h-5 flex-shrink-0 cursor-pointer"
@@ -1613,37 +812,13 @@ const Hero = () => {
                       required
                       className="peer absolute inset-0 z-10 h-5 w-5 cursor-pointer opacity-0"
                     />
-
                     <span
                       aria-hidden="true"
-                      className={`
-                        absolute
-                        inset-0
-                        flex
-                        h-5
-                        w-5
-                        items-center
-                        justify-center
-                        rounded-md
-                        border-2
-                        transition-all
-                        duration-200
-                        ${
-                          formData.agreeToContact
-                            ? isDarkMode
-                              ? "bg-[#d4e157] border-[#d4e157]"
-                              : "bg-emerald-500 border-emerald-500"
-                            : isDarkMode
-                            ? "bg-white/5 border-white/10"
-                            : "bg-white border-gray-300"
-                        }
-                      `}
+                      className={`absolute inset-0 flex h-5 w-5 items-center justify-center rounded-md border-2 transition-all duration-200 ${formData.agreeToContact ? (isDarkMode ? "bg-[#d4e157] border-[#d4e157]" : "bg-emerald-500 border-emerald-500") : isDarkMode ? "bg-white/5 border-white/10" : "bg-white border-gray-300"}`}
                     >
                       {formData.agreeToContact && (
                         <svg
-                          className={`h-3.5 w-3.5 ${
-                            isDarkMode ? "text-black" : "text-white"
-                          }`}
+                          className={`h-3.5 w-3.5 ${isDarkMode ? "text-black" : "text-white"}`}
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -1659,35 +834,16 @@ const Hero = () => {
                       )}
                     </span>
                   </label>
-
                   <label
                     htmlFor="hero-agree-to-contact"
-                    className={`
-                      block
-                      text-left
-                      text-[11px]
-                      leading-relaxed
-                      ${colors.textMuted}
-                      cursor-pointer
-                    `}
+                    className={`block text-left text-[11px] leading-relaxed ${colors.textMuted} cursor-pointer`}
                   >
                     <span className="text-red-500">*</span> I agree to be
                     contacted by BluConnet Media and receive news and other
                     promotional materials. For more information, please view our{" "}
                     <Link
                       to="/privacy-policy"
-                      className={`
-                        font-semibold
-                        text-transparent
-                        bg-clip-text
-                        bg-gradient-to-r
-                        ${
-                          isDarkMode
-                            ? "from-[#d4e157] to-[#06b6d4]"
-                            : "from-emerald-500 to-cyan-600"
-                        }
-                        hover:underline
-                      `}
+                      className={`font-semibold text-transparent bg-clip-text bg-gradient-to-r ${isDarkMode ? "from-[#d4e157] to-[#06b6d4]" : "from-emerald-500 to-cyan-600"} hover:underline`}
                     >
                       privacy policy
                     </Link>
@@ -1695,103 +851,28 @@ const Hero = () => {
                   </label>
                 </div>
 
-                {/* =================================================
-                    SEND BUTTON
-                ================================================= */}
-
                 <motion.button
                   type="submit"
-                  whileHover={{
-                    scale: 1.015,
-                    y: -2,
-                  }}
-                  whileTap={{
-                    scale: 0.98,
-                  }}
-                  className={`
-                    relative
-                    overflow-hidden
-                    group
-                    w-full
-                    py-3.5
-                    rounded-xl
-                    font-extrabold
-                    text-sm
-                    transition-all
-                    duration-300
-                    flex
-                    items-center
-                    justify-center
-                    gap-2.5
-                    ${
-                      isDarkMode
-                        ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_8px_30px_rgba(212,225,87,0.25)] hover:shadow-[0_12px_35px_rgba(212,225,87,0.4)]"
-                        : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white shadow-[0_8px_30px_rgba(16,185,129,0.25)] hover:shadow-[0_12px_35px_rgba(16,185,129,0.4)]"
-                    }
-                  `}
+                  whileHover={{ scale: 1.015, y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`relative overflow-hidden group w-full py-3.5 rounded-xl font-extrabold text-sm transition-all duration-300 flex items-center justify-center gap-2.5 ${
+                    isDarkMode
+                      ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_8px_30px_rgba(212,225,87,0.25)] hover:shadow-[0_12px_35px_rgba(212,225,87,0.4)]"
+                      : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white shadow-[0_8px_30px_rgba(16,185,129,0.25)] hover:shadow-[0_12px_35px_rgba(16,185,129,0.4)]"
+                  }`}
                 >
-                  <div
-                    className="
-                      absolute
-                      inset-0
-                      -translate-x-full
-                      group-hover:translate-x-full
-                      transition-transform
-                      duration-1000
-                      ease-in-out
-                      bg-gradient-to-r
-                      from-transparent
-                      via-white/40
-                      to-transparent
-                    "
-                  />
-
-                  <span
-                    className="
-                      relative
-                      z-20
-                      flex
-                      items-center
-                      gap-2.5
-                    "
-                  >
+                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                  <span className="relative z-20 flex items-center gap-2.5">
                     Send Message
-                    <FaPaperPlane
-                      className="
-                        group-hover:translate-x-1
-                        group-hover:-translate-y-1
-                        transition-transform
-                        duration-300
-                      "
-                    />
+                    <FaPaperPlane className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300" />
                   </span>
                 </motion.button>
 
-                {/* Secure */}
-
-                <div
-                  className="
-                    flex
-                    items-center
-                    justify-center
-                    gap-2
-                  "
-                >
+                <div className="flex items-center justify-center gap-2">
                   <span
-                    className={`
-                      w-1.5
-                      h-1.5
-                      rounded-full
-                      ${isDarkMode ? "bg-[#d4e157]" : "bg-emerald-500"}
-                    `}
+                    className={`w-1.5 h-1.5 rounded-full ${isDarkMode ? "bg-[#d4e157]" : "bg-emerald-500"}`}
                   />
-
-                  <span
-                    className={`
-                      text-[10px]
-                      ${colors.textMuted}
-                    `}
-                  >
+                  <span className={`text-[10px] ${colors.textMuted}`}>
                     Your information is secure & confidential
                   </span>
                 </div>
@@ -1800,10 +881,6 @@ const Hero = () => {
           </motion.div>
         </div>
       </div>
-
-      {/* =================================================
-          SUCCESS FEEDBACK — in-page (no browser alert)
-      ================================================= */}
 
       <AnimatePresence>
         {showSuccess && (
@@ -1816,18 +893,7 @@ const Hero = () => {
             role="dialog"
             aria-modal="true"
             aria-labelledby="hero-contact-success-title"
-            className="
-              fixed
-              inset-0
-              z-[9999]
-              flex
-              items-center
-              justify-center
-              bg-black/60
-              px-4
-              py-6
-              backdrop-blur-sm
-            "
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 px-4 py-6 backdrop-blur-sm"
           >
             <motion.div
               onClick={(e) => e.stopPropagation()}
@@ -1835,36 +901,11 @@ const Hero = () => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 12 }}
               transition={{ type: "spring", stiffness: 260, damping: 22 }}
-              className={`
-                relative
-                w-full
-                max-w-md
-                overflow-hidden
-                rounded-3xl
-                border
-                p-6
-                text-center
-                shadow-2xl
-                sm:p-8
-                ${colors.cardBg}
-                ${isDarkMode ? "border-white/10" : "border-gray-200"}
-              `}
+              className={`relative w-full max-w-md overflow-hidden rounded-3xl border p-6 text-center shadow-2xl sm:p-8 ${colors.cardBg} ${isDarkMode ? "border-white/10" : "border-gray-200"}`}
             >
               <div
-                className={`
-                  pointer-events-none
-                  absolute
-                  -top-20
-                  left-1/2
-                  h-44
-                  w-44
-                  -translate-x-1/2
-                  rounded-full
-                  blur-3xl
-                  ${isDarkMode ? "bg-[#d4e157]/20" : "bg-emerald-400/20"}
-                `}
+                className={`pointer-events-none absolute -top-20 left-1/2 h-44 w-44 -translate-x-1/2 rounded-full blur-3xl ${isDarkMode ? "bg-[#d4e157]/20" : "bg-emerald-400/20"}`}
               />
-
               <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center">
                 <motion.span
                   animate={{ scale: [1, 1.35, 1.35], opacity: [0.35, 0, 0] }}
@@ -1873,19 +914,8 @@ const Hero = () => {
                     repeat: Infinity,
                     ease: "easeOut",
                   }}
-                  className={`
-                    absolute
-                    inset-0
-                    rounded-full
-                    bg-gradient-to-r
-                    ${
-                      isDarkMode
-                        ? "from-[#d4e157] to-[#06b6d4]"
-                        : "from-emerald-500 to-cyan-600"
-                    }
-                  `}
+                  className={`absolute inset-0 rounded-full bg-gradient-to-r ${isDarkMode ? "from-[#d4e157] to-[#06b6d4]" : "from-emerald-500 to-cyan-600"}`}
                 />
-
                 <motion.div
                   initial={{ scale: 0, rotate: -30 }}
                   animate={{ scale: 1, rotate: 0 }}
@@ -1895,21 +925,7 @@ const Hero = () => {
                     stiffness: 280,
                     damping: 18,
                   }}
-                  className={`
-                    relative
-                    flex
-                    h-20
-                    w-20
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-gradient-to-r
-                    ${
-                      isDarkMode
-                        ? "from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_8px_30px_rgba(212,225,87,0.35)]"
-                        : "from-emerald-500 to-cyan-600 text-white shadow-[0_8px_30px_rgba(16,185,129,0.35)]"
-                    }
-                  `}
+                  className={`relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r ${isDarkMode ? "from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_8px_30px_rgba(212,225,87,0.35)]" : "from-emerald-500 to-cyan-600 text-white shadow-[0_8px_30px_rgba(16,185,129,0.35)]"}`}
                 >
                   <FaCheckCircle className="text-4xl" />
                 </motion.div>
@@ -1917,33 +933,11 @@ const Hero = () => {
 
               <h3
                 id="hero-contact-success-title"
-                className={`
-                  bg-gradient-to-r
-                  bg-clip-text
-                  text-2xl
-                  font-black
-                  uppercase
-                  tracking-wide
-                  text-transparent
-                  sm:text-3xl
-                  ${
-                    isDarkMode
-                      ? "from-[#d4e157] to-[#06b6d4]"
-                      : "from-emerald-500 to-cyan-600"
-                  }
-                `}
+                className={`bg-gradient-to-r bg-clip-text text-2xl font-black uppercase tracking-wide text-transparent sm:text-3xl ${isDarkMode ? "from-[#d4e157] to-[#06b6d4]" : "from-emerald-500 to-cyan-600"}`}
               >
                 Successfully Submitted!
               </h3>
-
-              <p
-                className={`
-                  mt-3
-                  text-sm
-                  leading-relaxed
-                  ${colors.textMuted}
-                `}
-              >
+              <p className={`mt-3 text-sm leading-relaxed ${colors.textMuted}`}>
                 Thank you! We have received your message and will get back to
                 you soon.
               </p>
@@ -1953,25 +947,7 @@ const Hero = () => {
                 whileHover={{ scale: 1.03, y: -2 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setShowSuccess(false)}
-                className={`
-                  mt-7
-                  w-full
-                  rounded-xl
-                  bg-gradient-to-r
-                  px-6
-                  py-3.5
-                  text-sm
-                  font-extrabold
-                  uppercase
-                  tracking-widest
-                  transition-all
-                  duration-300
-                  ${
-                    isDarkMode
-                      ? "from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_8px_30px_rgba(212,225,87,0.25)] hover:shadow-[0_12px_35px_rgba(212,225,87,0.4)]"
-                      : "from-emerald-500 to-cyan-600 text-white shadow-[0_8px_30px_rgba(16,185,129,0.25)] hover:shadow-[0_12px_35px_rgba(16,185,129,0.4)]"
-                  }
-                `}
+                className={`mt-7 w-full rounded-xl bg-gradient-to-r px-6 py-3.5 text-sm font-extrabold uppercase tracking-widest transition-all duration-300 ${isDarkMode ? "from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_8px_30px_rgba(212,225,87,0.25)] hover:shadow-[0_12px_35px_rgba(212,225,87,0.4)]" : "from-emerald-500 to-cyan-600 text-white shadow-[0_8px_30px_rgba(16,185,129,0.25)] hover:shadow-[0_12px_35px_rgba(16,185,129,0.4)]"}`}
               >
                 Done
               </motion.button>

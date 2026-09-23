@@ -10,7 +10,7 @@ import RouteScrollToTop from "./components/RouteScrollToTop";
 import Hero from "./components/Hero";
 import AwardsBar from "./components/AwardsBar";
 import Stats from "./components/Stats";
-import Clients from "./components/Clients";
+// import Clients from "./components/Clients";
 import Services from "./components/Services";
 import WhyChooseUs from "./components/WhyChooseUs";
 import AwardsSection from "./components/AwardsSection";
@@ -51,6 +51,7 @@ import CareerPage from "./pages/CareerPage";
 import ServicesCard from "./pages/ServicesCard";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
+import DigitalServices from "./pages/DigitalServices";
 
 // Lazy-loaded AI assistant (zero impact on initial page load)
 const Chatbot = lazy(() => import("./components/chatbot/Chatbot"));
@@ -165,11 +166,11 @@ function App() {
                   <Hero />
                   <AwardsBar />
                   <Stats />
-                  <Clients />
+                  {/* <Clients /> */}
                   <Services />
                   <MarqueeBanner />
                   <WhyChooseUs />
-                  <AwardsSection />
+                  {/* <AwardsSection /> */}
                   <FeaturesGrid />
                   <APVision />
                   <RealOutcomes />
@@ -187,6 +188,7 @@ function App() {
             <Route path="/about" element={<AboutUs />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/portfolio" element={<PortfolioPage />} />
+            <Route path="/digitalservices" element={<DigitalServices/>} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogDetails />} />
             <Route path="/news" element={<News />} />

@@ -266,12 +266,12 @@ const RealOutcomes = () => {
                   ></div>
 
                   {/* Company Watermark */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-20 text-4xl md:text-7xl lg:text-9xl font-black text-white select-none">
+                  {/* <div className="absolute inset-0 flex items-center justify-center opacity-20 text-4xl md:text-7xl lg:text-9xl font-black text-white select-none">
                     {caseStudies[currentIndex].company.toUpperCase()}
-                  </div>
+                  </div> */}
 
                   {/* Case Study Circle */}
-                  <div className="relative z-10 text-center p-6 flex items-center justify-center h-full group">
+                  {/* <div className="relative z-10 text-center p-6 flex items-center justify-center h-full group">
                     <div
                       className="
                       w-28 h-28 md:w-36 md:h-36 lg:w-44 lg:h-44
@@ -288,7 +288,7 @@ const RealOutcomes = () => {
                         Case Study
                       </span>
                     </div>
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </motion.div>

@@ -16,16 +16,16 @@ const MarqueeBanner = () => {
 
   const marqueeBg = isDarkMode ? "bg-[#050508]" : "bg-white"; // Dark background so white text pops
 
-  const bannerItems = [
-    "Growth Platform",
-    "Digital Agency",
-    "Digital Excellence",
-    "Powerful Performance",
-    "Smart & Efficient",
-    "Digital Agency",
-    "Growth Platform",
-    "Digital Excellence",
-  ];
+const bannerItems = [
+  "Digital Growth",
+  "Marketing Excellence",
+  "Performance Marketing",
+  "Growth Strategy",
+  "Smart Marketing",
+  "Customer Engagement",
+  "Digital Innovation",
+  "Measurable Results",
+];
 
   const duplicateItems = [...bannerItems, ...bannerItems];
 

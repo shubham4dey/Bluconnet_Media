@@ -1,38 +1,48 @@
 import React from "react";
 import { useTheme } from "../context/ThemeContext";
-import getThemeColors from "../utils/themeColors";
 
 // Import logo images
-import columbiaLogo from "../assets/img/logo.png";
-import fiveBelowLogo from "../assets/img/logo.png";
-import redbubbleLogo from "../assets/img/logo.png";
-import allbirdsLogo from "../assets/img/logo.png";
-import reebokLogo from "../assets/img/logo.png";
-import bonafideLogo from "../assets/img/logo.png";
-import targetLogo from "../assets/img/logo.png";
-import crocsLogo from "../assets/img/logo.png";
-import instacartLogo from "../assets/img/logo.png";
-import hotwireLogo from "../assets/img/logo.png";
-import caribouLogo from "../assets/img/logo.png";
-import blendersLogo from "../assets/img/logo.png";
+import affiseLogo from "../assets/clients/aff1.png";
+import namecheapLogo from "../assets/clients/namecheap.png";
+import plutoLogo from "../assets/clients/pluto.png";
+import mindbazLogo from "../assets/clients/mindbaz.png";
+import campaignLogo from "../assets/clients/campaign.png";
+import campaignDarkLogo from "../assets/clients/campaign-night.png";
+import metaLogo from "../assets/clients/meta.png";
+import googleLogo from "../assets/clients/google.png";
 
 const LogoSlider = () => {
   const { isDarkMode } = useTheme();
-  const colors = getThemeColors(isDarkMode);
 
   const logos = [
-    { name: "Columbia", logo: columbiaLogo },
-    { name: "Five Below", logo: fiveBelowLogo },
-    { name: "Redbubble", logo: redbubbleLogo },
-    { name: "Allbirds", logo: allbirdsLogo },
-    { name: "Reebok", logo: reebokLogo },
-    { name: "Bonafide", logo: bonafideLogo },
-    { name: "Target", logo: targetLogo },
-    { name: "Crocs", logo: crocsLogo },
-    { name: "Instacart", logo: instacartLogo },
-    { name: "Hotwire", logo: hotwireLogo },
-    { name: "Caribou", logo: caribouLogo },
-    { name: "Blenders", logo: blendersLogo },
+    {
+      name: "Affise",
+      logo: affiseLogo,
+    },
+    {
+      name: "Namecheap",
+      logo: namecheapLogo,
+    },
+    {
+      name: "PlutoAstro",
+      logo: plutoLogo,
+    },
+    {
+      name: "Mindbaz",
+      logo: mindbazLogo,
+    },
+    {
+      name: "Campaign Monitor",
+      logo: isDarkMode ? campaignDarkLogo : campaignLogo,
+    },
+    {
+      name: "Meta",
+      logo: metaLogo,
+    },
+    {
+      name: "Google",
+      logo: googleLogo,
+    },
   ];
 
   // Duplicate array for seamless infinite loop
@@ -40,20 +50,38 @@ const LogoSlider = () => {
 
   return (
     <section
-      className={`py-12 ${colors.logoSliderBg} overflow-hidden relative transition-colors duration-500`}
+      className={`
+        py-12
+        overflow-hidden
+        relative
+        transition-colors duration-500
+        ${isDarkMode ? "bg-[#050508]" : "bg-white"}
+      `}
     >
       {/* Logo Slider - Auto Scrolling */}
-      <div className="logo-slider-container flex whitespace-nowrap">
+      <div className="logo-slider-container flex whitespace-nowrap pt-12">
         {duplicatedLogos.map((item, index) => (
           <div
-            key={index}
-            className="mx-8 md:mx-16 flex items-center justify-center opacity-60 hover:opacity-100 transition-opacity duration-300 flex-shrink-0"
+            key={`${item.name}-${index}`}
+            className="
+              mx-8 md:mx-16
+              flex items-center justify-center
+              opacity-90
+              hover:opacity-100
+              transition-opacity duration-300
+              flex-shrink-0
+            "
           >
-            {/* Logo Image */}
+            {/* Original Color Logo */}
             <img
               src={item.logo}
               alt={item.name}
-              className="h-12 md:h-16 w-auto object-contain grayscale hover:grayscale-0 transition-all duration-300"
+              className="
+                h-12 md:h-16
+                w-auto
+                object-contain
+                transition-all duration-300
+              "
             />
           </div>
         ))}
