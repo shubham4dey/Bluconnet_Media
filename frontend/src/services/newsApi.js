@@ -80,54 +80,73 @@ export const getPublishedNewsById = (id) =>
     .then((r) => r.data)
     .catch(() => ({ ok: false, data: null }));
 
-/* Resolve a possibly relative /uploads URL to an absolute URL */
+/* Resolve a stored image URL for rendering.
+ * Cloudinary `secure_url`s are already absolute and pass through unchanged —
+ * the public News page therefore loads images straight from Cloudinary.
+ * Legacy `/uploads/...` paths (older articles) still resolve against the
+ * backend origin so they keep rendering until they are migrated. */
 export const resolveUrl = (u) => {
   if (!u) return "";
   if (/^https?:\/\//i.test(u) || /^data:/.test(u)) return u;
   return `${ORIGIN}${u.startsWith("/") ? "" : "/"}${u}`;
 };
 
-/* ---------- image upload (reuses the existing public upload route) ----------
- * NOTE: We intentionally do NOT set Content-Type here. FormData uploads must
- * let the browser set `multipart/form-data; boundary=...`. Forcing the header
- * to a boundary-less "multipart/form-data" is the documented cause of
+/* ---------- image upload → Cloudinary (admin-authenticated) ----------
+ * The backend streams the file straight to Cloudinary and answers with the
+ * permanent `secure_url` (+ `public_id`). Nothing is written to the server's
+ * local /uploads folder — Render wipes that on every restart/redeploy, which
+ * is why uploaded images used to disappear.
+ * On ANY failure the backend answers without a URL, so the Admin panel shows
+ * the real error instead of saving a broken image path.
+ * NOTE: we intentionally do NOT set Content-Type — FormData uploads must let
+ * the browser set `multipart/form-data; boundary=...`. Forcing the header to
+ * a boundary-less "multipart/form-data" is the documented cause of
  * `AxiosError: Network Error` on file uploads.
- * DEBUG: log the raw request/upload flow so a real backend error is visible
- * in the AdminNews UI and the browser console instead of a generic message.
+ * DEBUG: the raw request/response is logged so a real backend error is
+ * visible in the AdminNews UI instead of a generic message.
  */
-const uploadClient = axios.create({ baseURL: API, timeout: 20000 });
-export async function uploadNewsImageFile(file) {
+const uploadClient = axios.create({ baseURL: API, timeout: 30000 });
+export async function uploadNewsImageFile(file, { retry = true } = {}) {
   const fd = new FormData();
   fd.append("file", file);
   try {
-    console.log("[newsApi] upload ->", API, "/upload; file:", file.name, file.type, file.size);
-    console.time("[newsApi] upload duration");
-    const res = await uploadClient.post("/upload", fd, {
-      // Do NOT set Content-Type — let the browser auto-set
-      // multipart/form-data; boundary=----... so Axios/Node can parse it.
-      headers: {},
-    });
-    console.timeEnd("[newsApi] upload duration");
+    const token = await ensureToken();
+    const headers = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    console.log(
+      "[newsApi] upload ->",
+      API,
+      "/admin/news/upload; file:",
+      file.name,
+      file.type,
+      file.size
+    );
+    const res = await uploadClient.post("/admin/news/upload", fd, { headers });
     console.log("[newsApi] upload response:", JSON.stringify(res.data));
-    if (res.data && res.data.ok && res.data.url) {
-      // Store the backend-relative URL exactly as returned (e.g. "/uploads/x.jpg").
-      // Every consumer renders it through resolveUrl(), so the SAME stored value
-      // resolves to the correct origin in dev and in production — no
-      // environment-specific (localhost) URL is ever written to the database.
-      console.log("[newsApi] upload OK -> storing imageUrl:", res.data.url);
-      return { url: res.data.url, error: null };
+    const url = res.data && (res.data.secureUrl || res.data.url);
+    if (res.data && res.data.ok && url) {
+      console.log("[newsApi] upload OK -> storing Cloudinary imageUrl:", url);
+      return { url, publicId: res.data.publicId || "", error: null };
     }
     console.warn("[newsApi] upload unexpected shape:", JSON.stringify(res.data));
-    return { url: null, error: res.data && res.data.error ? String(res.data.error) : "upload returned no URL" };
+    return {
+      url: null,
+      publicId: "",
+      error:
+        res.data && res.data.error ? String(res.data.error) : "upload returned no URL",
+    };
   } catch (e) {
     const status = e && e.response && e.response.status;
     const body =
-      e &&
-      e.response &&
-      e.response.data &&
-      JSON.stringify(e.response.data);
+      e && e.response && e.response.data && JSON.stringify(e.response.data);
+    // A stale token would otherwise break uploads until localStorage is cleared.
+    if (retry && status === 401) {
+      console.warn("[newsApi] 401 on upload -> re-minting admin token and retrying");
+      localStorage.removeItem(TOKEN_KEY);
+      return uploadNewsImageFile(file, { retry: false });
+    }
     console.error("[newsApi] upload ERROR ->", status, body || e.message);
-    return { url: null, error: body || e.message || "Network error" };
+    return { url: null, publicId: "", error: body || e.message || "Network error" };
   }
 }
 
@@ -145,6 +164,15 @@ const _report = (label, res, err) => {
     console.log(`[newsApi] ${label} ->`, JSON.stringify(res));
   }
 };
+
+/* ---------- ADMIN: migrate legacy news images to Cloudinary ----------
+ * Upgrades `/uploads/...` / inline base64 references (and, with
+ * { allowRemote: true }, external URLs) to permanent Cloudinary assets. */
+export const migrateNewsImages = (options = {}) =>
+  admin("/admin/news/migrate-images", { method: "post", data: options }).catch((e) => {
+    _report("migrateNewsImages", null, e);
+    return { ok: false };
+  });
 
 export const listAdminNews = () =>
   admin("/admin/news").catch((e) => {
@@ -197,4 +225,5 @@ export default {
   createNews,
   updateNews,
   deleteNews,
+  migrateNewsImages,
 };

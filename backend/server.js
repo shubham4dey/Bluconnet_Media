@@ -14,7 +14,10 @@ const multer = require("multer");
 const db = require("./config/database");
 const mysql = require("./config/mysql");
 const contacts = require("./models/contactModel");
+const newsModel = require("./models/newsModel");
 const { globalLimiter } = require("./middleware/rateLimit");
+const cloudinary = require("./services/cloudinary");
+const newsImage = require("./services/newsImage");
 const apiRoutes = require("./routes/api");
 
 const app = express();
@@ -136,7 +139,10 @@ app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 app.use(globalLimiter);
 
-/* ---------------- static uploads ---------------- */
+/* ---------------- static uploads (legacy only) ----------------
+   News images are served from Cloudinary, NOT from here: this folder is
+   wiped by Render on every restart/redeploy. Static serving is kept only so
+   old `/uploads/...` references still resolve until they are migrated. */
 app.use(
   "/uploads",
   express.static(path.join(__dirname, "uploads"), { maxAge: "7d" })
@@ -145,12 +151,32 @@ app.use(
 /* ---------------- routes ---------------- */
 app.set("trust proxy", 1);
 
-app.get("/health", (req, res) =>
-  res.json({ ok: true, service: "bluconnet-ai-backend", time: new Date().toISOString() })
-);
-app.get("/api/health", (req, res) =>
-  res.json({ ok: true, service: "bluconnet-ai-backend", time: new Date().toISOString() })
-);
+/* Health + storage diagnostics. `news` reports where articles and images are
+   actually stored (no secrets) so production can be verified with one request:
+     store.durable      → true = articles are in MySQL (survive a redeploy)
+     store.requireDb    → true = a failed MySQL write is reported as an error
+     images.configured  → Cloudinary credentials present on this service      */
+const health = (req, res) =>
+  res.json({
+    ok: true,
+    service: "bluconnet-ai-backend",
+    time: new Date().toISOString(),
+    news: {
+      store: {
+        durable: newsModel.isDurable(),
+        table: newsModel.TABLE,
+        requireDb: newsModel.status().requireDb,
+      },
+      images: {
+        configured: cloudinary.isConfigured(),
+        cloud: cloudinary.cloudName(),
+        folder: cloudinary.NEWS_FOLDER,
+      },
+    },
+  });
+
+app.get("/health", health);
+app.get("/api/health", health);
 app.use("/api", apiRoutes);
 
 /* ---------------- 404 + errors ---------------- */
@@ -172,6 +198,73 @@ app.use((err, req, res, next) => {
   }
   res.status(err.status || 500).json({ ok: false, error: "Internal server error" });
 });
+
+/* ---------------- permanent News storage on boot ----------------
+   Articles live in MySQL (`news` table) with `backend/data/news.json` as a
+   local read mirror; images live on Cloudinary. The order below matters:
+
+     1. create/verify the news schema (idempotent, same SQL as `npm run migrate`)
+     2. upgrade legacy image references (local `/uploads/...` paths Render has
+        already wiped, inline base64) to permanent Cloudinary assets
+     3. import mirror articles MySQL does not have yet — INSERT IGNORE on the
+        primary key, so no duplicate and no overwrite ever happens
+     4. hydrate the mirror from MySQL, so the public API serves the database
+
+   Every step is independent and best-effort: a failure is logged and the API
+   keeps answering with whatever the mirror holds. */
+console.log(`[cloudinary] ${cloudinary.describe()}`);
+
+async function bootstrapNews() {
+  try {
+    const schema = await newsModel.ensureSchema();
+    console.log(`[news] storage : MySQL \`${schema.table}\` via ${schema.target}`);
+  } catch (err) {
+    console.error(
+      `[news] MySQL unavailable (${mysql.safeError(err)}) — articles are kept in the local mirror only ` +
+        "until the database is reachable (check the NAMECHEAP_SSH_* / MYSQL_* variables)"
+    );
+    return;
+  }
+
+  try {
+    const report = await newsImage.migrateNewsImages({ allowRemote: false });
+    if (report.migrated) {
+      console.log(
+        `[cloudinary] migrated ${report.migrated} legacy news image(s) (scanned=${report.scanned}, unmigrated=${report.unmigrated})`
+      );
+    } else if (report.unmigrated) {
+      console.warn(
+        `[cloudinary] ${report.unmigrated} news image(s) could not be migrated automatically — re-upload them from the Admin panel`
+      );
+    }
+  } catch (err) {
+    console.error(`[cloudinary] news image migration skipped (${err.message})`);
+  }
+
+  try {
+    const report = await newsModel.hydrate();
+    console.log(
+      `[news] articles: ${report.articles} stored in MySQL ` +
+        `(imported=${report.imported}, recovered=${report.seeded}, importFailed=${report.importFailed}, mirrorOnly=${report.kept})`
+    );
+  } catch (err) {
+    console.error(`[news] mirror hydration skipped (${err.message})`);
+  }
+
+  /* Optional: keep the local mirror in step with MySQL when something else
+     writes to the table (multi-instance / manual SQL). Disabled by default —
+     a single instance always mirrors its own writes. */
+  const refreshMs = Number(process.env.NEWS_DB_REFRESH_MS || 0) || 0;
+  if (refreshMs > 0) {
+    setInterval(() => {
+      newsModel
+        .refreshFromDb()
+        .catch((err) => console.error(`[news] mirror refresh skipped (${err.message})`));
+    }, refreshMs).unref();
+  }
+}
+
+bootstrapNews();
 
 app.listen(PORT, () => {
   console.log(`✅ BluConnet AI backend running on port ${PORT} (NODE_ENV=${process.env.NODE_ENV || "development"})`);

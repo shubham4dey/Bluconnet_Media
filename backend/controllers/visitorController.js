@@ -42,6 +42,10 @@ exports.heartbeat = (req, res) => {
   return res.json({ ok: true });
 };
 
+/* Legacy local-disk upload response. It is no longer wired to any route:
+   News images are uploaded straight to Cloudinary by newsController.uploadImage
+   (services/newsImage.js) so they survive Render restarts/redeploys. Kept only
+   so the shape stays documented for non-image documents. */
 exports.uploadFile = (req, res) => {
   if (!req.file) {
     return res.status(400).json({ ok: false, error: "No file received" });

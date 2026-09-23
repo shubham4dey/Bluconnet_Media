@@ -8,6 +8,7 @@
     "dev": "node server.js",
     "migrate": "node database/migrate.js",
     "contacts:verify": "node database/verify.js",
+    "news:verify": "node database/verifyNews.js",
     "news:images:migrate": "node database/migrateNewsImages.js",
     "test": "node --test \"tests/*.test.js\"",
     "build": "node -e \"console.log('backend: no build step (plain Node.js, nothing to compile)')\""

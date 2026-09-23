@@ -17,6 +17,7 @@ import {
   updateNews,
   deleteNews,
   uploadNewsImageFile,
+  migrateNewsImages,
   resolveUrl,
 } from "../services/newsApi";
 
@@ -85,6 +86,33 @@ const AdminNews = () => {
       }
 
       if (!cancelled) setNewsList(list);
+
+      // One-time (per browser session) Cloudinary migration: any article still
+      // pointing at a legacy local `/uploads/...` path or an inline base64 blob
+      // is re-uploaded to Cloudinary by the backend, so the image keeps working
+      // after a Render restart/redeploy. Best-effort — no UI change.
+      const MIGRATION_FLAG = "bluconnet_news_image_migration";
+      const needsMigration = (u) => {
+        const v = (u || "").trim();
+        if (!v) return false;
+        return !/^https:\/\/res\.cloudinary\.com\//i.test(v);
+      };
+      try {
+        if (
+          reachable &&
+          list.some((n) => needsMigration(n.imageUrl)) &&
+          !sessionStorage.getItem(MIGRATION_FLAG)
+        ) {
+          sessionStorage.setItem(MIGRATION_FLAG, "1");
+          const report = await migrateNewsImages();
+          if (report && report.ok && report.migrated > 0) {
+            const again = await listAdminNews();
+            if (!cancelled) setNewsList((again && again.ok && again.data) || []);
+          }
+        }
+      } catch (e) {
+        /* image migration is best-effort (private-mode storage, offline…) */
+      }
     })();
 
     return () => {
@@ -115,10 +143,11 @@ const AdminNews = () => {
     };
     reader.readAsDataURL(file);
 
-    // Upload to the central backend and store the PUBLIC server URL with the
-    // article. We never store a browser-only base64/blob: the public /news page
-    // must load the very same image for every visitor, so only a backend-served
-    // URL is acceptable. On failure the real backend error is shown below.
+    // Upload to Cloudinary through the authenticated backend route and store
+    // the permanent `secure_url` with the article. We never store a browser-only
+    // base64/blob or a local /uploads path: Render wipes the local filesystem on
+    // every restart/redeploy, so only a Cloudinary URL is acceptable. On failure
+    // the real backend error is shown below and no URL is kept.
     uploadNewsImageFile(file).then(({ url, error }) => {
       if (url) {
         setImageBase64(null);
