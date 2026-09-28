@@ -52,6 +52,8 @@ import ServicesCard from "./pages/ServicesCard";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
 import DigitalServices from "./pages/DigitalServices";
+import RecaptchaProtection from "./components/RecaptchaProtection";
+import RecaptchaV2Checkbox from "./components/RecaptchaV2Checkbox";
 
 // Lazy-loaded AI assistant (zero impact on initial page load)
 const Chatbot = lazy(() => import("./components/chatbot/Chatbot"));
@@ -225,6 +227,10 @@ function App() {
           <Suspense fallback={null}>
             <Chatbot isOpen={isChatOpen} onClose={closeChat} unread={unread} onBotReply={handleBotReply} />
           </Suspense>
+          <RecaptchaProtection />
+          {/* v2 "I'm not a robot" checkbox, opened by clicking/tapping the
+              badge above. Completely separate from the v3 integration. */}
+          <RecaptchaV2Checkbox />
           <Footer />
         </div>
       </div>

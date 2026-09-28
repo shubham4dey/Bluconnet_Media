@@ -7,6 +7,7 @@ const express = require("express");
 const router = express.Router();
 
 const { submitLimiter, uploadLimiter, authLimiter, aiLimiter } = require("../middleware/rateLimit");
+const { requireRecaptcha } = require("../middleware/recaptcha");
 const { requireAuth } = require("../middleware/auth");
 const { imageUpload } = require("../middleware/upload");
 const submissions = require("../controllers/submissionController");
@@ -25,12 +26,18 @@ const subscribeRoutes = require("./subscribeRoutes");
 /* ---------------- NEWS: public (global, published-only) ---------------- */
 const news = require("../controllers/newsController");
 
-/* ---------------- public ---------------- */
-router.post("/lead", submitLimiter, submissions.createLead);
-router.post("/meeting", submitLimiter, submissions.createMeeting);
-router.post("/application", submitLimiter, submissions.createApplication);
-router.post("/handoff", submitLimiter, submissions.createHandoff);
-router.post("/feedback", submitLimiter, submissions.createFeedback);
+/* ---------------- public ----------------
+   Every endpoint that stores visitor-submitted data is protected by
+   middleware/recaptcha: the reCAPTCHA v3 token sent by the frontend is
+   verified with Google (RECAPTCHA_SECRET_KEY) before the controller runs,
+   so the existing controller/DB logic is never reached by an unverified
+   request. Telemetry (visitor heartbeat), chat transcripts (chat/session),
+   AI answers (ai/chat) and admin routes are not visitor forms. */
+router.post("/lead", submitLimiter, requireRecaptcha({ action: "lead" }), submissions.createLead);
+router.post("/meeting", submitLimiter, requireRecaptcha({ action: "meeting" }), submissions.createMeeting);
+router.post("/application", submitLimiter, requireRecaptcha({ action: "application" }), submissions.createApplication);
+router.post("/handoff", submitLimiter, requireRecaptcha({ action: "handoff" }), submissions.createHandoff);
+router.post("/feedback", submitLimiter, requireRecaptcha({ action: "feedback" }), submissions.createFeedback);
 router.post("/chat/session", submitLimiter, chat.saveSession);
 router.post("/visitor/heartbeat", visitors.heartbeat);
 /* Image uploads go straight to Cloudinary (memory storage — nothing is ever
