@@ -23,6 +23,7 @@ const fs = require("fs");
 const path = require("path");
 const cloudinaryClient = require("./cloudinary");
 const defaultStore = require("../models/newsModel");
+const { isPublicHttpUrl } = require("../middleware/validate");
 
 const DEFAULT_UPLOAD_DIR = path.join(__dirname, "..", "uploads");
 
@@ -167,22 +168,59 @@ function createNewsImageService({
     }
   }
 
-  async function fetchRemoteBuffer(url, timeoutMs = 10000) {
-    if (!fetchImpl) throw new Error("fetch is unavailable on this runtime");
+  /* SSRF guard: this server fetches a URL that arrived with a request, so every
+     hop must be a PUBLIC http(s) target. `redirect: "manual"` + re-validation of
+     each Location header keeps a redirect from smuggling the fetch to an
+     internal address (127.0.0.1, RFC1918, 169.254.169.254 cloud metadata,
+     *.internal, IPv6 literals …). */
+  const MAX_REDIRECTS = 3;
+
+  async function fetchOnce(url, timeoutMs) {
     const controller = typeof AbortController === "function" ? new AbortController() : null;
     const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
     try {
-      const res = await fetchImpl(url, {
-        redirect: "follow",
+      return await fetchImpl(url, {
+        redirect: "manual",
         signal: controller ? controller.signal : undefined,
       });
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  async function fetchRemoteBuffer(url, timeoutMs = 10000) {
+    if (!fetchImpl) throw new Error("fetch is unavailable on this runtime");
+
+    let target = isPublicHttpUrl(url, { requireHttps: false });
+    if (!target) throw new Error("blocked target (not a public http(s) URL)");
+
+    for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
+      const res = await fetchOnce(target, timeoutMs);
+      const location = res && res.headers && res.headers.get
+        ? res.headers.get("location")
+        : null;
+
+      if (res && res.status >= 300 && res.status < 400 && location) {
+        let next = null;
+        try {
+          next = isPublicHttpUrl(new URL(location, target).toString(), {
+            requireHttps: false,
+          });
+        } catch (e) {
+          next = null;
+        }
+        if (!next) throw new Error("blocked redirect target");
+        target = next;
+        continue;
+      }
+
       if (!res || !res.ok) throw new Error(`HTTP ${res ? res.status : "error"}`);
       const buf = Buffer.from(await res.arrayBuffer());
       if (!buf.length) throw new Error("empty response");
       return buf;
-    } finally {
-      if (timer) clearTimeout(timer);
     }
+
+    throw new Error("too many redirects");
   }
 /**
    * Normalise an image reference into the two fields persisted with an

@@ -48,6 +48,23 @@ app.use((req, res, next) => {
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("X-DNS-Prefetch-Control", "off");
+  /* Added hardening (OWASP secure-headers set):
+     • HSTS — the API is only reachable over HTTPS, so browsers are pinned to it.
+     • This app answers JSON (plus legacy /uploads images), never HTML, so the
+       strictest CSP is safe here: nothing may be loaded, framed or scripted.
+     • Cross-Origin-Resource-Policy stays `cross-origin` on purpose: the site
+       (bluconnetmedia.com) loads the legacy /uploads images from this origin. */
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  res.setHeader(
+    "Content-Security-Policy",
+    "default-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+  );
+  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+  res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+  res.setHeader(
+    "Permissions-Policy",
+    "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=()"
+  );
   next();
 });
 
@@ -62,14 +79,26 @@ app.use((req, res, next) => {
 const BASE_ORIGINS = [
   "https://bluconnetmedia.com",
   "https://www.bluconnetmedia.com",
+];
+
+/* SECURITY (M1): the dev-only origins are NEVER allowed once NODE_ENV is
+   "production". With `credentials: true` an allowed origin can read every
+   response AND have the browser attach cookies to cross-site requests, so a
+   permissive list here is a real data-exposure hole: any local service or
+   attacker-hosted page on `http://localhost:*` used to be trusted by the
+   deployed API. Production deployments must therefore name their own origins
+   explicitly through FRONTEND_ORIGIN (comma separated). */
+const IS_PRODUCTION = String(process.env.NODE_ENV || "").toLowerCase() === "production";
+const DEV_ORIGINS = [
   "http://localhost:3000",
   "http://localhost:5173",
   "http://127.0.0.1:3000",
   "http://127.0.0.1:5173",
 ];
+
 const allowed = Array.from(
   new Set(
-    BASE_ORIGINS.concat(
+    BASE_ORIGINS.concat(IS_PRODUCTION ? [] : DEV_ORIGINS).concat(
       (process.env.FRONTEND_ORIGIN || "")
         .split(",")
         .map((s) => s.trim())
@@ -77,24 +106,38 @@ const allowed = Array.from(
     )
   )
 );
-/* Hosts that are always trusted, whatever the scheme (http/https) or port.
-   An exact-string origin comparison is brittle: the very same site can appear
-   as "https://bluconnetmedia.com", "https://www.bluconnetmedia.com" or — when
-   a visitor lands on plain HTTP — "http://bluconnetmedia.com". Any origin that
-   does not match exactly is rejected, the browser then blocks the response and
-   the console reports a CORS error (e.g. on /api/visitor/heartbeat). Matching
-   on hostname instead removes that whole class of failure. */
+/* The ONLY hosts trusted in PRODUCTION: the official apex + www. Arbitrary
+   subdomains of bluconnetmedia.com are deliberately NOT trusted there — a
+   dangling / attacker-controlled subdomain must not be able to make
+   credentialed cross-origin requests. In DEVELOPMENT the same hosts are
+   accepted on any scheme/port (apex, www or a subdomain) so a visitor landing
+   on plain HTTP — or a preview host — is not hit by the brittle exact-origin
+   mismatch that surfaces as a CORS error (e.g. on /api/visitor/heartbeat).
+   LOCAL_HOSTS is development-only. Any other real origin must be named in
+   FRONTEND_ORIGIN. */
 const ALLOWED_HOSTS = new Set(["bluconnetmedia.com", "www.bluconnetmedia.com"]);
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1"]);
 
 function isAllowedOrigin(origin) {
-  if (!origin) return true; // same-origin / non-browser caller
+  if (!origin) return true; // same-origin / non-browser caller (curl, monitoring)
   if (allowed.includes("*") || allowed.includes(origin)) return true;
   try {
-    const host = new URL(origin).hostname.toLowerCase();
-    if (ALLOWED_HOSTS.has(host)) return true; // apex + www, any scheme/port
-    if (host.endsWith(".bluconnetmedia.com")) return true; // any subdomain
-    if (LOCAL_HOSTS.has(host)) return true; // local development
+    const url = new URL(origin);
+    const host = url.hostname.toLowerCase();
+
+    /* SECURITY: in PRODUCTION ONLY the official apex + www hosts are trusted,
+       and only over HTTPS. `anything.bluconnetmedia.com` is NOT automatically
+       allowed — a subdomain is a different origin, and with `credentials: true`
+       an attacker-controlled (or dangling-DNS) subdomain could otherwise read
+       authenticated responses and drive authenticated requests. */
+    if (IS_PRODUCTION) {
+      return ALLOWED_HOSTS.has(host) && url.protocol === "https:";
+    }
+
+    /* DEVELOPMENT only: the site on any scheme/port (apex, www or a subdomain).
+       This branch is unreachable in production (the branch above returns). */
+    if (ALLOWED_HOSTS.has(host) || host.endsWith(".bluconnetmedia.com")) return true;
+    if (LOCAL_HOSTS.has(host)) return true;
   } catch (e) {
     /* malformed Origin header -> reject */
   }
@@ -104,7 +147,9 @@ function isAllowedOrigin(origin) {
 console.log(
   "[cors] allowed origins:",
   allowed.join(", "),
-  "+ any scheme/port/subdomain of bluconnetmedia.com"
+  IS_PRODUCTION
+    ? "+ HTTPS apex/www of bluconnetmedia.com only (subdomains + localhost rejected in production)"
+    : "+ any scheme/port on bluconnetmedia.com + localhost (development)"
 );
 app.use(
   cors({
@@ -156,17 +201,31 @@ app.set("trust proxy", 1);
      store.durable      → true = articles are in MySQL (survive a redeploy)
      store.requireDb    → true = a failed MySQL write is reported as an error
      images.configured  → Cloudinary credentials present on this service      */
-const health = (req, res) =>
-  res.json({
+const health = (req, res) => {
+  /* SECURITY: the storage diagnostics can carry the last database connection
+     error. It stays available for operations, but only when the caller presents
+     the configured token (`x-health-token: <token>`), so the endpoint does not
+     publish connection details to anonymous callers. With no HEALTH_TOKEN set
+     the response is exactly what it was before, so monitoring keeps working. */
+  const healthToken = String(process.env.HEALTH_TOKEN || "");
+  const canSeeDetail =
+    Boolean(healthToken) && (req.headers["x-health-token"] || "") === healthToken;
+
+  const store = {
+    durable: newsModel.isDurable(),
+    table: newsModel.TABLE,
+    requireDb: newsModel.status().requireDb,
+  };
+  if (canSeeDetail) {
+    store.lastError = newsModel.status().lastError || null;
+  }
+
+  return res.json({
     ok: true,
     service: "bluconnet-ai-backend",
     time: new Date().toISOString(),
     news: {
-      store: {
-        durable: newsModel.isDurable(),
-        table: newsModel.TABLE,
-        requireDb: newsModel.status().requireDb,
-      },
+      store,
       images: {
         configured: cloudinary.isConfigured(),
         cloud: cloudinary.cloudName(),
@@ -174,6 +233,7 @@ const health = (req, res) =>
       },
     },
   });
+};
 
 app.get("/health", health);
 app.get("/api/health", health);

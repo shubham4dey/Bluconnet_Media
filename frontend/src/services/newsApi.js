@@ -21,47 +21,64 @@ const client = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-/* Same static admin credentials already baked into Login.jsx */
-const ADMIN_USER = process.env.REACT_APP_ADMIN_USER || "bluconnetnews";
-const ADMIN_PASS = process.env.REACT_APP_ADMIN_PASS || "bluconnetmedia@2026";
+/* SECURITY (C1): this module used to carry its own copy of the admin username
+   and password and POST them to /admin/login the first time any admin call ran.
+   Everything below ships inside the public JavaScript bundle, so the repository
+   and the live site effectively published a working admin credential set: any
+   visitor could mint a valid admin token and create/edit/delete News articles
+   or burn Cloudinary storage through the upload route.
+
+   There is deliberately NO credential here any more. `bc_admin_token` is the
+   session token the backend handed out when a human signed in on /login (or on
+   /admin/chat), and nothing in the browser can authenticate on its own. A
+   missing/expired session is an error the caller shows — never a silent
+   re-login. */
 const TOKEN_KEY = "bc_admin_token";
 
-/* ---------- admin token (minted on first admin call) ---------- */
-let mintPromise = null;
-async function ensureToken() {
-  const existing = localStorage.getItem(TOKEN_KEY);
-  if (existing && existing !== "undefined") return existing;
-
-  if (!mintPromise) {
-    mintPromise = client
-      .post("/admin/login", { username: ADMIN_USER, password: ADMIN_PASS })
-      .then((r) => {
-        const token = r.data && r.data.token;
-        if (token) localStorage.setItem(TOKEN_KEY, token);
-        return token || null;
-      })
-      .catch(() => null)
-      .finally(() => {
-        mintPromise = null;
-      });
+/* The current admin session token, or null when nobody is signed in. */
+export function getAdminToken() {
+  try {
+    const token = localStorage.getItem(TOKEN_KEY);
+    return typeof token === "string" && token && token !== "undefined" ? token : null;
+  } catch (e) {
+    /* private mode / storage disabled — treat as signed out */
+    return null;
   }
-  return mintPromise;
 }
 
-async function admin(path, { method = "get", data, retry = true } = {}) {
-  const token = await ensureToken();
-  const headers = {};
-  if (token) headers.Authorization = `Bearer ${token}`;
+/* Drop the session (expired, revoked or logged out). */
+export function clearAdminToken() {
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+  } catch (e) {
+    /* nothing to clean up */
+  }
+}
+
+/* A 401-shaped error for calls made without a session, so callers can react
+   (the Admin panel redirects to /login) exactly like for a rejected token. */
+function noSessionError(path) {
+  const err = new Error(`Admin session required for ${path}`);
+  err.status = 401;
+  err.code = "NO_ADMIN_SESSION";
+  return err;
+}
+
+async function admin(path, { method = "get", data } = {}) {
+  const token = getAdminToken();
+  if (!token) throw noSessionError(path);
+
+  const headers = { Authorization: `Bearer ${token}` };
   try {
     const res = await client({ url: path, method, data, headers });
     return res.data;
   } catch (e) {
-    // A stale/expired token left in localStorage would otherwise break EVERY
-    // admin call forever. Re-mint once and retry so the panel self-heals.
-    if (retry && e && e.response && e.response.status === 401) {
-      console.warn("[newsApi] 401 on", path, "-> re-minting admin token and retrying");
-      localStorage.removeItem(TOKEN_KEY);
-      return admin(path, { method, data, retry: false });
+    /* An expired or revoked token is NOT re-minted from here: the only way to
+       get a new one is signing in again. The session is dropped so the Admin
+       panel notices and redirects to /login instead of failing on every call. */
+    if (e && e.response && e.response.status === 401) {
+      console.warn("[newsApi] 401 on", path, "-> admin session expired, sign in again");
+      clearAdminToken();
     }
     throw e;
   }
@@ -114,13 +131,19 @@ export const resolveUrl = (u) => {
  * visible in the AdminNews UI instead of a generic message.
  */
 const uploadClient = axios.create({ baseURL: API, timeout: 30000 });
-export async function uploadNewsImageFile(file, { retry = true } = {}) {
+export async function uploadNewsImageFile(file) {
+  /* Signed-in session only — the upload endpoint costs real Cloudinary storage
+     and is protected by requireAuth on the server (see backend/routes/api.js). */
+  const token = getAdminToken();
+  if (!token) {
+    console.warn("[newsApi] upload refused — no admin session");
+    return { url: null, publicId: "", error: "Admin session expired. Sign in again." };
+  }
+
   const fd = new FormData();
   fd.append("file", file);
   try {
-    const token = await ensureToken();
-    const headers = {};
-    if (token) headers.Authorization = `Bearer ${token}`;
+    const headers = { Authorization: `Bearer ${token}` };
     console.log(
       "[newsApi] upload ->",
       API,
@@ -147,11 +170,17 @@ export async function uploadNewsImageFile(file, { retry = true } = {}) {
     const status = e && e.response && e.response.status;
     const body =
       e && e.response && e.response.data && JSON.stringify(e.response.data);
-    // A stale token would otherwise break uploads until localStorage is cleared.
-    if (retry && status === 401) {
-      console.warn("[newsApi] 401 on upload -> re-minting admin token and retrying");
-      localStorage.removeItem(TOKEN_KEY);
-      return uploadNewsImageFile(file, { retry: false });
+    // An expired/revoked session is dropped (the panel then redirects to
+    // /login). It is never re-minted from the browser: only a real sign-in
+    // produces a token.
+    if (status === 401) {
+      console.warn("[newsApi] 401 on upload -> admin session expired, sign in again");
+      clearAdminToken();
+      return {
+        url: null,
+        publicId: "",
+        error: "Admin session expired. Sign in again.",
+      };
     }
     console.error("[newsApi] upload ERROR ->", status, body || e.message);
     return { url: null, publicId: "", error: body || e.message || "Network error" };

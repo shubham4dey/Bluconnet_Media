@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { wpGet } from "../services/wpApi";
+/* WordPress content is author-supplied, not ours: it is sanitized before it
+   reaches dangerouslySetInnerHTML (see services/sanitizeHtml.js). */
+import { sanitizeHtml } from "../services/sanitizeHtml";
 import "./BlogDetails.css";
 
 const BlogDetails = () => {
@@ -73,6 +76,10 @@ const BlogDetails = () => {
     year: "numeric",
   });
 
+  /* Untrusted HTML from the WordPress REST API — sanitized, never injected raw. */
+  const safeTitle = sanitizeHtml(post.title && post.title.rendered);
+  const safeContent = sanitizeHtml(post.content && post.content.rendered);
+
   return (
     <main className={`blog-details-page ${isDarkMode ? "dark-mode" : ""}`}>
       <section className="blog-details-header">
@@ -84,7 +91,7 @@ const BlogDetails = () => {
 
         <h1
           dangerouslySetInnerHTML={{
-            __html: post.title.rendered,
+            __html: safeTitle,
           }}
         />
       </section>
@@ -93,7 +100,7 @@ const BlogDetails = () => {
         <div
           className="wordpress-blog-content"
           dangerouslySetInnerHTML={{
-            __html: post.content.rendered,
+            __html: safeContent,
           }}
         />
       </article>

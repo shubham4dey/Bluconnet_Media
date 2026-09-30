@@ -371,3 +371,49 @@ input:checked + .slider:before {
     inset 15px -4px 0 15px #efdf2b,
     0 0 10px #efdf2b;
 }
+/* ==========================================================================
+   ANTI-COPY (client requirement)
+   --------------------------------------------------------------------------
+   Text, headings, paragraphs, images and links are not selectable and cannot
+   be dragged out of the page; the matching right-click / Ctrl+C guards live in
+   components/ContentProtection.jsx, and frontend/public/.htaccess injects the
+   same rules into the built index.html so they already apply before this
+   bundle is parsed.
+
+   Anything a visitor actually types into keeps working normally. Escape hatch
+   for a component whose content must stay copyable: add `data-copy-allowed`.
+   ========================================================================== */
+body,
+body *:not(input):not(textarea):not(select):not(option):not([contenteditable]):not([data-copy-allowed]) {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea,
+select,
+option,
+[contenteditable],
+[contenteditable] *,
+[data-copy-allowed],
+[data-copy-allowed] * {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+  -webkit-touch-callout: default;
+}
+
+img,
+svg,
+video,
+a {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+}
+

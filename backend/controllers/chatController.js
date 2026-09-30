@@ -7,7 +7,7 @@
  * ============================================================
  */
 const db = require("../config/database");
-const { sanitize } = require("../middleware/validate");
+const { sanitize, clientIp } = require("../middleware/validate");
 
 exports.saveSession = (req, res) => {
   const body = req.body || {};
@@ -36,7 +36,10 @@ exports.saveSession = (req, res) => {
     durationSec: Math.min(Number(body.durationSec) || 0, 86400),
     messages: transcript,
     leadId: sanitize(body.leadId, 64) || null,
-    ip: body.ip || "",
+    /* SECURITY: the visitor's IP comes from the server's own proxy-aware
+       resolution (`req.ip`), never from the request body — the client used to
+       be able to write any value (or a fake IP) straight into the record. */
+    ip: clientIp(req),
     updatedAt: new Date().toISOString(),
   };
 

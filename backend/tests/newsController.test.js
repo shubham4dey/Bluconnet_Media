@@ -151,7 +151,11 @@ test("upload answers 502 without a URL when Cloudinary fails", async () => {
   assert.equal(res.code, 502);
   assert.equal(res.body.ok, false);
   assert.equal(res.body.url, undefined);
-  assert.match(res.body.error, /Cloudinary upload failed/);
+  // SECURITY hardening (newsController.uploadImage): the client only learns
+  // that the upload failed — the Cloudinary detail stays in the server log, so
+  // the response must not leak the storage internals.
+  assert.match(res.body.error, /upload failed/i);
+  assert.doesNotMatch(res.body.error, /cloudinary/i);
 });
 
 test("upload answers 503 when image storage is not configured", async () => {

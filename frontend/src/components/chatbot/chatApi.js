@@ -8,6 +8,10 @@
  */
 import axios from "axios";
 
+/* reCAPTCHA v3 — the backend verifies every protected submission with Google
+   (backend/middleware/recaptcha.js) using the token this client sends. */
+import { getRecaptchaToken } from "../RecaptchaProtection";
+
 /* Production default — same host that serves the built frontend.
    Local dev overrides this via frontend/.env
    (REACT_APP_API_URL=http://localhost:5000/api). */
@@ -40,9 +44,36 @@ function writeQueue(q) {
   }
 }
 
-async function post(path, data, { queue = false } = {}) {
+/* ---------- reCAPTCHA v3 tokens for protected submissions ----------
+   The action name must match the guard on the backend route
+   (backend/routes/api.js → requireRecaptcha({ action })). A fresh token is
+   requested at send time, so the offline queue always retries with a valid
+   one (tokens expire after two minutes). */
+const RECAPTCHA_ACTIONS = {
+  "/lead": "lead",
+  "/meeting": "meeting",
+  "/application": "application",
+  "/handoff": "handoff",
+  "/feedback": "feedback",
+};
+
+async function withRecaptchaToken(path, data) {
+  const action = RECAPTCHA_ACTIONS[path];
+  if (!action) return data;
   try {
-    const res = await client.post(path, data);
+    const token = await getRecaptchaToken(action);
+    return token ? { ...data, recaptchaToken: token } : data;
+  } catch (err) {
+    /* reCAPTCHA unavailable (offline/blocked) — the request is still sent and
+       the backend answers with its reCAPTCHA failure response. */
+    return data;
+  }
+}
+
+async function post(path, data, { queue = false } = {}) {
+  const payload = await withRecaptchaToken(path, data);
+  try {
+    const res = await client.post(path, payload);
     return res.data;
   } catch (err) {
     const status = err?.response?.status;
@@ -90,14 +121,28 @@ export const aiChat = (payload) =>
       );
       return null;
     });
-export const uploadFile = (file) => {
+export async function uploadFile(file) {
   const fd = new FormData();
   fd.append("file", file);
+  /* POST /api/upload is anonymous, so the backend demands a reCAPTCHA v3 token
+     for the "upload" action (backend/routes/api.js). It travels as a HEADER —
+     the guard must run before multer touches the file, and a multipart body
+     field would only be readable after that. A missing token (reCAPTCHA
+     blocked/offline) simply means the file is not copied to the server: the
+     attachment still works locally in the conversation. */
+  const headers = { "Content-Type": "multipart/form-data" };
+  try {
+    const token = await getRecaptchaToken("upload");
+    if (token) headers["X-Recaptcha-Token"] = token;
+  } catch (err) {
+    /* reCAPTCHA unavailable — the request is still sent and the backend
+       answers with its reCAPTCHA failure response. */
+  }
   return client
-    .post("/upload", fd, { headers: { "Content-Type": "multipart/form-data" }, timeout: 20000 })
+    .post("/upload", fd, { headers, timeout: 20000 })
     .then((r) => r.data)
     .catch(() => null);
-};
+}
 
 /* ---------- admin endpoints ---------- */
 function adminClient() {

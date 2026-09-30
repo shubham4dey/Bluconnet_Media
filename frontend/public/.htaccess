@@ -17,9 +17,56 @@
 # &action=elementor, /wp-admin/...) must likewise never fall through to the
 # SPA shell, otherwise Elementor reports "The preview could not be loaded".
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# SECURITY HEADERS (M2)
+#
+# Sent with every response of this document root — the React SPA and the
+# WordPress site share it. Kept deliberately conservative so nothing breaks:
+#   • no Content-Security-Policy here. A CSP that reaches WordPress +
+#     Elementor output has to allow inline styles/scripts, third-party plugin
+#     CDNs, fonts, analytics, wp-admin iframes …; one missing source and the
+#     editor or the site silently stops working. The backend API (Render)
+#     already sends its own strict CSP for the JSON service it owns.
+#   • X-Frame-Options SAMEORIGIN (not DENY): the Elementor editor and the
+#     WordPress customizer preview their own pages inside same-origin iframes.
+#   • HSTS is only set on HTTPS responses, so the plain-http vhost used by
+#     some ACME/health checks is untouched.
+# ---------------------------------------------------------------------------
+<IfModule mod_setenvif.c>
+  SetEnvIfExpr "%{HTTPS} == 'on'" BC_HTTPS
+</IfModule>
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), fullscreen=(self)"
+  Header always set Strict-Transport-Security "max-age=31536000" env=BC_HTTPS
+  Header always unset X-Powered-By
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+
+  # -------------------------------------------------------------------------
+  # SENSITIVE FILES — denied BEFORE the "serve real files as-is" rule below,
+  # otherwise a real file (wp-config.php, .env, a stray .sql dump) would be
+  # handed out before any deny rule ever ran. /.well-known is explicitly NOT
+  # blocked: that is where the ACME (AutoSSL) challenges live, and blocking it
+  # would break certificate renewal.
+  # xmlrpc.php is left ALONE on purpose — Jetpack / pingbacks / the WordPress
+  # app depend on it; block it here only if the site does not use them.
+  # -------------------------------------------------------------------------
+  RewriteCond %{REQUEST_URI} (^|/)\.(?!well-known) [NC,OR]
+  RewriteCond %{REQUEST_URI} \.(env|ini|conf|cfg|log|sql|sql\.gz|sqlite|sqlite3|bak|backup|old|orig|save|swp|swo|dist|sh|bak\.php|php\.bak|php~|inc)(/|$|\?) [NC,OR]
+  RewriteCond %{REQUEST_URI} ^/(composer\.(json|lock)|package(-lock)?\.json|yarn\.lock|npm-shrinkwrap\.json|README\.md|readme\.html|CHANGELOG\.md|wp-config\.php) [NC,OR]
+  RewriteCond %{REQUEST_URI} ^/wp-content/(debug\.log|object-cache\.php\.bak|backups?/) [NC,OR]
+  # No PHP ever executes from the uploads folder: that is the first thing an
+  # attacker who managed to upload a file reaches for. WordPress core, plugins
+  # and Elementor all keep their PHP outside uploads/.
+  RewriteCond %{REQUEST_URI} ^/wp-content/uploads/.*\.(php[0-9]*|phar|pl|py|cgi|sh|asp|js\.php)$ [NC]
+  RewriteRule .* - [F,L]
+
 
   # 3c-0) Homepage preview ("/?p=123&elementor-preview=.."): path is empty,
   #      docroot always matches -d, so handle BEFORE the file/dir passthrough.
@@ -68,4 +115,24 @@
 
   # 4) Every other path is a React client-side route -> serve the SPA shell.
   RewriteRule . /index.html [L]
+</IfModule>
+
+# ---------------------------------------------------------------------------
+# ANTI-COPY (client requirement) — server-side copy of the rules that already
+# live in the SPA bundle (src/index.css) and in components/ContentProtection.jsx.
+#
+# Injecting them into the shell means the text is already non-selectable while
+# the JavaScript bundle is still downloading, instead of only after React
+# boots. Scoped with <FilesMatch> to the SPA shell alone: applying it to every
+# text/html response would also hit wp-admin and the Elementor editor, where
+# `user-select: none` would make the page impossible to edit.
+#
+# Needs mod_substitute. When the module is not loaded the IfModule block is
+# ignored and nothing changes — the bundle's own CSS still applies.
+# ---------------------------------------------------------------------------
+<IfModule mod_substitute.c>
+  <FilesMatch "^index\.html$">
+    AddOutputFilterByType SUBSTITUTE text/html
+    Substitute "s|</head>|<style>body,body *{-webkit-user-select:none!important;-moz-user-select:none!important;-ms-user-select:none!important;user-select:none!important;-webkit-touch-callout:none}input,textarea,select,option,[contenteditable],[contenteditable] *,[data-copy-allowed],[data-copy-allowed] *{-webkit-user-select:text!important;-moz-user-select:text!important;user-select:text!important;-webkit-touch-callout:default}img,svg,video,a{-webkit-user-drag:none}</style></head>|ni"
+  </FilesMatch>
 </IfModule>

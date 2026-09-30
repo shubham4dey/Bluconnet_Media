@@ -4,24 +4,60 @@
  *  collection listings, CSV export, settings (webhook/CRM/…).
  * ============================================================
  */
+const crypto = require("crypto");
 const db = require("../config/database");
-const { issueToken } = require("../middleware/auth");
-const { sanitize } = require("../middleware/validate");
+const { issueToken, revokeToken, readBearer } = require("../middleware/auth");
+const { sanitize, isPublicHttpUrl } = require("../middleware/validate");
 
 const COLLECTIONS = ["leads", "meetings", "applications", "handoffs", "feedback", "sessions", "visitors"];
 
 /* ---------------- auth ---------------- */
+
+/**
+ * Length-safe constant-time string comparison: both sides are hashed first, so
+ * the comparison never leaks the password length (and never short-circuits on
+ * the first differing character).
+ */
+function safeEqual(a, b) {
+  const ha = crypto.createHash("sha256").update(String(a), "utf8").digest();
+  const hb = crypto.createHash("sha256").update(String(b), "utf8").digest();
+  return crypto.timingSafeEqual(ha, hb);
+}
+
 exports.login = (req, res) => {
   const { username, password } = req.body || {};
   const user = sanitize(username, 60);
   const pass = sanitize(password, 120);
-  if (
-    user !== (process.env.ADMIN_USER || "bluconnetnews") ||
-    pass !== (process.env.ADMIN_PASS || "bluconnetmedia@2026")
-  ) {
+
+  /* SECURITY: no built-in fallback credentials. Previously an unset
+     ADMIN_USER / ADMIN_PASS silently fell back to a well-known user/password
+     that is public in the repository and in the shipped frontend bundle, so
+     anyone could mint an admin token. Missing configuration now fails closed. */
+  const expectedUser = String(process.env.ADMIN_USER || "").trim();
+  const expectedPass = String(process.env.ADMIN_PASS || "");
+  if (!expectedUser || !expectedPass) {
+    console.error(
+      "[admin] ADMIN_USER / ADMIN_PASS are not configured — admin login refused (set both in the environment)"
+    );
+    return res.status(503).json({ ok: false, error: "Admin login is not configured" });
+  }
+
+  const userOk = safeEqual(user, expectedUser);
+  const passOk = safeEqual(pass, expectedPass);
+  if (!userOk || !passOk) {
+    console.warn(
+      `[admin] failed login attempt from ${(req && req.ip) || "unknown ip"}`
+    );
     return res.status(401).json({ ok: false, error: "Invalid credentials" });
   }
   return res.json({ ok: true, token: issueToken() });
+};
+
+/* Logout — the presented token is dropped straight away instead of staying
+   valid for the rest of its 12h TTL. */
+exports.logout = (req, res) => {
+  const revoked = revokeToken(readBearer(req));
+  return res.json({ ok: true, revoked });
 };
 
 /* ---------------- helpers ---------------- */
@@ -180,8 +216,16 @@ const CSV_COLUMNS = {
   visitors: ["sessionId", "firstSeen", "lastSeen", "page", "device"],
 };
 
+/* SECURITY: CSV / formula injection. Excel and Google Sheets execute a cell that
+   starts with `=`, `+`, `-`, `@` (or a tab/CR) as a formula, and these columns
+   are visitor-submitted (name, email, requirements, …) while the file is opened
+   by an admin — so a risky cell is prefixed with a single quote (the standard
+   mitigation) instead of being exported as-is. */
+const FORMULA_LEAD = /^[=+\-@\t\r]/;
+
 function csvEscape(v) {
-  const s = v === null || v === undefined ? "" : String(v);
+  let s = v === null || v === undefined ? "" : String(v);
+  if (FORMULA_LEAD.test(s)) s = `'${s}`;
   return `"${s.replace(/"/g, '""').replace(/\r?\n/g, " ")}"`;
 }
 
@@ -218,8 +262,31 @@ exports.getSettings = (req, res) => {
 exports.updateSettings = (req, res) => {
   const settings = db.read("settings");
   const body = req.body || {};
-  if (body.webhookUrl !== undefined) settings.webhookUrl = sanitize(body.webhookUrl, 300);
-  if (body.crmWebhookUrl !== undefined) settings.crmWebhookUrl = sanitize(body.crmWebhookUrl, 300);
+
+  /* SECURITY: these URLs are fetched by services/notify.js FROM THIS SERVER, so
+     only public https targets are accepted — otherwise the setting is an SSRF
+     primitive (internal services, cloud metadata) rather than a webhook. */
+  const urls = {};
+  ["webhookUrl", "crmWebhookUrl"].forEach((field) => {
+    if (body[field] === undefined) return;
+    const raw = sanitize(body[field], 300);
+    if (!raw) {
+      urls[field] = "";
+      return;
+    }
+    const safe = isPublicHttpUrl(raw, { requireHttps: true });
+    urls[field] = safe === null ? undefined : safe;
+  });
+
+  if (urls.webhookUrl === undefined || urls.crmWebhookUrl === undefined) {
+    return res.status(400).json({
+      ok: false,
+      error: "Webhook URLs must be public https:// URLs",
+    });
+  }
+
+  if (body.webhookUrl !== undefined) settings.webhookUrl = urls.webhookUrl;
+  if (body.crmWebhookUrl !== undefined) settings.crmWebhookUrl = urls.crmWebhookUrl;
   if (body.emailNotify !== undefined) settings.emailNotify = !!body.emailNotify;
   db.write("settings", settings);
   return res.json({
@@ -231,4 +298,7 @@ exports.updateSettings = (req, res) => {
     },
   });
 };
+
+/* csvEscape is exported for the test suite only (no route uses it directly). */
+exports._csvEscape = csvEscape;
 

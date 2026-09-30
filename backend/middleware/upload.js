@@ -68,4 +68,69 @@ const imageUpload = multer({
   },
 });
 
-module.exports = { upload, imageUpload, UPLOAD_DIR };
+/* ---------------- file-signature (magic byte) guard ----------------
+   The extension and the client's Content-Type are both supplied by the
+   uploader, so a "image/png" file can really be anything. Before a buffer is
+   forwarded to Cloudinary its first bytes must match a real image format. */
+const IMAGE_SIGNATURES = [
+  { format: "jpg", test: (b) => b.length > 2 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff },
+  {
+    format: "png",
+    test: (b) =>
+      b.length > 7 &&
+      b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47 &&
+      b[4] === 0x0d && b[5] === 0x0a && b[6] === 0x1a && b[7] === 0x0a,
+  },
+  {
+    format: "gif",
+    test: (b) => b.length > 5 && b.slice(0, 3).toString("latin1") === "GIF",
+  },
+  {
+    format: "webp",
+    test: (b) =>
+      b.length > 11 &&
+      b.slice(0, 4).toString("latin1") === "RIFF" &&
+      b.slice(8, 12).toString("latin1") === "WEBP",
+  },
+  { format: "bmp", test: (b) => b.length > 1 && b[0] === 0x42 && b[1] === 0x4d },
+  {
+    format: "avif",
+    test: (b) =>
+      b.length > 11 &&
+      b.slice(4, 8).toString("latin1") === "ftyp" &&
+      ["avif", "avis", "heic", "heix", "hevc", "hevx", "mif1", "msf1"].includes(
+        b.slice(8, 12).toString("latin1")
+      ),
+  },
+];
+
+/** Detected image format of a buffer ('' when it is not a known image). */
+function detectImageFormat(buffer) {
+  if (!Buffer.isBuffer(buffer) || buffer.length === 0) return "";
+  const match = IMAGE_SIGNATURES.find((sig) => sig.test(buffer));
+  return match ? match.format : "";
+}
+
+/**
+ * Express middleware: run AFTER `imageUpload.single("file")` (memory storage) so
+ * `req.file.buffer` is populated. Answers 400 for anything whose bytes are not
+ * a real image — a disguised script/HTML/archive never reaches Cloudinary.
+ */
+function imageSignatureGuard(req, res, next) {
+  if (!req.file) return next(); // the controller answers the "no file" case
+  const format = detectImageFormat(req.file.buffer);
+  if (!format) {
+    console.warn(
+      `[upload] rejected "${String(req.file.originalname || "").slice(0, 60)}" — ` +
+        `bytes are not a known image (claimed ${req.file.mimetype})`
+    );
+    return res.status(400).json({
+      ok: false,
+      error: "Unsupported image type — the file content is not a real image",
+    });
+  }
+  req.file.detectedFormat = format;
+  return next();
+}
+
+module.exports = { upload, imageUpload, imageSignatureGuard, detectImageFormat, UPLOAD_DIR };

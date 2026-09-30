@@ -100,15 +100,26 @@ function LoginGate({ onLogin }) {
     setLoading(true);
     setError("");
     try {
-      const res = await adminLogin(u, p);
-      if (res && res.ok) {
-        localStorage.setItem(TOKEN_KEY, res.data.token);
-        onLogin(res.data.token);
+      const res = await adminLogin(u.trim(), p);
+      /* Backend shape: { ok: true, token }. (`res.data.token` is kept as a
+         fallback so an older shape still works — reading only `res.data.token`
+         used to store the string "undefined" and every admin call then 401'd.) */
+      const token = res && (res.token || (res.data && res.data.token));
+      if (res && res.ok && token) {
+        localStorage.setItem(TOKEN_KEY, token);
+        onLogin(token);
       } else {
-        setError(res?.data?.message || "Invalid credentials");
+        setError((res && (res.error || (res.data && res.data.error))) || "Invalid credentials");
       }
     } catch (err) {
-      setError("Login failed");
+      const status = err && err.response && err.response.status;
+      const serverError = err && err.response && err.response.data && err.response.data.error;
+      setError(
+        serverError ||
+          (status === 503
+            ? "Admin login is not configured on the server."
+            : "Login failed")
+      );
     } finally {
       setLoading(false);
     }

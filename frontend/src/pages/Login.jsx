@@ -2,6 +2,16 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { FaLock, FaUser, FaEye, FaEyeSlash } from "react-icons/fa";
+/* The ONE way in: the backend verifies the credentials (ADMIN_USER /
+   ADMIN_PASS live in its environment only) and answers with a session token.
+   Nothing here compares passwords any more — this file used to contain the
+   real username and password in plain text, and because it ships inside the
+   public bundle every visitor could read them and log in. */
+import { adminLogin } from "../components/chatbot/chatApi";
+
+/* Same key the backend-issued token is stored under everywhere else
+   (ChatAdmin.jsx, services/newsApi.js). */
+const TOKEN_KEY = "bc_admin_token";
 
 const Login = () => {
   const { isDarkMode } = useTheme();
@@ -11,18 +21,37 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    if (submitting) return;
+    setError("");
+    setSubmitting(true);
 
-    if (
-      username === "bluconnetnews" &&
-      password === "bluconnetmedia@2026"
-    ) {
-      localStorage.setItem("bluconnet_admin_auth", "true");
-      navigate("/admin-news");
-    } else {
-      setError("Invalid Username or Password!");
+    try {
+      const res = await adminLogin(username.trim(), password);
+      /* Success: { ok: true, token } — `res.data.token` is accepted too so an
+         older response shape keeps working. */
+      const token = res && (res.token || (res.data && res.data.token));
+
+      if (res && res.ok && token) {
+        localStorage.setItem(TOKEN_KEY, token);
+        navigate("/admin-news");
+        return;
+      }
+      setError((res && (res.error || (res.data && res.data.error))) || "Invalid Username or Password!");
+    } catch (err) {
+      const status = err && err.response && err.response.status;
+      const serverError = err && err.response && err.response.data && err.response.data.error;
+      setError(
+        serverError ||
+          (status === 503
+            ? "Admin login is not configured on the server."
+            : "Login failed. Please try again.")
+      );
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -150,13 +179,14 @@ const Login = () => {
           {/* Sign In */}
           <button
             type="submit"
+            disabled={submitting}
             className={`w-full py-3 rounded-lg font-bold text-white bg-gradient-to-r ${
               isDarkMode
                 ? "from-[#d4e157] to-[#06b6d4] text-[#0a0e27]"
                 : "from-emerald-500 to-cyan-600"
-            } hover:opacity-90 transition shadow-lg`}
+            } hover:opacity-90 transition shadow-lg disabled:opacity-60`}
           >
-            Sign In
+            {submitting ? "Signing in…" : "Sign In"}
           </button>
         </form>
 

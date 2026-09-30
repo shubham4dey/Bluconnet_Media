@@ -33,7 +33,9 @@ exports.aiChat = async (req, res) => {
     }
     return res.json({ ok: true, reply: result.reply });
   } catch (e) {
+    /* SECURITY: the visitor gets a generic message — internal error text
+       (stack paths, upstream URLs, service details) stays in the server log. */
     console.error("[aiController] Unhandled error:", e.message, e.stack);
-    return res.status(500).json({ ok: false, error: "AI controller error: " + e.message });
+    return res.status(500).json({ ok: false, error: "AI service error" });
   }
 };

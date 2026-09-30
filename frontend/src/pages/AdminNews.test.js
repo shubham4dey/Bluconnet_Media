@@ -33,6 +33,13 @@ jest.mock("../services/newsApi", () => ({
   migrateNewsImages: jest.fn(),
   // Cloudinary URLs pass through unchanged, exactly like the real helper.
   resolveUrl: (u) => (u ? String(u) : ""),
+  // Same behaviour as services/newsApi.js: the session is the backend-issued
+  // token in localStorage, there is nothing else that can authenticate.
+  // `global.localStorage` (not the bare identifier): the jest.mock factory is
+  // hoisted above the test module, where a direct `localStorage` reference is
+  // rejected as an out-of-scope variable.
+  getAdminToken: () => global.localStorage.getItem("bc_admin_token") || null,
+  clearAdminToken: () => global.localStorage.removeItem("bc_admin_token"),
 }));
 
 jest.mock("../context/ThemeContext", () => ({
@@ -62,7 +69,8 @@ function deferred() {
 }
 
 function renderAdmin() {
-  localStorage.setItem("bluconnet_admin_auth", "true");
+  /* The session a real sign-in produces (POST /api/admin/login → token). */
+  localStorage.setItem("bc_admin_token", "test-token");
   return render(<AdminNews />);
 }
 
@@ -189,4 +197,27 @@ test("a failed upload is reported and no broken image path is published", async 
   fireEvent.click(publishButton());
   await waitFor(() => expect(createNews).toHaveBeenCalledTimes(1));
   expect(createNews.mock.calls[0][0].imageUrl).toBe("");
+});
+
+/* --------------------------------------------------------------------------
+   SECURITY regression: the gate used to be `localStorage.bluconnet_admin_auth
+   === "true"` — a flag anyone could create from the console — and the panel
+   then authenticated itself with credentials that shipped inside the bundle.
+   Now only a backend-issued session token opens the panel.
+   -------------------------------------------------------------------------- */
+test("without a session token the admin data is never requested", async () => {
+  localStorage.clear();
+  render(<AdminNews />);
+
+  await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/login"));
+  expect(listAdminNews).not.toHaveBeenCalled();
+});
+
+test("the fake localStorage auth flag no longer opens the panel", async () => {
+  localStorage.clear();
+  localStorage.setItem("bluconnet_admin_auth", "true");
+  render(<AdminNews />);
+
+  await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith("/login"));
+  expect(listAdminNews).not.toHaveBeenCalled();
 });

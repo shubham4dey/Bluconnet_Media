@@ -19,6 +19,8 @@ import {
   uploadNewsImageFile,
   migrateNewsImages,
   resolveUrl,
+  getAdminToken,
+  clearAdminToken,
 } from "../services/newsApi";
 import { NEWS_THUMB_FALLBACK } from "../utils/newsImageFallback";
 
@@ -61,8 +63,13 @@ const AdminNews = () => {
 
     // Security Check & Load Data (from the central database, never localStorage)
   useEffect(() => {
-    const isAuth = localStorage.getItem("bluconnet_admin_auth");
-    if (isAuth !== "true") {
+    /* The gate is a real, backend-issued session token (pages/Login.jsx →
+       POST /api/admin/login). It used to be `localStorage.bluconnet_admin_auth
+       === "true"` — a flag any visitor could create from the console, and the
+       panel then happily talked to the API with a token minted from credentials
+       published in this bundle. The token check is UX only: the server-side
+       requireAuth on every /api/admin route is what actually protects data. */
+    if (!getAdminToken()) {
       navigate("/login");
       return;
     }
@@ -104,7 +111,16 @@ const AdminNews = () => {
         list = (again && again.ok && again.data) || [];
       }
 
-      if (!cancelled) setNewsList(list);
+      /* A rejected token (expired, revoked, or logged out from the other admin
+         panel) clears the session inside newsApi. Send the admin to the login
+         page instead of leaving an empty panel that fails every later call. */
+      if (cancelled) return;
+      if (!getAdminToken()) {
+        navigate("/login");
+        return;
+      }
+
+      setNewsList(list);
 
       // One-time (per browser session) Cloudinary migration: any article still
       // pointing at a legacy local `/uploads/...` path or an inline base64 blob
@@ -308,7 +324,7 @@ const AdminNews = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("bluconnet_admin_auth");
+    clearAdminToken();
     navigate("/login");
   };
 

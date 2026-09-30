@@ -281,10 +281,12 @@ exports.uploadImage = async (req, res) => {
       format: out.format,
     });
   } catch (e) {
+    /* SECURITY: the Cloudinary error detail stays in the server log; the client
+       only learns that the upload failed (no storage internals / credentials). */
     console.error("[news] Cloudinary upload failed:", e.message);
     return res.status(502).json({
       ok: false,
-      error: `Cloudinary upload failed: ${e.message}`,
+      error: "Image upload failed",
     });
   }
 };

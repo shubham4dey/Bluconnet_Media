@@ -6,10 +6,10 @@
 const express = require("express");
 const router = express.Router();
 
-const { submitLimiter, uploadLimiter, authLimiter, aiLimiter } = require("../middleware/rateLimit");
+const { submitLimiter, uploadLimiter, publicUploadLimiter, authLimiter, aiLimiter } = require("../middleware/rateLimit");
 const { requireRecaptcha } = require("../middleware/recaptcha");
 const { requireAuth } = require("../middleware/auth");
-const { imageUpload } = require("../middleware/upload");
+const { imageUpload, imageSignatureGuard } = require("../middleware/upload");
 const submissions = require("../controllers/submissionController");
 const chat = require("../controllers/chatController");
 const visitors = require("../controllers/visitorController");
@@ -42,9 +42,30 @@ router.post("/chat/session", submitLimiter, chat.saveSession);
 router.post("/visitor/heartbeat", visitors.heartbeat);
 /* Image uploads go straight to Cloudinary (memory storage — nothing is ever
    written to the local /uploads folder, which Render wipes on redeploy).
+   `imageSignatureGuard` rejects any buffer whose actual bytes are not a real
+   image (the extension and Content-Type are attacker-controlled).
    news.uploadImage answers without a URL when the upload fails, so a broken
-   image path can never be persisted. */
-router.post("/upload", uploadLimiter, imageUpload.single("file"), news.uploadImage);
+   image path can never be persisted.
+
+   SECURITY (H1): this route is anonymous — the chatbot attachment copy
+   (chatbot/ChatInput.jsx → chatApi.uploadFile) is a public visitor feature and
+   cannot be put behind the admin token — so it is protected with the two
+   controls that do not require a session:
+     • `publicUploadLimiter`  → 6 files / 15 min / IP (was 30),
+     • `requireRecaptcha`     → a Google-verified v3 token for the action
+       "upload" is mandatory BEFORE the file is read and Cloudinary is called.
+   The token travels in the `X-Recaptcha-Token` header, which the guard also
+   accepts (a multipart body field would only exist after multer has already
+   parsed — and therefore stored — the file).
+   The authenticated admin panel keeps using POST /api/admin/news/upload. */
+router.post(
+  "/upload",
+  publicUploadLimiter,
+  requireRecaptcha({ action: "upload" }),
+  imageUpload.single("file"),
+  imageSignatureGuard,
+  news.uploadImage
+);
 /* general-knowledge / off-topic questions → Gemini */
 router.post("/ai/chat", aiLimiter, ai.aiChat);
 
@@ -66,11 +87,21 @@ router.use("/subscribe", subscribeRoutes);
 
 /* ---------------- admin ---------------- */
 router.post("/admin/login", authLimiter, admin.login);
+/* Logout revokes the presented token immediately (no remaining 12h TTL) */
+router.post("/admin/logout", requireAuth, admin.logout);
 /* /admin/news must be registered before the generic /admin/:collection route */
 router.get("/admin/news", requireAuth, news.listAll);
 router.post("/admin/news", requireAuth, news.create);
-/* Admin image upload → Cloudinary (memory storage, never the local disk) */
-router.post("/admin/news/upload", requireAuth, uploadLimiter, imageUpload.single("file"), news.uploadImage);
+/* Admin image upload → Cloudinary (memory storage, never the local disk).
+   The bytes must be a real image before Cloudinary is called. */
+router.post(
+  "/admin/news/upload",
+  requireAuth,
+  uploadLimiter,
+  imageUpload.single("file"),
+  imageSignatureGuard,
+  news.uploadImage
+);
 /* One-off upgrade of legacy local/inline News image paths to Cloudinary */
 router.post("/admin/news/migrate-images", requireAuth, news.migrateImages);
 router.put("/admin/news/:id", requireAuth, news.update);

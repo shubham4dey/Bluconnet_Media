@@ -11,7 +11,7 @@
  * ============================================================
  */
 const db = require("../config/database");
-const { validate } = require("../middleware/validate");
+const { validate, clientIp } = require("../middleware/validate");
 const { notifyAdmin, sendCustomerConfirmation } = require("../services/notify");
 
 function ok(res, record) {
@@ -35,9 +35,12 @@ function findDuplicateLead(email, phone) {
 /* ---------------- helper: extract client info ---------------- */
 function clientInfo(req) {
   return {
-    ip: req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "",
-    userAgent: req.headers["user-agent"] || "",
-    referrer: req.headers["referer"] || req.headers["referrer"] || "",
+    /* SECURITY: `req.ip` (proxy-aware, bounded) instead of the raw, fully
+       client-controlled `x-forwarded-for` header — a visitor could otherwise
+       store an arbitrary string / fake IP in the lead record. */
+    ip: clientIp(req),
+    userAgent: String(req.headers["user-agent"] || "").slice(0, 300),
+    referrer: String(req.headers.referer || req.headers.referrer || "").slice(0, 300),
   };
 }
 

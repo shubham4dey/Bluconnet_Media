@@ -105,19 +105,22 @@ describe("uploadNewsImageFile", () => {
     expect(config.headers["Content-Type"]).toBeUndefined();
   });
 
-  it("mints an admin token when none is stored", async () => {
-    jsonClient.post.mockResolvedValue({ data: { ok: true, token: "fresh-token" } });
+  it("refuses to upload without a session — and never logs in by itself", async () => {
+    /* SECURITY regression: newsApi.js used to hold a copy of the admin
+       username/password (visible in the public bundle) and silently POST them
+       to /admin/login to mint a token. Nothing here may authenticate again. */
     uploadClient.post.mockResolvedValue({
-      data: { ok: true, secureUrl: CLOUD_URL, publicId: "bluconnet/news/banner" },
+      data: { ok: true, secureUrl: CLOUD_URL, publicId: "p" },
     });
 
     const result = await uploadNewsImageFile(
       new File(["bytes"], "banner.png", { type: "image/png" })
     );
 
-    expect(jsonClient.post).toHaveBeenCalledWith("/admin/login", expect.any(Object));
-    expect(result.url).toBe(CLOUD_URL);
-    expect(uploadClient.post.mock.calls[0][2].headers.Authorization).toBe("Bearer fresh-token");
+    expect(jsonClient.post).not.toHaveBeenCalled();
+    expect(uploadClient.post).not.toHaveBeenCalled();
+    expect(result.url).toBeNull();
+    expect(result.error).toMatch(/sign in/i);
   });
 
   it("returns no URL when the backend reports a Cloudinary failure", async () => {
@@ -146,20 +149,43 @@ describe("uploadNewsImageFile", () => {
     expect(result.error).toBe("no storage");
   });
 
-  it("re-mints the token and retries once on 401", async () => {
-    localStorage.setItem("bc_admin_token", "stale-token");
-    jsonClient.post.mockResolvedValue({ data: { ok: true, token: "new-token" } });
-    uploadClient.post
-      .mockRejectedValueOnce({ response: { status: 401, data: { ok: false } } })
-      .mockResolvedValueOnce({ data: { ok: true, secureUrl: CLOUD_URL, publicId: "p" } });
+  it("drops the expired session on a 401 instead of silently re-authenticating", async () => {
+    localStorage.setItem("bc_admin_token", "expired-token");
+    uploadClient.post.mockRejectedValue({
+      response: { status: 401, data: { ok: false } },
+    });
 
     const result = await uploadNewsImageFile(
       new File(["bytes"], "banner.png", { type: "image/png" })
     );
 
-    expect(uploadClient.post).toHaveBeenCalledTimes(2);
-    expect(result.url).toBe(CLOUD_URL);
-    expect(uploadClient.post.mock.calls[1][2].headers.Authorization).toBe("Bearer new-token");
+    expect(uploadClient.post).toHaveBeenCalledTimes(1); // never retried
+    expect(jsonClient.post).not.toHaveBeenCalled(); // no hidden re-login
+    expect(localStorage.getItem("bc_admin_token")).toBeNull();
+    expect(result.url).toBeNull();
+    expect(result.error).toMatch(/sign in/i);
+  });
+});
+
+/* --------------------------------------------------------------------------
+   SECURITY (C1): services/newsApi.js used to embed the admin credentials and
+   mint a token whenever an admin call found no session — the shipped bundle
+   therefore contained a working admin login. Only a human sign-in on /login
+   may produce a token now, so an unsigned client simply cannot call /admin/*.
+   -------------------------------------------------------------------------- */
+describe("admin session requirement", () => {
+  it("sends no admin request when nobody is signed in", async () => {
+    const report = await migrateNewsImages();
+
+    expect(jsonClient).not.toHaveBeenCalled();
+    expect(report.ok).toBe(false);
+  });
+
+  it("reports a missing session on listAdminNews without touching the network", async () => {
+    const result = await listAdminNews();
+
+    expect(jsonClient).not.toHaveBeenCalled();
+    expect(result).toEqual({ ok: false, data: [] });
   });
 });
 

@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 import { FaSearch, FaTimes } from "react-icons/fa";
 import { wpGet } from "../services/wpApi";
+/* Titles and excerpts are author-supplied WordPress markup, not ours: they are
+   sanitized before reaching dangerouslySetInnerHTML (services/sanitizeHtml.js). */
+import { sanitizeHtml } from "../services/sanitizeHtml";
 import "./Blog.css";
 
 const POSTS_PER_PAGE = 6;
@@ -222,13 +225,15 @@ const Blog = () => {
                   <div className="blog-card-content">
                     <h2
                       className="blog-title"
-                      dangerouslySetInnerHTML={{ __html: post.title.rendered }}
+                      dangerouslySetInnerHTML={{
+                        __html: sanitizeHtml(post.title.rendered),
+                      }}
                     />
 
                     <div
                       className="blog-excerpt"
                       dangerouslySetInnerHTML={{
-                        __html: post.excerpt.rendered,
+                        __html: sanitizeHtml(post.excerpt.rendered),
                       }}
                     />
 
