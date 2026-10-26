@@ -69,12 +69,62 @@ function readBearer(req) {
   return header.startsWith("Bearer ") ? header.slice(7) : null;
 }
 
+/** Check if the authenticated token has a matching role. */
+function hasRole(req, allowedRoles) {
+  const token = readBearer(req);
+  if (!token) return false;
+  if (!Array.isArray(allowedRoles) || allowedRoles.length === 0) return true;
+  const payload = tokenPayload.get(token);
+  if (!payload) return false;
+  return allowedRoles.includes(payload.role);
+}
+
+/** Map token → role (populated on issueToken). */
+const tokenPayload = new Map();
+
 function requireAuth(req, res, next) {
   if (!isValidToken(readBearer(req))) {
     return res.status(401).json({ ok: false, error: "Unauthorized" });
   }
+  // Attach role to req for use by requireRole middleware
+  const store = tokenStore(db.read("settings"));
+  const token = readBearer(req);
+  if (token && owns(store, token)) {
+    req.adminRole = store[token] && typeof store[token] === "object" ? store[token].role : "super_admin";
+  } else {
+    req.adminRole = "super_admin";
+  }
   next();
   return undefined;
+}
+
+/** Authorization middleware — rejects if token role is not in allowedRoles. */
+function requireRole(...allowedRoles) {
+  return (req, res, next) => {
+    // If no allowed roles specified, allow through (backward compatibility)
+    if (allowedRoles.length === 0) return next();
+    // Permit super_admin unrestricted access unless explicitly restricted
+    if (req.adminRole === "super_admin") return next();
+    if (hasRole(req, allowedRoles)) return next();
+    return res.status(403).json({ ok: false, error: "Forbidden — insufficient privileges" });
+  };
+}
+
+/** Issue a token with an optional role. Defaults to super_admin. */
+function issueToken(role = "super_admin") {
+  const settings = db.read("settings");
+  const token = crypto.randomBytes(32).toString("hex");
+  const store = tokenStore(settings);
+  // prune expired tokens
+  Object.keys(store).forEach((t) => {
+    if (!(store[t] > Date.now())) delete store[t];
+  });
+  store[token] = { expiry: Date.now() + TOKEN_TTL_MS, role };
+  settings.adminTokens = store;
+  // Store in memory map for requireRole lookups
+  tokenPayload.set(token, { role });
+  db.write("settings", settings);
+  return token;
 }
 
 module.exports = { issueToken, isValidToken, revokeToken, readBearer, requireAuth };

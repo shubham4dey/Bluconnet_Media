@@ -90,42 +90,43 @@ router.post("/admin/login", authLimiter, admin.login);
 /* Logout revokes the presented token immediately (no remaining 12h TTL) */
 router.post("/admin/logout", requireAuth, admin.logout);
 /* /admin/news must be registered before the generic /admin/:collection route */
-router.get("/admin/news", requireAuth, news.listAll);
-router.post("/admin/news", requireAuth, news.create);
+router.get("/admin/news", requireAuth, requireRole("super_admin"), news.listAll);
+router.post("/admin/news", requireAuth, requireRole("super_admin"), news.create);
 /* Admin image upload → Cloudinary (memory storage, never the local disk).
    The bytes must be a real image before Cloudinary is called. */
 router.post(
   "/admin/news/upload",
   requireAuth,
+  requireRole("super_admin"),
   uploadLimiter,
   imageUpload.single("file"),
   imageSignatureGuard,
   news.uploadImage
 );
 /* One-off upgrade of legacy local/inline News image paths to Cloudinary */
-router.post("/admin/news/migrate-images", requireAuth, news.migrateImages);
-router.put("/admin/news/:id", requireAuth, news.update);
-router.delete("/admin/news/:id", requireAuth, news.remove);
-router.get("/admin/dashboard", requireAuth, admin.dashboard);
-router.get("/admin/settings", requireAuth, admin.getSettings);
-router.get("/admin/:collection", requireAuth, admin.listCollection);
-router.get("/admin/export/:collection", requireAuth, admin.exportCsv);
-router.put("/admin/settings", requireAuth, admin.updateSettings);
-router.put("/admin/:collection/:id", requireAuth, admin.updateRecord);
-router.delete("/admin/:collection/:id", requireAuth, admin.deleteRecord);
+router.post("/admin/news/migrate-images", requireAuth, requireRole("super_admin"), news.migrateImages);
+router.put("/admin/news/:id", requireAuth, requireRole("super_admin"), news.update);
+router.delete("/admin/news/:id", requireAuth, requireRole("super_admin"), news.remove);
+router.get("/admin/dashboard", requireRole("super_admin"), admin.dashboard);
+router.get("/admin/settings", requireRole("super_admin"), admin.getSettings);
+router.get("/admin/:collection", requireAuth, requireRole("super_admin"), admin.listCollection);
+router.get("/admin/export/:collection", requireRole("super_admin"), admin.exportCsv);
+router.put("/admin/settings", requireRole("super_admin"), admin.updateSettings);
+router.put("/admin/:collection/:id", requireAuth, requireRole("super_admin"), admin.updateRecord);
+router.delete("/admin/:collection/:id", requireAuth, requireRole("super_admin"), admin.deleteRecord);
 
 /* ---------------- CRM Lead Management ---------------- */
-router.get("/admin/leads/search", requireAuth, leads.searchLeads);
-router.get("/admin/leads/stats", requireAuth, leads.getStats);
-router.get("/admin/leads/:id", requireAuth, leads.getLeadWithHistory);
-router.put("/admin/leads/:id", requireAuth, leads.updateLead);
-router.delete("/admin/leads/:id", requireAuth, leads.deleteLead);
-router.post("/admin/leads/bulk-delete", requireAuth, leads.bulkDelete);
-router.post("/admin/leads/:id/note", requireAuth, leads.addNote);
+router.get("/admin/leads/search", requireAuth, requireRole("super_admin"), leads.searchLeads);
+router.get("/admin/leads/stats", requireAuth, requireRole("super_admin"), leads.getStats);
+router.get("/admin/leads/:id", requireAuth, requireRole("super_admin"), leads.getLeadWithHistory);
+router.put("/admin/leads/:id", requireAuth, requireRole("super_admin"), leads.updateLead);
+router.delete("/admin/leads/:id", requireAuth, requireRole("super_admin"), leads.deleteLead);
+router.post("/admin/leads/bulk-delete", requireRole("super_admin"), leads.bulkDelete);
+router.post("/admin/leads/:id/note", requireAuth, requireRole("super_admin"), leads.addNote);
 
 /* ---------------- Chat Session Management ---------------- */
-router.get("/admin/sessions/:sessionId", requireAuth, chat.getSession);
-router.get("/admin/sessions/lead/:leadId", requireAuth, chat.getSessionsByLead);
+router.get("/admin/sessions/:sessionId", requireAuth, requireRole("super_admin"), chat.getSession);
+router.get("/admin/sessions/lead/:leadId", requireAuth, requireRole("super_admin"), chat.getSessionsByLead);
 
 module.exports = router;
 

@@ -25,7 +25,7 @@ function safeEqual(a, b) {
 }
 
 exports.login = (req, res) => {
-  const { username, password } = req.body || {};
+  const { username, password, role } = req.body || {};
   const user = sanitize(username, 60);
   const pass = sanitize(password, 120);
 
@@ -50,7 +50,9 @@ exports.login = (req, res) => {
     );
     return res.status(401).json({ ok: false, error: "Invalid credentials" });
   }
-  return res.json({ ok: true, token: issueToken() });
+  // Default role to super_admin if not specified; allow override via body
+  const userRole = String(role || "super_admin").trim() || "super_admin";
+  return res.json({ ok: true, token: issueToken(userRole) });
 };
 
 /* Logout — the presented token is dropped straight away instead of staying
@@ -233,7 +235,20 @@ exports.exportCsv = (req, res) => {
   const { collection } = req.params;
   const cols = CSV_COLUMNS[collection];
   if (!cols) return res.status(400).json({ ok: false, error: "Unknown collection" });
-  const rows = db.read(collection);
+
+  /* ── Pagination ────────────────────────────────────────────────────────── */
+  // Default 100, hard max 500; non‑positive or non‑integer → default 100
+  let limit = Number(req.query.limit);
+  if (!Number.isInteger(limit) || limit < 1 || limit > 500) limit = 100;
+
+  // Default page 1; page must be an integer >= 1
+  const page = Number(req.query.page);
+  const skip = Number.isInteger(page) && page >= 1 ? (page - 1) * limit : 0;
+
+  const allRows = db.read(collection);
+  const rows = allRows.slice(skip).slice(0, limit); // at most `limit` records starting at `skip`
+  /* └──────────────────────────────────────────────────────────────────────── */
+
   const header = cols.join(",");
   const body = rows
     .map((r) => cols.map((c) => csvEscape(Array.isArray(r[c]) ? r[c].join(" | ") : r[c])).join(","))
