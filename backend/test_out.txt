@@ -1,0 +1,29 @@
+[admin] ADMIN_USER / ADMIN_PASS are not configured ΓÇö admin login refused (set both in the environment)
+[admin] failed login attempt from 203.0.113.7
+Γ£ö prototype-chain values are NOT valid admin tokens (6.0129ms)
+Γ£ö non-string / empty tokens are rejected (0.7973ms)
+Γ£ö an issued token authenticates, can be revoked and then fails (17.4219ms)
+Γ£ö requireAuth answers 401 for a prototype-chain bearer token (1.4576ms)
+Γ£ö readBearer only accepts the Bearer scheme (0.1464ms)
+Γ£ö admin login refuses to work when ADMIN_USER/ADMIN_PASS are not configured (0.8717ms)
+Γ£ö admin login rejects wrong credentials without saying which part was wrong (1.1873ms)
+Γ£ö clientIp uses the resolved request IP and never a spoofed header (0.3262ms)
+Γ£ö csv export neutralises formula-leading cells from visitors (0.4381ms)
+Γ£ö CSV export with default pagination (limit 100, page 1) ΓÇö 25 records (1.9777ms)
+Γ£ö CSV export page 2 limit 100 ΓÇö records 101 to 200 from 250-record dataset (1.2902ms)
+Γ£ö CSV export page 3 limit 100 ΓÇö last page has 50 records from 250-record dataset (2.4128ms)
+Γ£ö CSV export omitted limit defaults to 100 (1.4923ms)
+Γ£ö CSV export limit 500 returns all records when total Γëñ 500 (1.725ms)
+Γ£ö CSV export invalid limit values fallback to 100 (3.0308ms)
+Γ£ö CSV export invalid page values fallback to page 1 (3.8139ms)
+Γ£ö CSV export empty collection ΓÇö header only, 0 data rows (0.3894ms)
+Γ£ö CSV export 25 records with limit 100 ΓÇö returns all 25 (0.4765ms)
+Γ£ö CSV export limit > 500 falls back to 100, limit 500 passes (1.6089ms)
+Γä╣ tests 19
+Γä╣ suites 0
+Γä╣ pass 19
+Γä╣ fail 0
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 174.6221

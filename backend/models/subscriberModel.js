@@ -23,6 +23,19 @@ function isDuplicateError(err) {
   return err.code === "ER_DUP_ENTRY" || err.errno === 1062;
 }
 
+/* The schema was never created — MySQL was unreachable while the server
+   booted (server.js logs that case and asks for `npm run migrate`).
+   Reported as a missing table/database, never as a connection failure. */
+function isMissingSchemaError(err) {
+  if (!err) return false;
+  return (
+    err.code === "ER_NO_SUCH_TABLE" ||
+    err.errno === 1146 ||
+    err.code === "ER_BAD_DB_ERROR" ||
+    err.errno === 1049
+  );
+}
+
 /**
  * Create the schema (database + tables) when missing.
  * Idempotent: runs the same SQL migration files used by `npm run migrate`,
@@ -54,9 +67,27 @@ async function ensureSchema() {
 async function insertSubscriber({ email, agreeToSubscribe }) {
   const sql = `INSERT INTO \`${TABLE}\` (\`email\`, \`agreeToSubscribe\`)
                VALUES (?, ?)`;
+  const params = [email, agreeToSubscribe ? 1 : 0];
 
-  const [result] = await mysql.execute(sql, [email, agreeToSubscribe ? 1 : 0]);
-  return { id: String(result.insertId) };
+  try {
+    const [result] = await mysql.execute(sql, params);
+    return { id: String(result.insertId) };
+  } catch (err) {
+    if (!isMissingSchemaError(err)) throw err;
+
+    /* One self-heal: apply the idempotent migrations (CREATE TABLE IF NOT
+       EXISTS ...) and retry the insert, so a subscription taken right after
+       a failed boot still reaches MySQL instead of failing until the next
+       deploy. A database that stays unreachable simply throws again and the
+       controller answers its clean 500. */
+    console.warn(
+      `[subscribe] \`${TABLE}\` schema missing — applying migrations and retrying`
+    );
+    await ensureSchema();
+
+    const [result] = await mysql.execute(sql, params);
+    return { id: String(result.insertId) };
+  }
 }
 
 /* ---------------- reads (used by the future Admin Panel) ---------------- */
@@ -90,4 +121,5 @@ module.exports = {
   findByEmail,
   countSubscribers,
   isDuplicateError,
+  isMissingSchemaError,
 };

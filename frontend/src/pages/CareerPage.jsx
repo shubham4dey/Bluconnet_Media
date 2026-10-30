@@ -35,29 +35,47 @@ import { useNavigate } from "react-router-dom";
 import SubscribeSection from "../components/SubscribeSection";
 
 // Animated Counter Component
+// Counts from 0 up to `end` once it scrolls into view.
+// - `data-i18n-skip` keeps the runtime translation engine (i18n/autoTranslate)
+//   from rewriting the animated number back to the first value it saw, which
+//   froze the counter at 0.
+// - `startedRef` guarantees the count runs exactly once, so nothing can reset
+//   it back to 0 mid-animation.
 const AnimatedCounter = ({ end, duration = 2, suffix = "" }) => {
   const [count, setCount] = useState(0);
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true });
+  const startedRef = useRef(false);
 
   useEffect(() => {
-    if (!isInView) return;
-    let start = 0;
-    const increment = end / (duration * 60);
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= end) {
-        setCount(end);
-        clearInterval(timer);
+    if (!isInView || startedRef.current) return;
+    startedRef.current = true;
+
+    let frameId;
+    let startTime;
+
+    const animate = (timestamp) => {
+      if (startTime === undefined) startTime = timestamp;
+
+      const progress = Math.min(
+        (timestamp - startTime) / (duration * 1000),
+        1
+      );
+
+      if (progress < 1) {
+        setCount(Math.floor(progress * end));
+        frameId = requestAnimationFrame(animate);
       } else {
-        setCount(Math.floor(start));
+        setCount(end);
       }
-    }, 1000 / 60);
-    return () => clearInterval(timer);
+    };
+
+    frameId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frameId);
   }, [isInView, end, duration]);
 
   return (
-    <span ref={ref} className="tabular-nums">
+    <span ref={ref} data-i18n-skip="" className="tabular-nums">
       {count}
       {suffix}
     </span>
@@ -87,7 +105,7 @@ const CareerPage = () => {
       ? "from-[#d4e157] to-[#06b6d4]"
       : "from-emerald-500 to-cyan-600",
     cardBg: isDarkMode ? "bg-white/5" : "bg-gray-50",
-    borderColor: isDarkMode ? "border-white/10" : "border-gray-200",
+    borderColor: isDarkMode ? "border-white/20" : "border-gray-200",
   };
 
   const openPositions = [
@@ -348,7 +366,7 @@ const CareerPage = () => {
       {/* ===== HERO SECTION ===== */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
         <div
-          className={`absolute inset-0 ${isDarkMode ? "bg-gradient-to-br from-[#0a0e27] via-[#0f172a] to-[#050508]" : "bg-gradient-to-br from-slate-50 via-white to-gray-100"}`}
+          className={`absolute inset-0 ${isDarkMode ? "bg-[#050508]" : "bg-gradient-to-br from-slate-50 via-white to-gray-100"}`}
         />
 
         {/* Large CAREERS Watermark */}
@@ -513,7 +531,7 @@ const CareerPage = () => {
 
       {/* ===== QUICK STATS STRIP - UNIQUE ===== */}
       <section
-        className={`py-12 relative ${isDarkMode ? "bg-[#0a0e27]" : "bg-gradient-to-r from-emerald-50 via-cyan-50 to-emerald-50"}`}
+        className={`py-12 relative ${isDarkMode ? "bg-[#050508]" : "bg-white"}`}
       >
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -892,7 +910,7 @@ const CareerPage = () => {
       </section>
 
       {/* ===== HIRING PROCESS - UNIQUE TIMELINE ===== */}
-      <section className={`py-24 relative overflow-hidden ${theme.bg}`}>
+      <section className={`py-24 relative overflow-hidden ${isDarkMode ? "bg-[#050508]" : "bg-white"}`}>
         <div className="max-w-5xl mx-auto px-4">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
@@ -996,7 +1014,7 @@ const CareerPage = () => {
 
       {/* ===== TESTIMONIALS ===== */}
       <section
-        className={`py-24 relative overflow-hidden ${isDarkMode ? "bg-[#0a0e27]" : "bg-gray-50"}`}
+        className={`py-24 relative overflow-hidden ${isDarkMode ? "bg-[#050508]" : "bg-white"}`}
       >
         <div className="max-w-7xl mx-auto px-4">
           <motion.div
@@ -1090,9 +1108,17 @@ const CareerPage = () => {
       </section>
 
       {/* ===== FINAL CTA ===== */}
-      <section className={`py-24 relative overflow-hidden ${theme.bg}`}>
+      <section className={`py-24 relative overflow-hidden ${isDarkMode ? "bg-[#050508]" : "bg-white"}`}>
         <div
-          className={`absolute inset-0 ${isDarkMode ? "bg-gradient-to-r from-[#d4e157]/20 to-[#06b6d4]/20" : "bg-gradient-to-r from-emerald-500/10 to-cyan-500/10"}`}
+          className={`absolute inset-0 ${isDarkMode ? "bg-[#050508]" : "bg-transparent"}`}
+        />
+        {/* Theme-aware border around the final CTA */}
+        <div
+          className={`absolute top-6 bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] sm:w-[calc(100%-4rem)] lg:w-[calc(100%-6rem)] max-w-7xl rounded-3xl border pointer-events-none ${
+            isDarkMode
+              ? "border-white/20"
+              : "border-gray-900/20"
+          }`}
         />
         <div className="absolute inset-0 backdrop-blur-sm" />
 

@@ -1,0 +1,13 @@
+Γ£ö issuing a second token keeps the first valid token and its role (6.3071ms)
+Γ£ö expired object-shaped and numeric tokens are rejected and pruned (0.4417ms)
+Γ£ö valid tokens retain roles after pruning expired tokens (0.4644ms)
+Γ£ö logout/revocation still invalidates tokens (0.3169ms)
+Γ£ö prototype-chain tokens remain rejected (14.1922ms)
+Γä╣ tests 5
+Γä╣ suites 0
+Γä╣ pass 5
+Γä╣ fail 0
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 142.2214

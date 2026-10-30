@@ -1,0 +1,176 @@
+[mysql] UNREACHABLE TARGET: host=127.0.0.1 (loopback) but the Namecheap SSH tunnel is disabled. A backend on another host cannot reach the Namecheap database this way. Either set NAMECHEAP_SSH_HOST / NAMECHEAP_SSH_USER / NAMECHEAP_SSH_KEY_B64 (recommended), or point MYSQL_HOST / DB_HOST at a MySQL server that is actually reachable from this host.
+[mysql] Namecheap SSH tunnel DISABLED ΓÇö missing: NAMECHEAP_SSH_HOST, NAMECHEAP_SSH_USER, NAMECHEAP_SSH_KEY_B64. Falling back to a direct MySQL connection to 127.0.0.1:3306. Set the NAMECHEAP_SSH_* variables (host, user, base64 private key) on the service to reach the Namecheap database from outside.
+Γ£ö isCloudinaryUrl only accepts the Cloudinary delivery host (2.339ms)
+Γ£ö publicIdFromUrl handles version, transformation and folder segments (1.3326ms)
+Γ£ö safeFilename strips unsafe characters but stays readable (0.7776ms)
+Γ£ö urlFromPublicId rebuilds the permanent delivery URL of an asset (1.0084ms)
+Γ£ö urlFromPublicId refuses anything that is not a usable public_id (0.4174ms)
+Γ£ö every stored Cloudinary secure_url round-trips through its public_id (0.5293ms)
+Γ£ö describe() always reports a usable status string (0.5603ms)
+Γ£ö classifyImageUrl recognises each kind of image reference (0.7705ms)
+Γ£ö localFilePath maps /uploads paths and blocks traversal (0.9131ms)
+Γ£ö decodeDataUrl decodes base64 and plain data URLs (1.0871ms)
+Γ£ö extensionForMime falls back to jpg (0.4228ms)
+Γ£ö issueToken renders a role-aware token and stores expiry and role (3.1199ms)
+Γ£ö auth issues role-aware tokens and supports authentication and role authorization (0.8986ms)
+Γ£ö expired and invalid tokens are rejected (0.6215ms)
+Γ£ö prototype-chain tokens can never authenticate (15.1099ms)
+Γ£ö issuing a second token keeps the first valid token and its role (3.0486ms)
+Γ£ö expired object-shaped and numeric tokens are rejected and pruned (0.7276ms)
+Γ£ö valid tokens retain roles after pruning expired tokens (0.8315ms)
+Γ£ö logout/revocation still invalidates tokens (0.5996ms)
+Γ£ö prototype-chain tokens remain rejected (12.1996ms)
+[admin] failed login attempt from 203.0.113.9
+[admin] failed login attempt from 203.0.113.9
+[admin] failed login attempt from 203.0.113.9
+[admin] failed login attempt from 203.0.113.9
+Γ£ö manual throttle checks (32.6371ms)
+[mysql] UNREACHABLE TARGET: host=127.0.0.1 (loopback) but the Namecheap SSH tunnel is disabled. A backend on another host cannot reach the Namecheap database this way. Either set NAMECHEAP_SSH_HOST / NAMECHEAP_SSH_USER / NAMECHEAP_SSH_KEY_B64 (recommended), or point MYSQL_HOST / DB_HOST at a MySQL server that is actually reachable from this host.
+[mysql] Namecheap SSH tunnel DISABLED ΓÇö missing: NAMECHEAP_SSH_HOST, NAMECHEAP_SSH_USER, NAMECHEAP_SSH_KEY_B64. Falling back to a direct MySQL connection to 127.0.0.1:3306. Set the NAMECHEAP_SSH_* variables (host, user, base64 private key) on the service to reach the Namecheap database from outside.
+[news] uploaded banner.png -> bluconnet/news/new-1
+[news] Cloudinary upload failed: cloudinary down
+[news] image upload refused ΓÇö Cloudinary is not configured
+Γ£ö POST /admin/news/upload stores the file on Cloudinary and returns its URL (13.284ms)
+Γ£ö upload answers 502 without a URL when Cloudinary fails (2.5424ms)
+Γ£ö upload answers 503 when image storage is not configured (0.7449ms)
+Γ£ö upload rejects a request with no file (0.6358ms)
+[news] uploaded banner.png -> bluconnet/news/new-1
+[news] MySQL is not initialised ΓÇö articles are stored in the local mirror only (they are imported automatically once the database is reachable)
+[news-image] dropped an unusable image reference ("javascript:alert(1)")
+[news-image] legacy inline image upload failed (cloudinary down) ΓÇö image dropped
+[news-image] deleted Cloudinary asset bluconnet/news/old_abc
+[news-image] legacy local image "/uploads/no-longer-on-disk.png" is not on disk ΓÇö dropped (a 404 path is never stored)
+[news-image] deleted Cloudinary asset bluconnet/news/old_xyz
+[news-image] deleted Cloudinary asset bluconnet/news/delete_me
+[news-image] Cloudinary delete failed for "bluconnet/news/stubborn" (delete refused)
+Γ£ö the real upload route accepts images and rejects other file types (346.4591ms)
+Γ£ö create stores the Cloudinary secure_url + public_id, never a local path (3.938ms)
+Γ£ö create drops an unusable image instead of saving a broken URL (0.8268ms)
+Γ£ö create still succeeds when the Cloudinary upload fails ΓÇö with no image (2.0713ms)
+Γ£ö create validates the required fields (0.8689ms)
+Γ£ö replacing the image uploads the new one first, then deletes the old asset (4.1346ms)
+Γ£ö an unchanged image is not deleted on update (0.9463ms)
+Γ£ö update with an unrecoverable image clears it instead of storing a 404 path (2.0676ms)
+Γ£ö deleting an article deletes its Cloudinary asset too (1.6853ms)
+Γ£ö delete reports cleanup failure without failing the request (0.9645ms)
+Γ£ö deleting an unknown id answers 404 (0.3633ms)
+Γ£ö the public listing returns the stored Cloudinary URL (0.795ms)
+[mysql] UNREACHABLE TARGET: host=127.0.0.1 (loopback) but the Namecheap SSH tunnel is disabled. A backend on another host cannot reach the Namecheap database this way. Either set NAMECHEAP_SSH_HOST / NAMECHEAP_SSH_USER / NAMECHEAP_SSH_KEY_B64 (recommended), or point MYSQL_HOST / DB_HOST at a MySQL server that is actually reachable from this host.
+[mysql] Namecheap SSH tunnel DISABLED ΓÇö missing: NAMECHEAP_SSH_HOST, NAMECHEAP_SSH_USER, NAMECHEAP_SSH_KEY_B64. Falling back to a direct MySQL connection to 127.0.0.1:3306. Set the NAMECHEAP_SSH_* variables (host, user, base64 private key) on the service to reach the Namecheap database from outside.
+Γ£ö keeps an existing Cloudinary secure_url and derives its public_id (5.8451ms)
+Γ£ö empty image stays empty (1.4771ms)
+Γ£ö re-uploads a legacy local /uploads image to Cloudinary (5.7737ms)
+Γ£ö drops a legacy local path whose file no longer exists (1.2785ms)
+Γ£ö a failing Cloudinary upload never yields an image URL (4.2304ms)
+Γ£ö re-uploads a legacy inline base64 image to Cloudinary (5.2848ms)
+Γ£ö keeps an inline image untouched while Cloudinary is not configured (1.6943ms)
+Γ£ö drops an unusable reference instead of storing it (0.9393ms)
+Γ£ö external URLs are kept as-is unless remote migration is requested (1.0326ms)
+Γ£ö remote migration re-hosts a reachable external image on Cloudinary (3.3609ms)
+Γ£ö an unreachable external image is kept (never silently lost) (1.5024ms)
+Γ£ö removeImage deletes a stored public_id (1.4399ms)
+Γ£ö removeImage derives the public_id from a secure_url (4.6425ms)
+Γ£ö removeImage ignores non-Cloudinary references (1.3266ms)
+Γ£ö removeImage never throws when Cloudinary fails (1.191ms)
+Γ£ö migrateNewsImages upgrades recoverable references only (8.1502ms)
+Γ£ö migrateNewsImages rebuilds a lost imageUrl from a stored public_id (9.8147ms)
+Γ£ö migrateNewsImages can also re-host external URLs and supports dry-run (1.6949ms)
+Γ£ö migrateNewsImages survives an unreadable store (1.1145ms)
+[mysql] UNREACHABLE TARGET: host=127.0.0.1 (loopback) but the Namecheap SSH tunnel is disabled. A backend on another host cannot reach the Namecheap database this way. Either set NAMECHEAP_SSH_HOST / NAMECHEAP_SSH_USER / NAMECHEAP_SSH_KEY_B64 (recommended), or point MYSQL_HOST / DB_HOST at a MySQL server that is actually reachable from this host.
+[mysql] Namecheap SSH tunnel DISABLED ΓÇö missing: NAMECHEAP_SSH_HOST, NAMECHEAP_SSH_USER, NAMECHEAP_SSH_KEY_B64. Falling back to a direct MySQL connection to 127.0.0.1:3306. Set the NAMECHEAP_SSH_* variables (host, user, base64 private key) on the service to reach the Namecheap database from outside.
+Γ£ö public reads come from the local mirror and need no database (4.1198ms)
+Γ£ö ensureSchema marks the store durable and reports it (5.5727ms)
+Γ£ö an unavailable database at boot leaves the mirror-only store usable (3.174ms)
+Γ£ö insert writes the article to MySQL and mirrors it (6.7488ms)
+Γ£ö a failed durable write rolls the mirror back, throws and never duplicates (4.7369ms)
+Γ£ö update patches MySQL and the mirror (7.5635ms)
+Γ£ö a failed durable update restores the previous article and throws (7.1527ms)
+Γ£ö update self-heals an article that only exists in the mirror (3.0487ms)
+Γ£ö remove deletes the article from MySQL and the mirror (3.4404ms)
+Γ£ö a failed durable delete keeps the article everywhere and throws (4.4481ms)
+Γ£ö hydrate imports mirror articles MySQL does not have ΓÇö exactly once (7.0834ms)
+Γ£ö an article that cannot be imported stays in the mirror (never lost) (2.9913ms)
+Γ£ö importSeed recovers the seeded article only while the table is empty (8.5923ms)
+Γ£ö an oversized legacy image reference is clamped instead of failing (2.7592ms)
+Γ£ö refreshFromDb mirrors articles written elsewhere back into the file (2.3215ms)
+Γ£ö dbUnavailableError carries the NEWS_DB_UNAVAILABLE code (1.2662ms)
+Γ£ö the migration defines every column the model writes (0.7286ms)
+Γ£ö NEWS_IMPORT_MIRROR=false leaves the local mirror untouched at boot (6.1293ms)
+Γ£ö NEWS_IMPORT_MIRROR=false still serves the articles that live in MySQL (2.7045ms)
+Γ£ö a mirror refresh never drops an article that is not in MySQL yet (2.5604ms)
+[recaptcha] RECAPTCHA_SECRET_KEY is not configured ΓÇö protected submissions are rejected until it is set
+[recaptcha] siteverify request failed (Network offline)
+[recaptcha] token rejected by Google (codes: invalid-input-response)
+[recaptcha] score 0.3 is below the minimum 0.5
+[recaptcha] action mismatch (expected "expected_action", received "wrong_action")
+[recaptcha] hostname not allowed (evil-phishing-domain.com)
+Γ£ö isConfigured reflects process.env.RECAPTCHA_SECRET_KEY (3.1259ms)
+Γ£ö configuredMinScore respects RECAPTCHA_MIN_SCORE (0.4068ms)
+Γ£ö isHostnameAllowed checks allowed host list (0.6311ms)
+Γ£ö verifyRecaptchaToken rejects when secret key is not configured (1.5629ms)
+Γ£ö verifyRecaptchaToken rejects missing or blank token with status 400 (0.6845ms)
+Γ£ö verifyRecaptchaToken sends form-encoded POST to Google siteverify (0.9612ms)
+Γ£ö verifyRecaptchaToken handles network failure cleanly (1.4927ms)
+Γ£ö verifyRecaptchaToken rejects when Google answers success: false (1.8907ms)
+Γ£ö verifyRecaptchaToken rejects when score is below threshold (0.6911ms)
+Γ£ö verifyRecaptchaToken rejects when action does not match (0.8105ms)
+Γ£ö verifyRecaptchaToken rejects unapproved hostname (0.6793ms)
+Γ£ö readToken extracts from multiple supported body and header locations (0.4591ms)
+Γ£ö guard blocks request with missing token and returns 400 + exact JSON (241.6008ms)
+[recaptcha] token rejected by Google (codes: invalid-input-response)
+Γ£ö guard blocks request when Google rejects token and returns 403 + exact JSON (20.655ms)
+[recaptcha] score 0.1 is below the minimum 0.5
+Γ£ö guard blocks request when score is too low (403) (17.5926ms)
+Γ£ö guard passes valid request to controller and attaches req.recaptcha (18.407ms)
+[admin] ADMIN_USER / ADMIN_PASS are not configured ΓÇö admin login refused (set both in the environment)
+[admin] failed login attempt from 203.0.113.7
+Γ£ö prototype-chain values are NOT valid admin tokens (45.6067ms)
+Γ£ö non-string / empty tokens are rejected (1.549ms)
+Γ£ö an issued token authenticates, can be revoked and then fails (29.5619ms)
+Γ£ö requireAuth answers 401 for a prototype-chain bearer token (5.8945ms)
+Γ£ö readBearer only accepts the Bearer scheme (0.4064ms)
+Γ£ö admin login refuses to work when ADMIN_USER/ADMIN_PASS are not configured (1.6824ms)
+Γ£ö admin login rejects wrong credentials without saying which part was wrong (14.7353ms)
+Γ£ö clientIp uses the resolved request IP and never a spoofed header (0.3112ms)
+Γ£ö csv export neutralises formula-leading cells from visitors (0.6142ms)
+Γ£ö CSV export with default pagination (limit 100, page 1) ΓÇö 25 records (35.6634ms)
+Γ£ö CSV export page 2 limit 100 ΓÇö records 101 to 200 from 250-record dataset (2.8467ms)
+Γ£ö CSV export page 3 limit 100 ΓÇö last page has 50 records from 250-record dataset (3.9704ms)
+Γ£ö CSV export omitted limit defaults to 100 (2.5878ms)
+Γ£ö CSV export limit 500 returns all records when total Γëñ 500 (4.2552ms)
+Γ£ö CSV export invalid limit values fallback to 100 (5.143ms)
+Γ£ö CSV export invalid page values fallback to page 1 (11.1202ms)
+Γ£ö CSV export empty collection ΓÇö header only, 0 data rows (0.7043ms)
+Γ£ö CSV export 25 records with limit 100 ΓÇö returns all 25 (1.0865ms)
+Γ£ö CSV export limit > 500 falls back to 100, limit 500 passes (3.4857ms)
+[mysql] UNREACHABLE TARGET: host=127.0.0.1 (loopback) but the Namecheap SSH tunnel is disabled. A backend on another host cannot reach the Namecheap database this way. Either set NAMECHEAP_SSH_HOST / NAMECHEAP_SSH_USER / NAMECHEAP_SSH_KEY_B64 (recommended), or point MYSQL_HOST / DB_HOST at a MySQL server that is actually reachable from this host.
+[mysql] Namecheap SSH tunnel DISABLED ΓÇö missing: NAMECHEAP_SSH_HOST, NAMECHEAP_SSH_USER, NAMECHEAP_SSH_KEY_B64. Falling back to a direct MySQL connection to 127.0.0.1:3306. Set the NAMECHEAP_SSH_* variables (host, user, base64 private key) on the service to reach the Namecheap database from outside.
+[subscribe] `subscribers` schema missing ΓÇö applying migrations and retrying
+[subscribe] stored id=42 email=reader@example.com
+[subscribe] duplicate email ignored: dup@example.com
+Γ£ö insertSubscriber stores the row through a prepared INSERT (no string concatenation) (4.2163ms)
+Γ£ö duplicate / missing-schema errors are recognised by their MySQL codes (0.4052ms)
+Γ£ö ensureSchema applies migration 002: subscribers table with a UNIQUE email index (5.2944ms)
+Γ£ö a subscription taken after a failed boot self-heals: schema applied, insert retried (2.7708ms)
+Γ£ö normalize validates and normalises the subscription payload (0.9957ms)
+Γ£ö POST handler answers 400 for the honeypot and never touches the database (0.8191ms)
+Γ£ö POST handler answers 201 with the exact success body on a stored signup (0.5975ms)
+Γ£ö POST handler answers 409 when the UNIQUE email index rejects the insert (0.6215ms)
+Γ£ö POST handler answers 500 without leaking any SQL error detail (1.2621ms)
+Γ£ö HTTP: a request without a reCAPTCHA token never reaches the controller (120.0164ms)
+[recaptcha] token rejected by Google (codes: invalid-input-response)
+Γ£ö HTTP: a token rejected by Google is blocked with 403 (13.4404ms)
+Γ£ö HTTP: an invalid email is refused with 400 even with a valid token (10.3551ms)
+[subscribe] stored id=103 email=mixed.case@example.com
+Γ£ö HTTP: a valid signup is stored in MySQL and answers 201 (13.9047ms)
+[subscribe] duplicate email ignored: mixed.case@example.com
+Γ£ö HTTP: subscribing the same address twice answers 409 (duplicate prevention) (14.4935ms)
+Γ£ö HTTP: a filled honeypot field is refused with 400 and stored nothing (15.0556ms)
+Γä╣ tests 126
+Γä╣ suites 0
+Γä╣ pass 126
+Γä╣ fail 0
+Γä╣ cancelled 0
+Γä╣ skipped 0
+Γä╣ todo 0
+Γä╣ duration_ms 1265.2507

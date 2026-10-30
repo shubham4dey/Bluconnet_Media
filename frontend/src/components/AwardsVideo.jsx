@@ -1,688 +1,716 @@
-import React, { useState, useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   motion,
-  AnimatePresence,
   useMotionValue,
   useSpring,
+  useTransform,
+  useReducedMotion,
+  animate,
 } from "framer-motion";
 import {
   FaAward,
-  FaTrophy,
-  FaChevronDown,
-  FaStar,
-  FaMedal,
+  FaBullhorn,
+  FaSearch,
+  FaPenAlt,
+  FaHandshake,
+  FaShareAlt,
+  FaChevronRight,
+  FaChartLine,
 } from "react-icons/fa";
 import { useTheme } from "../context/ThemeContext";
-import getThemeColors from "../utils/themeColors";
-import statsImage from "../assets/img/awards-img.png";
 
-const AwardsSection = () => {
-  const { isDarkMode } = useTheme();
-  const colors = getThemeColors(isDarkMode);
-  const ref = useRef(null);
-  const [activeIndex, setActiveIndex] = useState(null);
+const GROWTH_IMAGE =
+  "https://res.cloudinary.com/r6av8t7e/image/upload/v1791287693/imgo_eoemlk.jpg";
 
-  // Ultra smooth mouse tracking with springs
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
+const AWARDS = [
+  {
+    title: "Best Digital Marketing Agency",
+    description:
+      "Recognized for outstanding performance in digital marketing strategies and client results.",
+    category: "Excellence",
+    icon: FaBullhorn,
+    gradient: "from-emerald-500 to-teal-500",
+    glow: "rgba(16,185,129,0.35)",
+  },
+  {
+    title: "Excellence in SEO Innovation",
+    description:
+      "Recognised for innovative SEO strategies and impactful organic growth.",
+    category: "Innovation",
+    icon: FaSearch,
+    gradient: "from-cyan-500 to-sky-500",
+    glow: "rgba(6,182,212,0.35)",
+  },
+  {
+    title: "Best Content Marketing Campaign",
+    description:
+      "Recognised for creative, engaging and results-driven content marketing campaigns.",
+    category: "Creative",
+    icon: FaPenAlt,
+    gradient: "from-violet-500 to-fuchsia-500",
+    glow: "rgba(168,85,247,0.32)",
+  },
+  {
+    title: "Client Satisfaction Award",
+    description:
+      "Recognised for delivering trusted solutions and maintaining strong client relationships.",
+    category: "Trusted",
+    icon: FaHandshake,
+    gradient: "from-amber-400 to-orange-500",
+    glow: "rgba(249,115,22,0.32)",
+  },
+  {
+    title: "Top Social Media Agency",
+    description:
+      "Recognised for effective social media strategies, creative campaigns and audience engagement.",
+    category: "Industry",
+    icon: FaShareAlt,
+    gradient: "from-rose-500 to-pink-500",
+    glow: "rgba(244,63,94,0.32)",
+  },
+];
 
-  const springConfig = { damping: 25, stiffness: 300, mass: 0.5 };
-  const smoothX = useSpring(mouseX, springConfig);
-  const smoothY = useSpring(mouseY, springConfig);
+/* ------------------------------------------------------------------ */
+/* Award Card                                                          */
+/* ------------------------------------------------------------------ */
 
-  const awards = [
-    {
-      year: "2024",
-      title: "Best Digital Marketing Agency",
-      category: "Excellence",
-      description:
-        "Recognized for outstanding performance in digital marketing strategies and client results.",
-    },
-    {
-      year: "2023",
-      title: "Excellence in SEO Innovation",
-      category: "Innovation",
-      description:
-        "Awarded for breakthrough SEO techniques and measurable client success stories.",
-    },
-    {
-      year: "2023",
-      title: "Best Content Marketing Campaign",
-      category: "Creative",
-      description:
-        "Honored for creating viral content campaigns that drove exceptional engagement.",
-    },
-    {
-      year: "2022",
-      title: "Client Satisfaction Award",
-      category: "Trusted",
-      description:
-        "Recognized for maintaining 98% client satisfaction rate and long-term partnerships.",
-    },
-    {
-      year: "2022",
-      title: "Top Social Media Agency",
-      category: "Industry",
-      description:
-        "Awarded for excellence in social media management and brand growth strategies.",
-    },
-  ];
+const AwardCard = ({
+  award,
+  index,
+  enabled,
+  isDarkMode,
+  isTouchDevice,
+  touchExpanded,
+  onTouchToggle,
+}) => {
+  const cardRef = useRef(null);
 
-  // Award Winner Badge Component
-  const AwardBadge = () => (
-    <motion.div
-      initial={{ scale: 0, opacity: 0, rotateY: -90 }}
-      animate={{ scale: 1, opacity: 1, rotateY: 0 }}
-      exit={{ scale: 0, opacity: 0, rotateY: 90 }}
-      whileHover={{
-        scale: 1.08,
-        rotate: 5,
-        filter: `drop-shadow(0 0 25px ${
-          isDarkMode ? "rgba(212,225,87,.8)" : "rgba(34,197,94,.8)"
-        })`,
-      }}
-      transition={{
-        duration: 0.6,
-        type: "spring",
-        stiffness: 200,
-      }}
-      className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 cursor-pointer"
-      style={{ perspective: 200 }}
-    >
-      <motion.div
-        animate={{ rotate: [0, 1, -1, 0] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-      >
-        <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-2xl">
-          <defs>
-            {/* Enhanced Filters */}
-            <filter
-              id="glow-effect"
-              x="-50%"
-              y="-50%"
-              width="200%"
-              height="200%"
-            >
-              <feGaussianBlur stdDeviation="3" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
+  const touchStartRef = useRef({
+    x: 0,
+    y: 0,
+    moved: false,
+    wasExpanded: false,
+  });
 
-            <filter id="inner-glow">
-              <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur" />
-              <feOffset in="blur" dx="0" dy="0" result="offsetBlur" />
-              <feFlood
-                floodColor={isDarkMode ? "#d4e157" : "#22c55e"}
-                floodOpacity="0.5"
-              />
-              <feComposite in2="offsetBlur" operator="in" />
-              <feMerge>
-                <feMergeNode />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
+  const [hovered, setHovered] = useState(false);
 
-            {/* Theme Gradients */}
-            <linearGradient
-              id="gold-gradient"
-              x1="0%"
-              y1="0%"
-              x2="100%"
-              y2="100%"
-            >
-              <stop
-                offset="0%"
-                stopColor={isDarkMode ? "#d4e157" : "#34d399"}
-              />
-              <stop
-                offset="25%"
-                stopColor={isDarkMode ? "#c4d64a" : "#22c55e"}
-              />
-              <stop
-                offset="50%"
-                stopColor={isDarkMode ? "#06b6d4" : "#16a34a"}
-              />
-              <stop
-                offset="75%"
-                stopColor={isDarkMode ? "#0891b2" : "#15803d"}
-              />
-              <stop
-                offset="100%"
-                stopColor={isDarkMode ? "#0e7490" : "#166534"}
-              />
-            </linearGradient>
+  const glowX = useMotionValue(0);
+  const glowY = useMotionValue(0);
 
-            <linearGradient id="metallic" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop
-                offset="0%"
-                stopColor={isDarkMode ? "#fef9c3" : "#d1fae5"}
-              />
-              <stop
-                offset="30%"
-                stopColor={isDarkMode ? "#d4e157" : "#a7f3d0"}
-              />
-              <stop
-                offset="50%"
-                stopColor={isDarkMode ? "#06b6d4" : "#6ee7b7"}
-              />
-              <stop
-                offset="70%"
-                stopColor={isDarkMode ? "#0891b2" : "#34d399"}
-              />
-              <stop
-                offset="100%"
-                stopColor={isDarkMode ? "#0e7490" : "#10b981"}
-              />
-            </linearGradient>
+  const smoothGlowX = useSpring(glowX, {
+    stiffness: 180,
+    damping: 28,
+    mass: 0.6,
+  });
 
-            <radialGradient id="trophy-glow" cx="50%" cy="40%">
-              <stop
-                offset="0%"
-                stopColor={isDarkMode ? "#d4e157" : "#6ee7b7"}
-                stopOpacity="0.4"
-              />
-              <stop
-                offset="100%"
-                stopColor={isDarkMode ? "#06b6d4" : "#6ee7b7"}
-                stopOpacity="0"
-              />
-            </radialGradient>
+  const smoothGlowY = useSpring(glowY, {
+    stiffness: 180,
+    damping: 28,
+    mass: 0.6,
+  });
 
-            <linearGradient
-              id="crown-gradient"
-              x1="0%"
-              y1="0%"
-              x2="0%"
-              y2="100%"
-            >
-              <stop
-                offset="0%"
-                stopColor={isDarkMode ? "#fef9c3" : "#ecfdf5"}
-              />
-              <stop
-                offset="50%"
-                stopColor={isDarkMode ? "#d4e157" : "#6ee7b7"}
-              />
-              <stop
-                offset="100%"
-                stopColor={isDarkMode ? "#06b6d4" : "#059669"}
-              />
-            </linearGradient>
+  const medalX = useSpring(glowX, {
+    stiffness: 240,
+    damping: 24,
+    mass: 0.45,
+  });
 
-            {/* Circular Text Path */}
-            <path
-              id="award-circle-path"
-              d="M60,60 m-54,0 a54,54 0 1,1 108,0 a54,54 0 1,1 -108,0"
-              fill="none"
-            />
-          </defs>
+  const medalY = useSpring(glowY, {
+    stiffness: 240,
+    damping: 24,
+    mass: 0.45,
+  });
 
-          {/* Outer Glow Pulse */}
-          <motion.circle
-            cx="60"
-            cy="60"
-            r="58"
-            fill="none"
-            stroke="url(#gold-gradient)"
-            strokeWidth="1"
-            animate={{
-              r: [57, 59, 57],
-              opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          />
+  const Icon = award.icon;
 
-          {/* Animated Outer Ring + Circular Text */}
-          <motion.g
-            animate={{ rotate: 360 }}
-            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-            style={{ transformOrigin: "60px 60px" }}
-          >
-            <circle
-              cx="60"
-              cy="60"
-              r="54"
-              fill="none"
-              stroke="url(#gold-gradient)"
-              strokeWidth="2.5"
-              strokeDasharray="8 4"
-              opacity="0.7"
-            />
+  const isExpanded = enabled && (isTouchDevice ? touchExpanded : hovered);
 
-            <text
-              fill={isDarkMode ? "#d4e157" : "#22c55e"}
-              fontSize="6"
-              fontWeight="700"
-              letterSpacing="2.5"
-            >
-              <textPath href="#award-circle-path" startOffset="0%">
-                ★ CHAMPION ★ EXCELLENCE ★ CHAMPION ★ EXCELLENCE ★
-              </textPath>
-            </text>
-          </motion.g>
+  /* ------------------------- Pointer position ---------------------- */
 
-          {/* Counter-Rotating Inner Ring */}
-          <motion.g
-            animate={{ rotate: -360 }}
-            transition={{ duration: 35, repeat: Infinity, ease: "linear" }}
-            style={{ transformOrigin: "60px 60px" }}
-          >
-            <circle
-              cx="60"
-              cy="60"
-              r="50"
-              fill="none"
-              stroke="url(#gold-gradient)"
-              strokeWidth="1"
-              strokeDasharray="2 3"
-              opacity="0.5"
-            />
-          </motion.g>
+  const updatePointerPosition = (clientX, clientY) => {
+    if (!cardRef.current) return;
 
-          {/* Main Circle */}
-          <circle
-            cx="60"
-            cy="60"
-            r="48"
-            fill={isDarkMode ? "#111827" : "#000"}
-            stroke="url(#gold-gradient)"
-            strokeWidth="3"
-            filter="url(#glow-effect)"
-          />
+    const rect = cardRef.current.getBoundingClientRect();
 
-          {/* Inner Decorative Rings */}
-          <circle
-            cx="60"
-            cy="60"
-            r="44"
-            fill="none"
-            stroke="url(#gold-gradient)"
-            strokeWidth="1"
-            opacity="0.4"
-          />
-          <circle
-            cx="60"
-            cy="60"
-            r="42"
-            fill="none"
-            stroke="url(#gold-gradient)"
-            strokeWidth="0.5"
-            strokeDasharray="1 2"
-            opacity="0.3"
-          />
+    glowX.set(clientX - rect.left);
+    glowY.set(clientY - rect.top);
+  };
 
-          {/* Trophy Glow Background */}
-          <circle cx="60" cy="58" r="30" fill="url(#trophy-glow)" />
+  /* ------------------------- Mouse events -------------------------- */
 
-          {/* Enhanced Crown */}
-          <g transform="translate(60,35)" filter="url(#inner-glow)">
-            <path
-              d="M-20 0 L20 0 L20 10 L-20 10 Z"
-              fill="url(#crown-gradient)"
-              stroke="url(#gold-gradient)"
-              strokeWidth="0.5"
-            />
-            <path d="M-20 0 L-24 -14 L-12 -6 Z" fill="url(#crown-gradient)" />
-            <path d="M-10 0 L-14 -18 L-4 -8 Z" fill="url(#crown-gradient)" />
-            <path d="M0 0 L-4 -20 L4 -8 Z" fill="url(#crown-gradient)" />
-            <path d="M10 0 L4 -18 L14 -8 Z" fill="url(#crown-gradient)" />
-            <path d="M20 0 L24 -14 L12 -6 Z" fill="url(#crown-gradient)" />
+  const handleMouseMove = (e) => {
+    if (!enabled || isTouchDevice) return;
 
-            <circle
-              cx="-14"
-              cy="-4"
-              r="2.5"
-              fill={isDarkMode ? "#1f2937" : "#fff"}
-              stroke="url(#gold-gradient)"
-              strokeWidth="0.5"
-            />
-            <circle
-              cx="0"
-              cy="-8"
-              r="3"
-              fill={isDarkMode ? "#dc2626" : "#ef4444"}
-              stroke="url(#gold-gradient)"
-              strokeWidth="0.5"
-            />
-            <circle
-              cx="14"
-              cy="-4"
-              r="2.5"
-              fill={isDarkMode ? "#1f2937" : "#fff"}
-              stroke="url(#gold-gradient)"
-              strokeWidth="0.5"
-            />
+    updatePointerPosition(e.clientX, e.clientY);
+  };
 
-            <path
-              d="M-18 5 L18 5"
-              stroke="url(#gold-gradient)"
-              strokeWidth="1"
-              opacity="0.6"
-            />
-          </g>
+  const handleMouseEnter = (e) => {
+    if (!enabled || isTouchDevice) return;
 
-          {/* Enhanced Trophy Cup */}
-          <g transform="translate(60,62)" filter="url(#inner-glow)">
-            <path
-              d="M-18 -14 Q-20 -14 -20 -7 Q-20 10 -7 14 Q0 16 7 14 Q20 10 20 -7 Q20 -14 18 -14 Z"
-              fill="url(#metallic)"
-              stroke="url(#gold-gradient)"
-              strokeWidth="1.5"
-            />
-            <path
-              d="M-18 -10 Q-26 -8 -26 2 Q-26 12 -18 10"
-              fill="none"
-              stroke="url(#gold-gradient)"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-            <path
-              d="M18 -10 Q26 -8 26 2 Q26 12 18 10"
-              fill="none"
-              stroke="url(#gold-gradient)"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-            />
-            <rect
-              x="-5"
-              y="12"
-              width="10"
-              height="10"
-              rx="1.5"
-              fill="url(#gold-gradient)"
-              stroke="url(#metallic)"
-              strokeWidth="0.5"
-            />
-            <rect
-              x="-12"
-              y="20"
-              width="24"
-              height="5"
-              rx="2"
-              fill="url(#gold-gradient)"
-              stroke="url(#metallic)"
-              strokeWidth="0.5"
-            />
-            <path
-              d="M-10 -10 Q-3 -3 -7 10"
-              stroke="rgba(255,255,255,.6)"
-              strokeWidth="1.5"
-              fill="none"
-              strokeLinecap="round"
-            />
-            <path
-              d="M10 -10 Q3 -3 7 10"
-              stroke="rgba(255,255,255,.4)"
-              strokeWidth="1"
-              fill="none"
-              strokeLinecap="round"
-            />
-          </g>
+    setHovered(true);
+    updatePointerPosition(e.clientX, e.clientY);
+  };
 
-          {/* Enhanced Laurel Left */}
-          <g
-            stroke="url(#gold-gradient)"
-            strokeWidth="1.8"
-            fill="none"
-            strokeLinecap="round"
-            opacity="0.9"
-          >
-            <path d="M36 50 Q26 55 22 65 Q18 75 20 85" />
-            <path d="M28 55 Q22 53 20 57 Q22 61 28 59" />
-            <path d="M26 65 Q20 63 18 67 Q20 71 26 69" />
-            <path d="M25 75 Q19 73 17 77 Q19 81 25 79" />
-            <path d="M24 85 Q18 83 16 87 Q18 91 24 89" />
-          </g>
+  const handleMouseLeave = () => {
+    if (isTouchDevice) return;
 
-          {/* Enhanced Laurel Right */}
-          <g
-            stroke="url(#gold-gradient)"
-            strokeWidth="1.8"
-            fill="none"
-            strokeLinecap="round"
-            opacity="0.9"
-          >
-            <path d="M84 50 Q94 55 98 65 Q102 75 100 85" />
-            <path d="M92 55 Q98 53 100 57 Q98 61 92 59" />
-            <path d="M94 65 Q100 63 102 67 Q100 71 94 69" />
-            <path d="M95 75 Q101 73 103 77 Q101 81 95 79" />
-            <path d="M96 85 Q102 83 104 87 Q102 91 96 89" />
-          </g>
+    setHovered(false);
 
-          {/* Premium Stars */}
-          <g fill="url(#gold-gradient)">
-            <motion.path
-              d="M60 18 L63 24 L70 24 L65 28 L67 34 L60 30 L53 34 L55 28 L50 24 L57 24 Z"
-              animate={{ scale: [1, 1.15, 1], rotate: [0, 5, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-              style={{ transformOrigin: "60px 26px" }}
-            />
-            <motion.path
-              d="M32 38 L34 42 L39 42 L35 45 L37 50 L32 47 L27 50 L29 45 L25 42 L30 42 Z"
-              opacity=".8"
-              animate={{ scale: [1, 1.1, 1], opacity: [0.8, 1, 0.8] }}
-              transition={{
-                duration: 2.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.3,
-              }}
-              style={{ transformOrigin: "32px 44px" }}
-            />
-            <motion.path
-              d="M88 38 L90 42 L95 42 L91 45 L93 50 L88 47 L83 50 L85 45 L81 42 L86 42 Z"
-              opacity=".8"
-              animate={{ scale: [1, 1.1, 1], opacity: [0.8, 1, 0.8] }}
-              transition={{
-                duration: 2.5,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: 0.6,
-              }}
-              style={{ transformOrigin: "88px 44px" }}
-            />
-          </g>
+    const rect = cardRef.current?.getBoundingClientRect();
 
-          {/* Animated Sparkles */}
-          <motion.g
-            animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.4, 0.8] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-          >
-            {[
-              { cx: 22, cy: 32 },
-              { cx: 98, cy: 32 },
-              { cx: 18, cy: 60 },
-              { cx: 102, cy: 60 },
-              { cx: 25, cy: 88 },
-              { cx: 95, cy: 88 },
-            ].map((sparkle, i) => (
-              <circle
-                key={i}
-                cx={sparkle.cx}
-                cy={sparkle.cy}
-                r="1.5"
-                fill={isDarkMode ? "#d4e157" : "#22c55e"}
-              />
-            ))}
-          </motion.g>
+    if (rect) {
+      glowX.set(rect.width / 2);
+      glowY.set(rect.height / 2);
+    }
+  };
 
-          {/* Trophy Glow Pulse */}
-          <motion.circle
-            cx="60"
-            cy="60"
-            r="34"
-            fill="none"
-            stroke="url(#gold-gradient)"
-            strokeWidth="1.5"
-            opacity=".3"
-            animate={{ scale: [1, 1.1, 1], opacity: [0.2, 0.5, 0.2] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-            style={{ transformOrigin: "60px 60px" }}
-          />
+  /* ------------------------- Touch events -------------------------- */
 
-          {/* Rotating Shine Effect */}
-          <motion.g
-            animate={{ rotate: 360 }}
-            transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-            style={{ transformOrigin: "60px 60px" }}
-          >
-            <line
-              x1="60"
-              y1="8"
-              x2="60"
-              y2="16"
-              stroke="white"
-              strokeWidth="1.5"
-              opacity=".6"
-              strokeLinecap="round"
-            />
-            <circle cx="60" cy="8" r="2.5" fill="white" opacity=".9" />
-          </motion.g>
+  const handleTouchStart = (e) => {
+    if (!isTouchDevice || !enabled || !cardRef.current) return;
 
-          {/* Floating Stars */}
-          {[
-            { x: 20, delay: 0 },
-            { x: 60, delay: 0.5 },
-            { x: 100, delay: 1 },
-          ].map((star, i) => (
-            <motion.circle
-              key={i}
-              cx={star.x}
-              cy="16"
-              r="1.8"
-              fill={isDarkMode ? "#d4e157" : "#22c55e"}
-              animate={{
-                y: [0, -5, 0],
-                opacity: [0.3, 1, 0.3],
-                scale: [0.8, 1.2, 0.8],
-              }}
-              transition={{
-                duration: 2.5,
-                repeat: Infinity,
-                delay: star.delay,
-              }}
-            />
-          ))}
+    const touch = e.touches[0];
 
-          {/* Particle Effects */}
-          {[...Array(8)].map((_, i) => {
-            const angle = (i * Math.PI * 2) / 8;
-            const x = 60 + Math.cos(angle) * 45;
-            const y = 60 + Math.sin(angle) * 45;
-            return (
-              <motion.circle
-                key={`particle-${i}`}
-                cx={x}
-                cy={y}
-                r="1"
-                fill={isDarkMode ? "#d4e157" : "#22c55e"}
-                animate={{ opacity: [0, 1, 0], scale: [0, 1.5, 0] }}
-                transition={{ duration: 2, repeat: Infinity, delay: i * 0.25 }}
-              />
-            );
-          })}
-        </svg>
-      </motion.div>
-    </motion.div>
-  );
+    touchStartRef.current = {
+      x: touch.clientX,
+      y: touch.clientY,
+      moved: false,
+      wasExpanded: isExpanded,
+    };
 
-  const handleMouseMove = (e, index) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const isMobile = window.innerWidth < 640;
-    const offset = isMobile ? 24 : 40;
+    updatePointerPosition(touch.clientX, touch.clientY);
+  };
 
-    mouseX.set(e.clientX - rect.left - offset);
-    mouseY.set(e.clientY - rect.top - offset);
-    setActiveIndex(index);
+  const handleTouchMove = (e) => {
+    if (!isTouchDevice || !enabled || !cardRef.current) return;
+
+    const touch = e.touches[0];
+    const start = touchStartRef.current;
+
+    const deltaX = touch.clientX - start.x;
+    const deltaY = touch.clientY - start.y;
+
+    if (Math.abs(deltaX) > 8 || Math.abs(deltaY) > 8) {
+      start.moved = true;
+    }
+
+    // Keep the medal following the finger while the card is open.
+    if (start.wasExpanded) {
+      updatePointerPosition(touch.clientX, touch.clientY);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (!isTouchDevice || !enabled) return;
+
+    const start = touchStartRef.current;
+
+    // Dragging an already-open card must not close it.
+    if (start.wasExpanded && start.moved) {
+      start.moved = false;
+      return;
+    }
+
+    // Scrolling must not accidentally toggle a card.
+    if (start.moved) {
+      start.moved = false;
+      return;
+    }
+
+    // A simple tap opens or closes the selected card.
+    onTouchToggle(index);
+
+    start.moved = false;
+  };
+
+  const handleTouchCancel = () => {
+    touchStartRef.current.moved = false;
+    touchStartRef.current.wasExpanded = false;
   };
 
   return (
-    <section
-      className={`py-32 px-4 relative overflow-hidden ${isDarkMode ? "bg-[#050508]" : "bg-gradient-to-br from-slate-50 via-white to-emerald-50"}`}
+    <motion.article
+      ref={cardRef}
+      layout="position"
+      onMouseMove={handleMouseMove}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{
+        opacity: { duration: 0.4, delay: 0.06 * index },
+        y: {
+          duration: 0.4,
+          delay: 0.06 * index,
+          ease: "easeOut",
+        },
+        layout: {
+          type: "tween",
+          duration: 0.36,
+          ease: [0.22, 1, 0.36, 1],
+        },
+      }}
+      className={`group relative isolate overflow-hidden rounded-[24px] sm:rounded-[26px] border backdrop-blur-xl transition-[border-color,box-shadow] duration-300 ${
+        isDarkMode
+          ? "bg-white/[0.045] border-white/10 hover:border-white/25"
+          : "bg-white/80 border-slate-200/80 hover:border-teal-300/70"
+      }`}
+      style={{
+        boxShadow: isExpanded
+          ? isDarkMode
+            ? "0 18px 38px -24px rgba(6,182,212,0.45)"
+            : "0 18px 38px -24px rgba(13,148,136,0.35)"
+          : isDarkMode
+            ? "0 12px 34px -22px rgba(0,0,0,0.85)"
+            : "0 16px 40px -26px rgba(15,116,99,0.35)",
+
+        // Drag the medal while expanded on touch devices.
+        touchAction: isTouchDevice && isExpanded ? "none" : "pan-y",
+      }}
     >
-      {/* Animated Background Gradient */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{
-            background: [
-              "radial-gradient(circle at 20% 50%, rgba(212, 225, 87, 0.1) 0%, transparent 50%)",
-              "radial-gradient(circle at 80% 50%, rgba(6, 182, 212, 0.1) 0%, transparent 50%)",
-              "radial-gradient(circle at 50% 80%, rgba(212, 225, 87, 0.1) 0%, transparent 50%)",
-            ],
+      {/* Cursor-following ambient glow */}
+      <motion.span
+        aria-hidden="true"
+        className="pointer-events-none absolute left-0 top-0 z-0 h-44 w-44 -translate-x-1/2 -translate-y-1/2 rounded-full blur-2xl"
+        style={{
+          x: smoothGlowX,
+          y: smoothGlowY,
+          background: `radial-gradient(circle, ${award.glow} 0%, transparent 70%)`,
+        }}
+        animate={{ opacity: isExpanded ? 1 : 0 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
+      />
+
+      {/* Floating award medal */}
+      <motion.div
+        aria-hidden="true"
+        className="pointer-events-none absolute left-0 top-0 z-20 flex h-14 w-14 items-center justify-center rounded-full border border-white/60 bg-gradient-to-br from-white/90 via-white/70 to-emerald-100/80 shadow-[0_8px_28px_rgba(13,148,136,0.28)] backdrop-blur-md"
+        style={{
+          x: medalX,
+          y: medalY,
+          translateX: "-50%",
+          translateY: "-50%",
+        }}
+        initial={false}
+        animate={{
+          opacity: isExpanded ? 1 : 0,
+          scale: isExpanded ? 1 : 0.55,
+          rotate: isExpanded ? 0 : -24,
+        }}
+        transition={{
+          opacity: { duration: isExpanded ? 0.2 : 0.14 },
+          scale: {
+            duration: 0.26,
+            ease: [0.22, 1, 0.36, 1],
+          },
+          rotate: { duration: 0.28, ease: "easeOut" },
+        }}
+      >
+        <span
+          className={`flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br ${award.gradient} shadow-inner`}
+        >
+          <FaAward className="text-lg text-white drop-shadow-sm" />
+        </span>
+      </motion.div>
+
+      {/* Card content */}
+      <div className="relative z-10 flex items-center gap-3 sm:gap-4 p-3.5 sm:p-4 lg:p-5">
+        <div
+          className={`flex h-11 w-11 sm:h-12 sm:w-12 lg:h-14 lg:w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br ${award.gradient} shadow-lg transition-transform duration-300 ease-out ${
+            isExpanded ? "scale-[1.03]" : "scale-100"
+          }`}
+        >
+          <Icon className="text-base sm:text-lg lg:text-xl text-white" />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <h3
+            className={`text-[13px] sm:text-sm lg:text-[15px] font-extrabold leading-snug tracking-tight ${
+              isDarkMode ? "text-white" : "text-slate-900"
+            }`}
+          >
+            {award.title}
+          </h3>
+
+          <motion.div
+            initial={false}
+            animate={{
+              height: isExpanded ? "auto" : 0,
+              opacity: isExpanded ? 1 : 0,
+              marginTop: isExpanded ? 5 : 0,
+            }}
+            transition={{
+              height: {
+                duration: 0.36,
+                ease: [0.22, 1, 0.36, 1],
+              },
+              opacity: {
+                duration: isExpanded ? 0.24 : 0.12,
+                delay: isExpanded ? 0.04 : 0,
+              },
+              marginTop: {
+                duration: 0.25,
+                ease: "easeOut",
+              },
+            }}
+            className="overflow-hidden"
+            aria-hidden={!isExpanded}
+          >
+            <p
+              className={`text-[11px] sm:text-xs lg:text-[13px] leading-relaxed ${
+                isDarkMode ? "text-slate-400" : "text-slate-500"
+              }`}
+            >
+              {award.description}
+            </p>
+          </motion.div>
+
+          {/* Category pill on mobile */}
+          <span
+            className={`mt-2 inline-flex rounded-full bg-gradient-to-r ${award.gradient} px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-white shadow-sm sm:hidden`}
+          >
+            {award.category}
+          </span>
+        </div>
+
+        {/* Category and arrow: arrow stays visible at every breakpoint */}
+        <div className="flex shrink-0 flex-col items-end justify-center gap-2">
+          <span
+            className={`hidden sm:inline-flex rounded-full bg-gradient-to-r ${award.gradient} px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white shadow-sm lg:px-3.5`}
+          >
+            {award.category}
+          </span>
+
+          <span
+            className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full border transition-colors duration-300 ${
+              isDarkMode
+                ? "border-white/15 bg-white/5 text-slate-400 group-hover:border-teal-400/50 group-hover:text-teal-300"
+                : "border-slate-200 bg-white text-slate-400 group-hover:border-teal-300 group-hover:text-teal-600"
+            }`}
+          >
+            <motion.span
+              animate={{ x: isExpanded ? 2 : 0 }}
+              transition={{ duration: 0.22, ease: "easeOut" }}
+            >
+              <FaChevronRight className="text-[10px] sm:text-xs" />
+            </motion.span>
+          </span>
+        </div>
+      </div>
+    </motion.article>
+  );
+};
+
+/* ------------------------------------------------------------------ */
+/* Awards & Recognition section                                       */
+/* ------------------------------------------------------------------ */
+
+const AwardsSection = () => {
+  const { isDarkMode } = useTheme();
+
+  const sectionRef = useRef(null);
+  const sizeRef = useRef({ w: 1, h: 1 });
+
+  const [hoveringSection, setHoveringSection] = useState(false);
+  const [canHover, setCanHover] = useState(false);
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+  // Only one touch card can be open at a time.
+  const [activeTouchIndex, setActiveTouchIndex] = useState(-1);
+
+  const reduceMotion = useReducedMotion();
+
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const hoverFactor = useMotionValue(0);
+
+  const smoothX = useSpring(mouseX, {
+    stiffness: 120,
+    damping: 20,
+    mass: 0.6,
+  });
+
+  const smoothY = useSpring(mouseY, {
+    stiffness: 120,
+    damping: 20,
+    mass: 0.6,
+  });
+
+  /* ------------------------- Device detection ---------------------- */
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.matchMedia) return;
+
+    const hoverQuery = window.matchMedia("(hover: hover) and (pointer: fine)");
+
+    const touchQuery = window.matchMedia("(pointer: coarse)");
+
+    const update = () => {
+      setCanHover(hoverQuery.matches);
+
+      // Hybrid laptops with a mouse retain desktop behaviour.
+      setIsTouchDevice(touchQuery.matches && !hoverQuery.matches);
+    };
+
+    update();
+
+    const subscribe = (query) => {
+      if (query.addEventListener) {
+        query.addEventListener("change", update);
+      } else {
+        query.addListener(update);
+      }
+    };
+
+    const unsubscribe = (query) => {
+      if (query.removeEventListener) {
+        query.removeEventListener("change", update);
+      } else {
+        query.removeListener(update);
+      }
+    };
+
+    subscribe(hoverQuery);
+    subscribe(touchQuery);
+
+    return () => {
+      unsubscribe(hoverQuery);
+      unsubscribe(touchQuery);
+    };
+  }, []);
+
+  const interactive = canHover && !reduceMotion;
+  const cardInteractive = !reduceMotion;
+
+  const handleTouchToggle = (index) => {
+    setActiveTouchIndex((currentIndex) =>
+      currentIndex === index ? -1 : index,
+    );
+  };
+
+  /* ------------------------- Section cursor effects ---------------- */
+
+  const handleSectionMove = (e) => {
+    if (!interactive || !sectionRef.current) return;
+
+    const rect = sectionRef.current.getBoundingClientRect();
+
+    sizeRef.current = {
+      w: rect.width,
+      h: rect.height,
+    };
+
+    mouseX.set(e.clientX - rect.left);
+    mouseY.set(e.clientY - rect.top);
+  };
+
+  const handleSectionEnter = () => {
+    if (!interactive) return;
+
+    setHoveringSection(true);
+
+    animate(hoverFactor, 1, {
+      duration: 0.5,
+      ease: "easeOut",
+    });
+  };
+
+  const handleSectionLeave = () => {
+    setHoveringSection(false);
+
+    animate(hoverFactor, 0, {
+      duration: 0.7,
+      ease: "easeOut",
+    });
+
+    const rect = sectionRef.current?.getBoundingClientRect();
+
+    if (rect) {
+      mouseX.set(rect.width / 2);
+      mouseY.set(rect.height / 2);
+    }
+  };
+
+  /* ------------------------- Image parallax ------------------------ */
+
+  const imageX = useTransform(
+    [smoothX, hoverFactor],
+    ([value, factor]) => (value / (sizeRef.current.w || 1) - 0.5) * 26 * factor,
+  );
+
+  const imageY = useTransform(
+    [smoothY, hoverFactor],
+    ([value, factor]) => (value / (sizeRef.current.h || 1) - 0.5) * 16 * factor,
+  );
+
+  const innerX = useTransform(imageX, (v) => v * -0.55);
+  const innerY = useTransform(imageY, (v) => v * -0.55);
+
+  return (
+    <section
+      ref={sectionRef}
+      onMouseMove={handleSectionMove}
+      onMouseEnter={handleSectionEnter}
+      onMouseLeave={handleSectionLeave}
+      className={`relative overflow-hidden py-20 md:py-24 lg:py-28 px-4 sm:px-6 transition-colors duration-500 ${
+        isDarkMode
+          ? "bg-[#050508]"
+          : "bg-[linear-gradient(180deg,#ffffff_0%,#f7fcfa_45%,#ecf8f4_100%)]"
+      }`}
+    >
+      {/* Decorative background */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 overflow-hidden"
+      >
+        <div
+          className="absolute -top-32 -left-24 h-[420px] w-[420px] rounded-full blur-3xl"
+          style={{
+            background: isDarkMode
+              ? "radial-gradient(circle, rgba(6,182,212,0.16) 0%, transparent 70%)"
+              : "radial-gradient(circle, rgba(45,212,191,0.22) 0%, transparent 70%)",
           }}
-          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0"
         />
+
+        <div
+          className="absolute -bottom-40 right-[-10%] h-[480px] w-[480px] rounded-full blur-3xl"
+          style={{
+            background: isDarkMode
+              ? "radial-gradient(circle, rgba(212,225,87,0.10) 0%, transparent 70%)"
+              : "radial-gradient(circle, rgba(167,243,208,0.35) 0%, transparent 70%)",
+          }}
+        />
+
+        <div
+          className="absolute top-1/3 left-1/2 h-[380px] w-[380px] -translate-x-1/2 rounded-full blur-3xl"
+          style={{
+            background: isDarkMode
+              ? "radial-gradient(circle, rgba(13,148,136,0.12) 0%, transparent 70%)"
+              : "radial-gradient(circle, rgba(204,251,241,0.55) 0%, transparent 70%)",
+          }}
+        />
+
+        {/* Top decorative curves */}
+        <svg
+          className="absolute inset-x-0 top-0 h-64 w-full"
+          viewBox="0 0 1440 260"
+          preserveAspectRatio="none"
+          fill="none"
+        >
+          <path
+            d="M-40 180 C 260 40, 520 240, 800 130 S 1300 20, 1500 140"
+            stroke={
+              isDarkMode ? "rgba(6,182,212,0.22)" : "rgba(13,148,136,0.16)"
+            }
+            strokeWidth="1.5"
+          />
+
+          <path
+            d="M-40 230 C 300 90, 560 280, 860 170 S 1340 70, 1500 190"
+            stroke={
+              isDarkMode ? "rgba(212,225,87,0.14)" : "rgba(45,212,191,0.14)"
+            }
+            strokeWidth="1.5"
+          />
+        </svg>
+
+        {/* Bottom decorative curve */}
+        <svg
+          className="absolute inset-x-0 bottom-0 h-56 w-full"
+          viewBox="0 0 1440 220"
+          preserveAspectRatio="none"
+          fill="none"
+        >
+          <path
+            d="M-40 60 C 300 200, 620 10, 940 120 S 1340 200, 1500 90"
+            stroke={
+              isDarkMode ? "rgba(6,182,212,0.16)" : "rgba(13,148,136,0.12)"
+            }
+            strokeWidth="1.5"
+          />
+        </svg>
+
+        {/* Dot grid */}
+        <div
+          className="absolute inset-0 opacity-[0.35]"
+          style={{
+            backgroundImage: `radial-gradient(${
+              isDarkMode ? "rgba(255,255,255,0.10)" : "rgba(13,148,136,0.14)"
+            } 1px, transparent 1px)`,
+            backgroundSize: "34px 34px",
+            maskImage:
+              "radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 80%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 70% 60% at 50% 40%, black 20%, transparent 80%)",
+          }}
+        />
+
+        {/* Desktop cursor-following glow */}
+        <motion.div
+          className="absolute"
+          style={{ left: smoothX, top: smoothY }}
+          animate={{
+            opacity: hoveringSection && interactive ? 1 : 0,
+          }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
+          <div
+            className="h-[460px] w-[460px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+            style={{
+              background: `radial-gradient(circle, ${
+                isDarkMode ? "rgba(6,182,212,0.13)" : "rgba(45,212,191,0.20)"
+              } 0%, transparent 70%)`,
+            }}
+          />
+        </motion.div>
       </div>
 
-      {/* Floating Orbs */}
-      {[...Array(3)].map((_, i) => (
+      {/* Main content */}
+      <div className="relative z-10 max-w-7xl mx-auto">
+        {/* Header */}
         <motion.div
-          key={i}
-          animate={{
-            x: [0, 100 * (i + 1), 0],
-            y: [0, -50 * (i + 1), 0],
-            scale: [1, 1.2, 1],
-          }}
-          transition={{
-            duration: 15 + i * 5,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: i * 2,
-          }}
-          className={`absolute w-96 h-96 rounded-full blur-3xl opacity-10 ${
-            i % 2 === 0
-              ? isDarkMode
-                ? "bg-[#d4e157]"
-                : "bg-emerald-400"
-              : isDarkMode
-                ? "bg-[#06b6d4]"
-                : "bg-cyan-400"
-          } ${i === 0 ? "top-20 left-20" : i === 1 ? "bottom-20 right-20" : "top-1/2 left-1/2"}`}
-        />
-      ))}
-
-      <div className="max-w-7xl mx-auto relative z-10">
-        {/* Header Section */}
-        <motion.div
-          ref={ref}
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 26 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.8 }}
-          className="text-center mb-12 md:mb-16 lg:mb-20"
+          transition={{ duration: 0.7 }}
+          className="text-center mb-10 md:mb-14 lg:mb-16"
         >
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
+            initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className={`inline-flex items-center gap-3 px-5 md:px-8 py-3 rounded-full mb-6 md:mb-8 backdrop-blur-xl border ${
+            transition={{ delay: 0.15, duration: 0.5 }}
+            className={`inline-flex items-center gap-2.5 rounded-full border px-4 sm:px-5 py-2 sm:py-2.5 backdrop-blur-xl ${
               isDarkMode
-                ? "bg-gradient-to-r from-[#d4e157]/20 to-[#06b6d4]/20 border-[#d4e157]/30"
-                : "bg-gradient-to-r from-emerald-100/50 to-cyan-100/50 border-emerald-300"
-            } shadow-xl`}
+                ? "bg-white/5 border-white/15"
+                : "bg-white/70 border-teal-200/80 shadow-[0_10px_30px_-18px_rgba(13,148,136,0.6)]"
+            }`}
           >
-            <div
-              className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center ${
-                isDarkMode ? "bg-[#d4e157]" : "bg-emerald-500"
+            <span
+              className={`flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-full bg-gradient-to-br ${
+                isDarkMode
+                  ? "from-[#d4e157] to-[#06b6d4]"
+                  : "from-teal-500 to-emerald-500"
               }`}
             >
               <FaAward
-                className={`text-sm md:text-lg ${
+                className={`text-[11px] sm:text-xs ${
                   isDarkMode ? "text-[#0a0e27]" : "text-white"
                 }`}
               />
-            </div>
+            </span>
 
             <span
-              className={`text-xs md:text-sm font-bold uppercase tracking-wider ${
-                isDarkMode ? "text-[#d4e157]" : "text-emerald-700"
+              className={`text-[10px] sm:text-xs font-bold uppercase tracking-[0.18em] ${
+                isDarkMode ? "text-[#d4e157]" : "text-teal-700"
               }`}
             >
-              Awards & Recognition
+              Awards &amp; Recognition
             </span>
           </motion.div>
 
@@ -690,18 +718,18 @@ const AwardsSection = () => {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-             className={`font-black leading-tight mb-6 ${
-              isDarkMode ? "text-white" : "text-gray-900"
-            } text-3xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl`}
+            transition={{ delay: 0.25, duration: 0.6 }}
+            className={`mt-5 md:mt-7 font-black leading-[1.08] tracking-tight text-3xl sm:text-4xl md:text-5xl lg:text-[3.4rem] ${
+              isDarkMode ? "text-white" : "text-slate-900"
+            }`}
           >
-            Innovation for Business{" "}
+            Innovation for Business
             <br />
             <span
               className={`text-transparent bg-clip-text bg-gradient-to-r ${
                 isDarkMode
                   ? "from-[#d4e157] via-[#06b6d4] to-[#d4e157]"
-                  : "from-emerald-500 via-cyan-600 to-emerald-500"
+                  : "from-teal-500 via-cyan-600 to-emerald-500"
               }`}
             >
               Growth with BluConnet
@@ -709,307 +737,171 @@ const AwardsSection = () => {
           </motion.h2>
 
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 18 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ delay: 0.4 }}
-            className={`text-base md:text-xl max-w-3xl mx-auto px-2 md:px-0 ${
-              isDarkMode ? "text-gray-400" : "text-gray-600"
+            transition={{ delay: 0.35, duration: 0.6 }}
+            className={`mt-4 md:mt-5 mx-auto max-w-3xl text-sm sm:text-base md:text-lg leading-relaxed ${
+              isDarkMode ? "text-slate-400" : "text-slate-500"
             }`}
           >
-            It is a long established fact that a reader will be distracted by
-            the readable content of a page when looking at its layout.
+            From CPL and CPA campaigns to affiliate growth, we combine quality
+            traffic, strategic optimisation and transparent partnerships to help
+            business scale with measurable results.
           </motion.p>
         </motion.div>
 
-        {/* Awards Grid */}
-        <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-          {/* Left - Trophy Image */}
+        {/* Two-column layout */}
+        <div className="grid grid-cols-1 items-stretch gap-8 lg:gap-12 lg:grid-cols-[45fr_55fr]">
+          {/* Left: business growth visual */}
           <motion.div
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 0, x: -40 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="lg:col-span-4 relative"
+            transition={{
+              duration: 0.7,
+              delay: 0.15,
+              ease: "easeOut",
+            }}
+            className="relative"
           >
-            <div className="relative group">
+            <div
+              aria-hidden="true"
+              className="absolute -inset-4 rounded-[42px] blur-2xl opacity-70"
+              style={{
+                background: isDarkMode
+                  ? "radial-gradient(circle at 30% 30%, rgba(6,182,212,0.25), transparent 65%)"
+                  : "radial-gradient(circle at 30% 30%, rgba(45,212,191,0.35), transparent 65%)",
+              }}
+            />
+
+            <motion.div
+              style={{ x: imageX, y: imageY }}
+              className={`relative h-full min-h-[300px] sm:min-h-[380px] lg:min-h-[520px] overflow-hidden rounded-[26px] sm:rounded-[32px] border backdrop-blur-xl ${
+                isDarkMode
+                  ? "border-white/15 shadow-[0_40px_90px_-45px_rgba(6,182,212,0.7)]"
+                  : "border-white/70 shadow-[0_40px_90px_-45px_rgba(13,148,136,0.75)]"
+              }`}
+            >
+              <motion.img
+                src={GROWTH_IMAGE}
+                alt="BluConnet Media campaign performance dashboard showing CPL, CPA and affiliate growth analytics"
+                loading="lazy"
+                style={{ x: innerX, y: innerY }}
+                className="absolute inset-0 h-full w-full scale-110 object-cover"
+              />
+
+              {/* Image contrast overlay */}
               <div
-                className={`absolute inset-0 bg-gradient-to-r ${
+                aria-hidden="true"
+                className="absolute inset-0"
+                style={{
+                  background: isDarkMode
+                    ? "linear-gradient(160deg, rgba(5,5,8,0.25) 0%, transparent 45%, rgba(5,5,8,0.45) 100%)"
+                    : "linear-gradient(160deg, rgba(255,255,255,0.18) 0%, transparent 45%, rgba(8,47,73,0.18) 100%)",
+                }}
+              />
+
+              {/* Campaign growth badge */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.6, duration: 0.6 }}
+                className={`absolute bottom-4 left-4 sm:bottom-5 sm:left-5 flex items-center gap-2.5 rounded-2xl border px-3 sm:px-4 py-2.5 sm:py-3 backdrop-blur-xl ${
                   isDarkMode
-                    ? "from-[#d4e157]/40 to-[#06b6d4]/40"
-                    : "from-emerald-400/40 to-cyan-400/40"
-                } rounded-3xl blur-3xl group-hover:blur-2xl transition-all duration-500`}
-              ></div>
-
-              <div
-                className={`relative ${
-                  isDarkMode ? "bg-[#0f1535]/80" : "bg-white/80"
-                } backdrop-blur-xl rounded-3xl p-4 sm:p-6 md:p-8 border ${
-                  isDarkMode ? "border-white/20" : "border-gray-200"
-                } shadow-2xl group-hover:shadow-3xl transition-all duration-500`}
+                    ? "bg-black/40 border-white/15"
+                    : "bg-white/75 border-white/70"
+                } shadow-xl`}
               >
-                {/* Trophy Image - Responsive max height */}
-                <img
-                  src={statsImage}
-                  alt="Award Trophy"
-                  className="w-full h-auto object-contain max-h-[260px] sm:max-h-[320px] md:max-h-[380px] lg:max-h-[450px] drop-shadow-2xl mx-auto"
-                />
-
-                {/* Awards Badge - Smaller on mobile, bigger on desktop */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.8, type: "spring", stiffness: 200 }}
-                  className={`absolute top-1 right-1 sm:top-2 sm:right-2 md:top-3 md:right-3 lg:-top-4 lg:-right-4 ${
-                    isDarkMode ? "bg-[#0f1535]" : "bg-white"
-                  } backdrop-blur-xl border ${
-                    isDarkMode ? "border-[#d4e157]/30" : "border-emerald-200"
-                  } rounded-lg sm:rounded-xl md:rounded-2xl p-2 sm:p-3 md:p-4 lg:p-5 shadow-2xl`}
-                >
-                  <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-3">
-                    <div
-                      className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 rounded-md sm:rounded-lg md:rounded-xl bg-gradient-to-br ${
-                        isDarkMode
-                          ? "from-[#d4e157] to-[#06b6d4]"
-                          : "from-emerald-500 to-cyan-600"
-                      } flex items-center justify-center shadow-lg flex-shrink-0`}
-                    >
-                      <FaTrophy className="text-white text-xs sm:text-sm md:text-base lg:text-2xl" />
-                    </div>
-                    <div className="min-w-0">
-                      <div
-                        className={`font-black text-base sm:text-lg md:text-xl lg:text-2xl ${
-                          isDarkMode ? "text-[#d4e157]" : "text-emerald-600"
-                        }`}
-                      >
-                        30+
-                      </div>
-                      <div
-                        className={`text-[9px] sm:text-[10px] md:text-xs font-semibold ${
-                          isDarkMode ? "text-gray-400" : "text-gray-600"
-                        } whitespace-nowrap`}
-                      >
-                        Awards Won
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Right - Awards List */}
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="lg:col-span-8"
-          >
-            <div className="space-y-3 sm:space-y-4">
-              {awards.map((award, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.7 + index * 0.1 }}
-                  onMouseMove={(e) => handleMouseMove(e, index)}
-                  onMouseEnter={() => setActiveIndex(index)}
-                  onMouseLeave={() => setActiveIndex(null)}
-                  className={`relative rounded-2xl cursor-pointer transition-all duration-500 overflow-hidden group ${
-                    activeIndex === index
-                      ? isDarkMode
-                        ? "bg-gradient-to-r from-[#d4e157]/30 via-[#06b6d4]/20 to-[#d4e157]/30 border border-[#d4e157]/50 shadow-[0_0_40px_rgba(212,225,87,0.3)]"
-                        : "bg-gradient-to-r from-emerald-400/20 via-cyan-400/20 to-emerald-400/20 border border-emerald-300 shadow-[0_0_40px_rgba(16,185,129,0.3)]"
-                      : isDarkMode
-                        ? "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20"
-                        : "bg-white/60 backdrop-blur-sm border border-gray-200 hover:bg-white hover:border-emerald-200 hover:shadow-xl"
+                <span
+                  className={`flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl bg-gradient-to-br ${
+                    isDarkMode
+                      ? "from-[#d4e157] to-[#06b6d4]"
+                      : "from-teal-500 to-emerald-500"
                   }`}
                 >
-                  <div className="p-4 sm:p-5 md:p-6">
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-3 sm:gap-4 md:gap-6 flex-1 min-w-0">
-                        <div
-                          className={`text-sm sm:text-base md:text-lg font-bold flex-shrink-0 ${
-                            isDarkMode ? "text-[#d4e157]" : "text-emerald-600"
-                          } group-hover:scale-110 transition-transform`}
-                        >
-                          {award.year}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h3
-                            className={`text-sm sm:text-base md:text-lg font-bold mb-1 ${
-                              isDarkMode ? "text-white" : "text-gray-900"
-                            } truncate sm:truncate md:whitespace-normal`}
-                          >
-                            {award.title}
-                          </h3>
-                        </div>
-                      </div>
+                  <FaChartLine
+                    className={`text-xs sm:text-sm ${
+                      isDarkMode ? "text-[#0a0e27]" : "text-white"
+                    }`}
+                  />
+                </span>
 
-                      <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
-                        <span
-                          className={`text-xs sm:text-sm font-semibold hidden sm:inline ${
-                            isDarkMode ? "text-gray-400" : "text-gray-600"
-                          }`}
-                        >
-                          {award.category}
-                        </span>
-                        <motion.div
-                          animate={{ rotate: activeIndex === index ? 180 : 0 }}
-                          transition={{ duration: 0.3 }}
-                          className={
-                            isDarkMode ? "text-[#d4e157]" : "text-emerald-600"
-                          }
-                        >
-                          <FaChevronDown className="text-xs sm:text-sm" />
-                        </motion.div>
-                      </div>
-                    </div>
+                <span className="leading-tight">
+                  <span
+                    className={`block text-sm sm:text-base font-black ${
+                      isDarkMode ? "text-white" : "text-slate-900"
+                    }`}
+                  >
+                    +278%
+                  </span>
 
-                    <AnimatePresence>
-                      {activeIndex === index && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="overflow-hidden"
-                        >
-                          <p
-                            className={`mt-3 sm:mt-4 pt-3 sm:pt-4 border-t ${
-                              isDarkMode
-                                ? "border-white/10 text-gray-400"
-                                : "border-gray-200 text-gray-600"
-                            } text-xs sm:text-sm md:text-base`}
-                          >
-                            {award.description}
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                  <span
+                    className={`block text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider ${
+                      isDarkMode ? "text-slate-400" : "text-slate-500"
+                    }`}
+                  >
+                    Campaign Growth
+                  </span>
+                </span>
+              </motion.div>
 
-                    {/* Mouse Follow Badge - Now visible on ALL devices */}
-                    <AnimatePresence>
-                      {activeIndex === index && (
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.5 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          transition={{ duration: 0.3 }}
-                          className="absolute pointer-events-none z-10"
-                          style={{
-                            left: smoothX,
-                            top: smoothY,
-                            transform:
-                              window.innerWidth < 640
-                                ? "translate(-30%, -30%) scale(0.65)"
-                                : "translate(-50%, -50%)",
-                          }}
-                        >
-                          <AwardBadge />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
+              {/* Awards badge */}
+              <motion.div
+                initial={{ opacity: 0, y: -14 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.7, duration: 0.6 }}
+                className={`absolute right-4 top-4 sm:right-5 sm:top-5 flex items-center gap-2 rounded-full border px-3 sm:px-4 py-2 backdrop-blur-xl ${
+                  isDarkMode
+                    ? "bg-black/40 border-white/15"
+                    : "bg-white/75 border-white/70"
+                } shadow-xl`}
+              >
+                <FaAward
+                  className={`text-[11px] transition-colors duration-300 ${
+                    isDarkMode ? "text-[#d4e157]" : "text-teal-600"
+                  }`}
+                />
+
+                <span
+                  className={`text-[10px] sm:text-[11px] font-bold uppercase tracking-wider ${
+                    isDarkMode ? "text-white" : "text-slate-800"
+                  }`}
+                >
+                  30+ Awards Won
+                </span>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+
+          {/* Right: award cards */}
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{
+              duration: 0.7,
+              delay: 0.25,
+              ease: "easeOut",
+            }}
+            className="flex flex-col gap-3.5 sm:gap-4"
+          >
+            {AWARDS.map((award, index) => (
+              <AwardCard
+                key={award.title}
+                award={award}
+                index={index}
+                enabled={cardInteractive}
+                isDarkMode={isDarkMode}
+                isTouchDevice={isTouchDevice}
+                touchExpanded={activeTouchIndex === index}
+                onTouchToggle={handleTouchToggle}
+              />
+            ))}
           </motion.div>
         </div>
-
-      {/* Bottom Stats Section */}
-<motion.div
-  initial={{ opacity: 0, y: 50 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  viewport={{ once: true }}
-  transition={{ duration: 0.8, delay: 1 }}
-  className={`mt-12 sm:mt-16 lg:mt-20
-    grid grid-cols-2 md:grid-cols-4
-    gap-5 md:gap-6
-    px-5 sm:px-7 lg:px-10
-    py-8 sm:py-9 lg:py-10
-    rounded-2xl lg:rounded-3xl
-    ${
-      isDarkMode
-        ? "bg-gradient-to-br from-white/10 to-white/5 border border-white/20 backdrop-blur-xl"
-        : "bg-gradient-to-br from-gray-50 to-white border border-gray-200 backdrop-blur-xl shadow-2xl"
-    }`}
->
-  {[
-    {
-      icon: FaTrophy,
-      num: "30+",
-      label: "Awards Won",
-      color: "from-purple-500 to-pink-500",
-    },
-    {
-      icon: FaStar,
-      num: "50+",
-      label: "Nominations",
-      color: "from-blue-500 to-cyan-500",
-    },
-    {
-      icon: FaMedal,
-      num: "150+",
-      label: "Countries",
-      color: "from-yellow-500 to-orange-500",
-    },
-    {
-      icon: FaAward,
-      num: "98%",
-      label: "Success Rate",
-      color: "from-green-500 to-emerald-500",
-    },
-  ].map((stat, index) => (
-    <motion.div
-      key={index}
-      initial={{ opacity: 0, scale: 0.8, y: 20 }}
-      whileInView={{ opacity: 1, scale: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: 1.1 + index * 0.1 }}
-      whileHover={{
-        scale: 1.05,
-        y: window.innerWidth >= 1024 ? -10 : -5,
-      }}
-      className="text-center group cursor-pointer"
-    >
-      {/* Icon */}
-      <div
-        className={`w-14 h-14 sm:w-16 sm:h-16 lg:w-20 lg:h-20
-          mx-auto rounded-xl lg:rounded-2xl
-          bg-gradient-to-br ${stat.color}
-          flex items-center justify-center
-          mb-3 lg:mb-4
-          shadow-lg group-hover:shadow-2xl
-          transition-all duration-300
-          group-hover:rotate-12`}
-      >
-        <stat.icon className="text-white text-xl sm:text-2xl lg:text-3xl" />
-      </div>
-
-      {/* Number */}
-      <div
-        className={`text-2xl sm:text-3xl lg:text-4xl font-black mb-1 lg:mb-2 ${
-          isDarkMode ? "text-white" : "text-gray-900"
-        }`}
-      >
-        {stat.num}
-      </div>
-
-      {/* Label */}
-      <div
-        className={`text-[11px] sm:text-xs lg:text-sm font-semibold leading-tight ${
-          isDarkMode ? "text-gray-400" : "text-gray-600"
-        }`}
-      >
-        {stat.label}
-      </div>
-    </motion.div>
-  ))}
-</motion.div>
       </div>
     </section>
   );

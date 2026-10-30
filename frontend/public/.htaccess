@@ -117,22 +117,4 @@
   RewriteRule . /index.html [L]
 </IfModule>
 
-# ---------------------------------------------------------------------------
-# ANTI-COPY (client requirement) — server-side copy of the rules that already
-# live in the SPA bundle (src/index.css) and in components/ContentProtection.jsx.
-#
-# Injecting them into the shell means the text is already non-selectable while
-# the JavaScript bundle is still downloading, instead of only after React
-# boots. Scoped with <FilesMatch> to the SPA shell alone: applying it to every
-# text/html response would also hit wp-admin and the Elementor editor, where
-# `user-select: none` would make the page impossible to edit.
-#
-# Needs mod_substitute. When the module is not loaded the IfModule block is
-# ignored and nothing changes — the bundle's own CSS still applies.
-# ---------------------------------------------------------------------------
-<IfModule mod_substitute.c>
-  <FilesMatch "^index\.html$">
-    AddOutputFilterByType SUBSTITUTE text/html
-    Substitute "s|</head>|<style>body,body *{-webkit-user-select:none!important;-moz-user-select:none!important;-ms-user-select:none!important;user-select:none!important;-webkit-touch-callout:none}input,textarea,select,option,[contenteditable],[contenteditable] *,[data-copy-allowed],[data-copy-allowed] *{-webkit-user-select:text!important;-moz-user-select:text!important;user-select:text!important;-webkit-touch-callout:default}img,svg,video,a{-webkit-user-drag:none}</style></head>|ni"
-  </FilesMatch>
-</IfModule>
+

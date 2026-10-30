@@ -1,23 +1,123 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FaArrowRight,
   FaCalendarAlt,
   FaNewspaper,
   FaExternalLinkAlt,
-  FaCheck,
   FaEnvelope,
 } from "react-icons/fa";
 import { useTheme } from "../context/ThemeContext";
 import { getPublishedNews, resolveUrl } from "../services/newsApi";
+import { getRecaptchaToken } from "./RecaptchaProtection";
+import API_BASE from "../services/apiConfig";
+
+/* =========================================================
+   SUBSCRIBE API — the existing backend endpoint: POST /api/subscribe
+   (stores the signup in the MySQL `subscribers` table).
+
+   The URL comes from services/apiConfig.js (the single source of truth),
+   so a production bundle never talks to localhost.
+   ========================================================= */
+const SUBSCRIBE_ENDPOINT = `${API_BASE}/subscribe`;
+
+/* Same format rule the backend enforces (backend/middleware/validate.js isEmail). */
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+/* Messages shown in the hint slot under the form (same position, size and
+   margins as the default hint — the section layout never changes). */
+const INVALID_EMAIL_MESSAGE = "Please enter a valid email address.";
+const DUPLICATE_MESSAGE = "This email is already subscribed.";
+const GENERIC_ERROR_MESSAGE = "Something went wrong. Please try again.";
 
 const Guide2026 = () => {
   const { isDarkMode } = useTheme();
   const [newsList, setNewsList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
+
+  /* In-page validation/submit feedback — rendered in the existing hint
+     slot under the form so the design, layout and styling stay unchanged. */
+  const [error, setError] = useState(null);
+
+  /* Pending-request flag — blocks duplicate submissions. */
+  const [submitting, setSubmitting] = useState(false);
+
+  /* Synchronous mirror of `submitting`: state updates are async, so a
+     double click could otherwise fire two POSTs before React re-renders. */
+  const submittingRef = useRef(false);
+
+  const navigate = useNavigate();
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    if (error) setError(null);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // A request is already in flight — ignore extra clicks/submits.
+    if (submittingRef.current) return;
+
+    const trimmedEmail = email.trim();
+
+    // Client-side validation first — never POST an obviously invalid body.
+    if (!trimmedEmail || !EMAIL_PATTERN.test(trimmedEmail)) {
+      setError(INVALID_EMAIL_MESSAGE);
+      return;
+    }
+
+    setError(null);
+    submittingRef.current = true;
+    setSubmitting(true);
+
+    try {
+      /* reCAPTCHA v3 token — verified server-side via backend/middleware/recaptcha. */
+      const recaptchaToken = await getRecaptchaToken("subscribe");
+
+      const response = await fetch(SUBSCRIBE_ENDPOINT, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: trimmedEmail,
+          // This compact form has no consent checkbox (the section design is
+          // kept exactly as-is): pressing "Subscribe" IS the consent, and the
+          // API requires the flag to be exactly true.
+          agreeToSubscribe: true,
+          recaptchaToken: recaptchaToken || undefined,
+        }),
+      });
+
+      // 409 — the UNIQUE index on subscribers.email already has this address.
+      if (response.status === 409) {
+        setError(DUPLICATE_MESSAGE);
+        return;
+      }
+
+      // 400 validation / 403 reCAPTCHA / 429 rate limit / 500 server+database.
+      if (!response.ok) {
+        setError(GENERIC_ERROR_MESSAGE);
+        return;
+      }
+
+      // HTTP 201 — the signup is stored in the MySQL `subscribers` table.
+      // Success UX lives on the shared dedicated page (unchanged design).
+      navigate("/form-success?type=subscribe", {
+        state: { type: "subscribe", email: trimmedEmail },
+      });
+      setEmail("");
+    } catch (networkError) {
+      // Network failure — keep the entered value and explain what happened.
+      setError(GENERIC_ERROR_MESSAGE);
+    } finally {
+      submittingRef.current = false;
+      setSubmitting(false);
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -25,8 +125,7 @@ const Guide2026 = () => {
     const fetchNews = async () => {
       try {
         const res = await getPublishedNews();
-        const list =
-          res && res.ok && Array.isArray(res.data) ? res.data : [];
+        const list = res && res.ok && Array.isArray(res.data) ? res.data : [];
 
         if (mounted) setNewsList(list);
       } catch (error) {
@@ -47,7 +146,7 @@ const Guide2026 = () => {
   const latestNews = [...newsList]
     .sort(
       (a, b) =>
-        new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()
+        new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime(),
     )
     .slice(0, 6);
 
@@ -165,8 +264,8 @@ const Guide2026 = () => {
                   isDarkMode ? "text-gray-400" : "text-gray-600"
                 }`}
               >
-                Discover the latest updates, industry trends, announcements,
-                and insights from BluConnet Media.
+                Discover the latest updates, industry trends, announcements, and
+                insights from BluConnet Media.
               </p>
             </div>
 
@@ -422,10 +521,10 @@ const Guide2026 = () => {
             {/* Newsletter Text */}
             <div className="max-w-2xl text-left">
               <div
-                className={`mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 ${
+                className={`mb-3 inline-flex items-center gap-2 rounded-full border px-3 py-1.5 transition-colors duration-300 ${
                   isDarkMode
-                    ? "border-[#06b6d4]/30 bg-[#06b6d4]/10 text-[#06b6d4]"
-                    : "border-cyan-200 bg-cyan-50 text-cyan-700"
+                    ? "border-[#d4e157]/30 bg-[#d4e157]/10 text-[#d4e157]"
+                    : "border-emerald-200 bg-emerald-50 text-emerald-600"
                 }`}
               >
                 <FaEnvelope className="text-xs" />
@@ -448,129 +547,79 @@ const Guide2026 = () => {
                 }`}
               >
                 Get the latest news, digital marketing insights, industry
-                updates, and announcements from BluConnet Media directly in
-                your inbox.
+                updates, and announcements from BluConnet Media directly in your
+                inbox.
               </p>
             </div>
 
-            {/* Subscribe Form / Success */}
+            {/* Subscribe Form — success lives on the shared dedicated page. */}
             <div className="w-full lg:max-w-xl">
-              {!subscribed ? (
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-
-                    if (!email.trim()) return;
-
-                    // Temporary frontend-only success state.
-                    // Replace this with the real API call when backend is ready.
-                    setSubscribed(true);
-                  }}
-                  className="flex flex-col gap-3 sm:flex-row"
-                >
-                  <div
-                    className={`flex min-h-[54px] flex-1 items-center rounded-full border px-5 transition-all duration-300 ${
-                      isDarkMode
-                        ? "border-white/10 bg-white/5 focus-within:border-[#06b6d4]/50"
-                        : "border-gray-200 bg-white focus-within:border-emerald-400 shadow-sm"
-                    }`}
-                  >
-                    <FaEnvelope
-                      className={`mr-3 flex-shrink-0 text-sm ${
-                        isDarkMode
-                          ? "text-gray-500"
-                          : "text-gray-400"
-                      }`}
-                    />
-
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email address"
-                      required
-                      className={`w-full bg-transparent text-sm outline-none ${
-                        isDarkMode
-                          ? "text-white placeholder:text-gray-500"
-                          : "text-gray-900 placeholder:text-gray-400"
-                      }`}
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    className={`group inline-flex min-h-[54px] items-center justify-center gap-2 rounded-full px-7 text-sm font-black uppercase tracking-wider transition-all duration-300 ${
-                      isDarkMode
-                        ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_10px_30px_rgba(212,225,87,0.18)] hover:-translate-y-0.5"
-                        : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white shadow-[0_10px_30px_rgba(16,185,129,0.2)] hover:-translate-y-0.5"
-                    }`}
-                  >
-                    Subscribe
-                    <FaArrowRight className="text-xs transition-transform duration-300 group-hover:translate-x-1" />
-                  </button>
-                </form>
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.96, y: 10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  transition={{ duration: 0.4 }}
-                  className={`flex min-h-[100px] items-center gap-4 rounded-2xl border px-5 py-4 ${
+              <form
+                onSubmit={handleSubmit}
+                className="flex flex-col gap-3 sm:flex-row"
+              >
+                <div
+                  className={`flex min-h-[54px] flex-1 items-center rounded-full border px-5 transition-all duration-300 ${
                     isDarkMode
-                      ? "border-emerald-400/20 bg-emerald-400/10"
-                      : "border-emerald-200 bg-white shadow-sm"
+                      ? "border-white/10 bg-white/5 focus-within:border-[#06b6d4]/50"
+                      : "border-gray-200 bg-white focus-within:border-emerald-400 shadow-sm"
                   }`}
                 >
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{
-                      delay: 0.1,
-                      type: "spring",
-                      stiffness: 220,
-                    }}
-                    className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500 text-white shadow-lg shadow-emerald-500/20"
-                  >
-                    <FaCheck />
-                  </motion.div>
+                  <FaEnvelope
+                    className={`mr-3 flex-shrink-0 text-sm ${
+                      isDarkMode ? "text-gray-500" : "text-gray-400"
+                    }`}
+                  />
 
-                  <div className="text-left">
-                    <h4
-                      className={`text-base font-extrabold md:text-lg ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      }`}
-                    >
-                      You're Subscribed!
-                    </h4>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={handleEmailChange}
+                    placeholder="Enter your email address"
+                    required
+                    className={`w-full bg-transparent text-sm outline-none ${
+                      isDarkMode
+                        ? "text-white placeholder:text-gray-500"
+                        : "text-gray-900 placeholder:text-gray-400"
+                    }`}
+                  />
+                </div>
 
-                    <p
-                      className={`mt-1 text-sm ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      Thanks for subscribing. You'll receive our latest
-                      updates and insights at{" "}
-                      <span
-                        className={`font-semibold ${
-                          isDarkMode
-                            ? "text-[#d4e157]"
-                            : "text-emerald-600"
-                        }`}
-                      >
-                        {email}
-                      </span>
-                      .
-                    </p>
-                  </div>
-                </motion.div>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className={`group inline-flex min-h-[54px] items-center justify-center gap-2 rounded-full px-7 text-sm font-black uppercase tracking-wider transition-all duration-300 ${
+                    isDarkMode
+                      ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_10px_30px_rgba(212,225,87,0.18)] hover:-translate-y-0.5"
+                      : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white shadow-[0_10px_30px_rgba(16,185,129,0.2)] hover:-translate-y-0.5"
+                  }`}
+                >
+                  Subscribe
+                  <FaArrowRight className="text-xs transition-transform duration-300 group-hover:translate-x-1" />
+                </button>
+              </form>
+
+              {/* Status line — same slot, size and margins as the default
+                  hint, so the section layout is untouched; it only swaps
+                  the text when the visitor must see validation feedback. */}
+              {error ? (
+                <p
+                  role="alert"
+                  className={`mt-3 px-2 text-xs ${
+                    isDarkMode ? "text-red-400" : "text-red-500"
+                  }`}
+                >
+                  {error}
+                </p>
+              ) : (
+                <p
+                  className={`mt-3 px-2 text-xs ${
+                    isDarkMode ? "text-gray-500" : "text-gray-400"
+                  }`}
+                >
+                  No spam. Just useful updates, insights, and news.
+                </p>
               )}
-
-              <p
-                className={`mt-3 px-2 text-xs ${
-                  isDarkMode ? "text-gray-500" : "text-gray-400"
-                }`}
-              >
-                No spam. Just useful updates, insights, and news.
-              </p>
             </div>
           </div>
         </motion.div>

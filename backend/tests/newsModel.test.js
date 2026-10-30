@@ -454,3 +454,46 @@ test("NEWS_IMPORT_MIRROR=false leaves the local mirror untouched at boot", async
     delete process.env.NEWS_IMPORT_MIRROR;
   }
 });
+
+test("NEWS_IMPORT_MIRROR=false still serves the articles that live in MySQL", async () => {
+  /* Regression: with the mirror import switched off, hydration used to return
+     before syncing, so the public API answered with an EMPTY list even though
+     the database held published articles. The import flag must only stop
+     pushing local articles INTO MySQL — never stop reading FROM it. */
+  process.env.NEWS_IMPORT_MIRROR = "false";
+  try {
+    const { model, store, sql } = makeModel({
+      mysqlRows: [{ ...ARTICLE, id: "db-1", title: "Published in MySQL" }],
+      mirrorRows: [{ ...ARTICLE, id: "dev-1" }],
+    });
+    await model.ensureSchema();
+
+    const report = await model.hydrate();
+
+    assert.equal(report.skipped, "mirror-import-disabled");
+    assert.equal(report.articles, 1);
+    assert.equal(sql._table.size, 1); // dev-1 was NOT pushed
+    assert.equal(model.findById("db-1").title, "Published in MySQL");
+    assert.equal(store._data().length, 2); // db-1 is served, dev-1 is preserved
+  } finally {
+    delete process.env.NEWS_IMPORT_MIRROR;
+  }
+});
+
+test("a mirror refresh never drops an article that is not in MySQL yet", async () => {
+  /* Regression: the periodic refresh rewrote the mirror from MySQL without
+     keeping mirror-only ids, so an article that had not reached the database
+     was silently deleted from the file the public API reads. */
+  const { model, store, sql } = makeModel({
+    mysqlRows: [{ ...ARTICLE, id: "db-1" }],
+    mirrorRows: [{ ...ARTICLE, id: "mirror-1", title: "Only in the mirror" }],
+  });
+  await model.ensureSchema();
+
+  const report = await model.refreshFromDb();
+
+  assert.equal(report.imported, 1); // mirror-1 was imported first
+  assert.equal(sql._table.has("mirror-1"), true);
+  assert.equal(model.findById("mirror-1").title, "Only in the mirror");
+  assert.equal(store._data().length, 2);
+});

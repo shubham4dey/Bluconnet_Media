@@ -1,0 +1,406 @@
+FAIL src/components/TopOffers.test.js
+  ├ù renders the header, description and View All Offers buttons (228 ms)
+  ├ù renders all 12 offers with padded numbers, Cloudinary backgrounds and content (234 ms)
+  ├ù infinite loop wraps both ways and the arrows are never disabled (225 ms)
+  ├ù pagination shows exactly 12 pills and each pill activates its offer (154 ms)
+  ├ù night theme switches the shell, label, arrows and pills to the dark palette (77 ms)
+  autoplay
+    ├ù moves to the next offer every 4 seconds and loops 12 ΓåÆ 01 (370 ms)
+    ΓêÜ next / previous / pagination clicks restart the 4s countdown (236 ms)
+    ΓêÜ hovering pauses autoplay and leaving resumes the current slide (159 ms)
+    ΓêÜ touching the carousel restarts the countdown without moving the slide (96 ms)
+
+  ΓùÅ renders the header, description and View All Offers buttons
+
+    TestingLibraryElementError: Unable to find an element with the text: Top Offers. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+    Ignored nodes: comments, script, style
+    <body>
+      <div>
+        <section
+          aria-labelledby="top-offers-heading"
+          class="relative overflow-hidden px-4 py-16 transition-colors duration-500 md:py-24 border-b border-t border-slate-100 bg-white"
+          id="top-offers"
+        >
+          <div
+            class="relative z-10 mx-auto w-full max-w-[1500px]"
+          >
+            <div
+              class="relative mx-auto text-center"
+              style="opacity: 0; transform: translateY(24px);"
+            >
+              <div
+                class="mb-5"
+                style="opacity: 0; transform: translateY(15px);"
+              >
+                <div
+                  class="inline-flex items-center gap-3 rounded-full border px-4 py-2 bg-emerald-50 border-emerald-200 text-emerald-700"
+                >
+                  <div
+                    class="relative flex h-2.5 w-2.5 items-center justify-center"
+                  >
+                    <span
+                      class="h-2.5 w-2.5 rounded-full bg-emerald-500"
+                    />
+                    <span
+                      class="absolute inset-0 h-2.5 w-2.5 animate-ping rounded-full opacity-75 bg-emerald-500"
+                    />
+                  </div>
+                  <span
+                    class="text-[11px] font-bold uppercase tracking-wider sm:text-xs lg:text-sm"
+                  >
+                    TOP OFFERS
+                  </span>
+                </div>
+              </div>
+              <h2
+                class="mx-auto max-w-[1100px] text-3xl font-black leading-[0.95] tracking-tight sm:text-4xl md:text-5xl lg:text-[68px] xl:text-[76px] text-[#07172f]"
+                id="top-offers-heading"
+                style="opacity: 0; transform: translateY(24px);"
+              >
+                <span
+                  class="block"
+                >
+                  Explore
+                   
+                  <span
+                    class="bg-gradient-to-r bg-clip-text text-transparent from-emerald-500 to-cyan-600"
+                  >
+                    High-Converting
+                  </span>
+                   
+                  Offers
+                </span>
+              </h2>
+              <p
+                class="mx-auto mt-6 max-w-4xl text-[13px] leading-6 sm:text-sm sm:leading-7 md:text-[15px] lg:text-[15px] text-slate-600"
+                style="opacity: 0; transform: translateY(18px);"
+              >
+                Discover our top performing offers across multiple verticals and global markets. Start promoting high-quality offers and maximize your earnings.
+              </p>
+              <a
+                class="group absolute right-0 top-1/2 hidden -translate-y-1/2 items-center gap-2 rounded-[12px] border px-5 py-2.5 text-sm font-semibold transition-all duration-300 xl:inline-flex border-emerald-400 bg-transparent text-emerald-700 hover:border-emerald-500 hover:bg-emerald-50 hover:shadow-[0_8px_25px_rgba(16,185,129,0.12)]"
+                href="/portfolio"
+              >
+                <span>
+                  View All Offers
+                </span>
+                <svg
+                  aria-hidden="true"
+                  class="text-base transition-transform duration-300 group-hover:translate-x-1"
+                  fill="currentColor"
+                  height="1em"
+                  stroke="currentColor"
+                  stroke-width="0"
+                  viewBox="0 0 448 512"
+                  width="1em"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M190.5 66.9l22.2-22.2c9.4-9.4 24.6-9.4 33.9 0L441 239c9.4 9.4 9.4 24.6 0 33.9L246.6 467.3c-9.4 9.4-24.6 9.4-33.9 0l-22.2-22.2c-9.5-9.5-9.3-25 .4-34.3L311.4 296H24c-13.3 0-24-10.7-24-24v-32c0-13.3 10.7-24 24-24h287.4L190.9 101.2c-9.8-9.3-10-24.8-.4-34.3z"
+                  />
+                </svg>
+              </a>
+            </div>
+            <div
+              class="mt-7 flex justify-center xl:hidden"
+            >
+              <a
+                class="group inline-flex items-center gap-2 rounded-[12px] border px-5 py-2.5 text-sm font-semibold transition-all duration-300 border-emerald-400 bg-transparent text-emerald-700 hover:border-emerald-500 hover:bg-emerald-50 hover:shadow-[0_8px_25px_rgba(16,185,129,0.12)]"
+                href="/services/affiliate"
+              >
+                <span>
+                  View All Offers
+                </span>
+                <svg
+                  aria-hidden="true"
+                  class="text-base transition-transform duration-300 group-hover:translate-x-1"
+                  fill="currentColor"
+                  height="1em"
+                  stroke="currentColor"
+                  stroke-width="0"
+                  viewBox="0 0 448 512"
+                  width="1em"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M190.5 66.9l22.2-22.2c9.4-9.4 24.6-9.4 33.9 0L441 239c9.4 9.4 9.4 24.6 0 33.9L246.6 467.3c-9.4 9.4-24.6 9.4-33.9 0l-22.2-22.2c-9.5-9.5-9.3-25 .4-34.3L311.4 296H24c-13.3 0-24-10.7-24-24v-32c0-13.3 10.7-24 24-24h287.4L190.9 101.2c-9.8-9.3-10-24.8-.4-34.3z"
+                  />
+                </svg>
+              </a>
+            </div>
+            <div
+              class="relative mt-10 md:mt-14"
+              style="opacity: 0; transform: translateY(28px);"
+            >
+              <div
+                class="relative mx-auto w-full overflow-hidden"
+                style="height: 535px;"
+              >
+                <div
+                  class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                  style="width: 520px; height: 455px; z-index: 30;"
+                >
+     ...
+
+      126 |
+      127 |   /* small uppercase red label */
+    > 128 |   const label = screen.getByText("Top Offers");
+          |                        ^
+      129 |   expect(label).toBeInTheDocument();
+      130 |   expect(label.className).toContain("uppercase");
+      131 |   expect(label.className).toContain("text-red-600");
+
+      at Object.getElementError (node_modules/@testing-library/dom/dist/config.js:37:19)
+      at node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+      at node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+      at getByText (node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at Object.<anonymous> (src/components/TopOffers.test.js:128:24)
+      at TestScheduler.scheduleTests (node_modules/@jest/core/build/TestScheduler.js:333:13)
+      at runJest (node_modules/@jest/core/build/runJest.js:404:19)
+      at _run10000 (node_modules/@jest/core/build/cli/index.js:320:7)
+      at runCLI (node_modules/@jest/core/build/cli/index.js:173:3)
+
+  ΓùÅ renders all 12 offers with padded numbers, Cloudinary backgrounds and content
+
+    expect(received).toHaveLength(expected)
+
+    Expected length: 12
+    Received length: 14
+    Received object: [<article aria-hidden="false" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="true" style="opacity: 1; transform: none;"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0.92; transform: translateX(300px) scale(0.72);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0.3; transform: translateX(623px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(1043px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(1463px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(1883px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(2303px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(2723px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(-2303px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(-1883px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(-1463px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(-1043px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0.3; transform: translateX(-623px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0.92; transform: translateX(-300px) scale(0.72);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>]
+
+      163 |
+      164 |   const cards = container.querySelectorAll("article");
+    > 165 |   expect(cards).toHaveLength(12);
+          |                 ^
+      166 |
+      167 |   /* exactly the 12 provided images, in offer order, full-bleed
+      168 |      on the complete card background via object-cover */
+
+      at Object.<anonymous> (src/components/TopOffers.test.js:165:17)
+      at TestScheduler.scheduleTests (node_modules/@jest/core/build/TestScheduler.js:333:13)
+      at runJest (node_modules/@jest/core/build/runJest.js:404:19)
+      at _run10000 (node_modules/@jest/core/build/cli/index.js:320:7)
+      at runCLI (node_modules/@jest/core/build/cli/index.js:173:3)
+
+  ΓùÅ infinite loop wraps both ways and the arrows are never disabled
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "12"
+    Received: "14"
+
+      225 |   /* PREVIOUS ΓÇö centre becomes 12 (the left neighbour), then back */
+      226 |   fireEvent.click(prev);
+    > 227 |   expect(getActiveNumber(container)).toBe("12");
+          |                                      ^
+      228 |   fireEvent.click(next);
+      229 |   expect(getActiveNumber(container)).toBe("01");
+      230 |
+
+      at Object.<anonymous> (src/components/TopOffers.test.js:227:38)
+      at TestScheduler.scheduleTests (node_modules/@jest/core/build/TestScheduler.js:333:13)
+      at runJest (node_modules/@jest/core/build/runJest.js:404:19)
+      at _run10000 (node_modules/@jest/core/build/cli/index.js:320:7)
+      at runCLI (node_modules/@jest/core/build/cli/index.js:173:3)
+
+  ΓùÅ pagination shows exactly 12 pills and each pill activates its offer
+
+    expect(received).toHaveLength(expected)
+
+    Expected length: 12
+    Received length: 14
+    Received array:  [<button aria-current="true" aria-label="Show offer 01" class="h-2 rounded-full transition-all duration-300 w-9 bg-emerald-600" type="button" />, <button aria-label="Show offer 02" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 03" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 04" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 05" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 06" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 07" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 08" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 09" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 10" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 11" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 12" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 13" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 14" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />]
+
+      257 |
+      258 |   const pills = screen.getAllByRole("button", { name: /^Show offer / });
+    > 259 |   expect(pills).toHaveLength(12);
+          |                 ^
+      260 |
+      261 |   /* the active pill is the wider, darker one */
+      262 |   const activePill = container.querySelector('[aria-current="true"]');
+
+      at Object.<anonymous> (src/components/TopOffers.test.js:259:17)
+      at TestScheduler.scheduleTests (node_modules/@jest/core/build/TestScheduler.js:333:13)
+      at runJest (node_modules/@jest/core/build/runJest.js:404:19)
+      at _run10000 (node_modules/@jest/core/build/cli/index.js:320:7)
+      at runCLI (node_modules/@jest/core/build/cli/index.js:173:3)
+
+  ΓùÅ night theme switches the shell, label, arrows and pills to the dark palette
+
+    TestingLibraryElementError: Unable to find an element with the text: Top Offers. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+    Ignored nodes: comments, script, style
+    <body>
+      <div>
+        <section
+          aria-labelledby="top-offers-heading"
+          class="relative overflow-hidden px-4 py-16 transition-colors duration-500 md:py-24 bg-[#050508]"
+          id="top-offers"
+        >
+          <div
+            class="relative z-10 mx-auto w-full max-w-[1500px]"
+          >
+            <div
+              class="relative mx-auto text-center"
+              style="opacity: 0; transform: translateY(24px);"
+            >
+              <div
+                class="mb-5"
+                style="opacity: 0; transform: translateY(15px);"
+              >
+                <div
+                  class="inline-flex items-center gap-3 rounded-full border px-4 py-2 bg-[#d4e157]/10 border-[#d4e157]/30 text-[#d4e157]"
+                >
+                  <div
+                    class="relative flex h-2.5 w-2.5 items-center justify-center"
+                  >
+                    <span
+                      class="h-2.5 w-2.5 rounded-full bg-[#d4e157]"
+                    />
+                    <span
+                      class="absolute inset-0 h-2.5 w-2.5 animate-ping rounded-full opacity-75 bg-[#d4e157]"
+                    />
+                  </div>
+                  <span
+                    class="text-[11px] font-bold uppercase tracking-wider sm:text-xs lg:text-sm"
+                  >
+                    TOP OFFERS
+                  </span>
+                </div>
+              </div>
+              <h2
+                class="mx-auto max-w-[1100px] text-3xl font-black leading-[0.95] tracking-tight sm:text-4xl md:text-5xl lg:text-[68px] xl:text-[76px] text-white"
+                id="top-offers-heading"
+                style="opacity: 0; transform: translateY(24px);"
+              >
+                <span
+                  class="block"
+                >
+                  Explore
+                   
+                  <span
+                    class="bg-gradient-to-r bg-clip-text text-transparent from-[#d4e157] to-[#06b6d4]"
+                  >
+                    High-Converting
+                  </span>
+                   
+                  Offers
+                </span>
+              </h2>
+              <p
+                class="mx-auto mt-6 max-w-4xl text-[13px] leading-6 sm:text-sm sm:leading-7 md:text-[15px] lg:text-[15px] text-gray-400"
+                style="opacity: 0; transform: translateY(18px);"
+              >
+                Discover our top performing offers across multiple verticals and global markets. Start promoting high-quality offers and maximize your earnings.
+              </p>
+              <a
+                class="group absolute right-0 top-1/2 hidden -translate-y-1/2 items-center gap-2 rounded-[12px] border px-5 py-2.5 text-sm font-semibold transition-all duration-300 xl:inline-flex border-[#d4e157]/60 bg-transparent text-[#d4e157] hover:border-[#d4e157] hover:bg-[#d4e157]/10 hover:shadow-[0_0_25px_rgba(212,225,87,0.12)]"
+                href="/portfolio"
+              >
+                <span>
+                  View All Offers
+                </span>
+                <svg
+                  aria-hidden="true"
+                  class="text-base transition-transform duration-300 group-hover:translate-x-1"
+                  fill="currentColor"
+                  height="1em"
+                  stroke="currentColor"
+                  stroke-width="0"
+                  viewBox="0 0 448 512"
+                  width="1em"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M190.5 66.9l22.2-22.2c9.4-9.4 24.6-9.4 33.9 0L441 239c9.4 9.4 9.4 24.6 0 33.9L246.6 467.3c-9.4 9.4-24.6 9.4-33.9 0l-22.2-22.2c-9.5-9.5-9.3-25 .4-34.3L311.4 296H24c-13.3 0-24-10.7-24-24v-32c0-13.3 10.7-24 24-24h287.4L190.9 101.2c-9.8-9.3-10-24.8-.4-34.3z"
+                  />
+                </svg>
+              </a>
+            </div>
+            <div
+              class="mt-7 flex justify-center xl:hidden"
+            >
+              <a
+                class="group inline-flex items-center gap-2 rounded-[12px] border px-5 py-2.5 text-sm font-semibold transition-all duration-300 border-[#d4e157]/60 bg-transparent text-[#d4e157] hover:border-[#d4e157] hover:bg-[#d4e157]/10 hover:shadow-[0_0_25px_rgba(212,225,87,0.12)]"
+                href="/services/affiliate"
+              >
+                <span>
+                  View All Offers
+                </span>
+                <svg
+                  aria-hidden="true"
+                  class="text-base transition-transform duration-300 group-hover:translate-x-1"
+                  fill="currentColor"
+                  height="1em"
+                  stroke="currentColor"
+                  stroke-width="0"
+                  viewBox="0 0 448 512"
+                  width="1em"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M190.5 66.9l22.2-22.2c9.4-9.4 24.6-9.4 33.9 0L441 239c9.4 9.4 9.4 24.6 0 33.9L246.6 467.3c-9.4 9.4-24.6 9.4-33.9 0l-22.2-22.2c-9.5-9.5-9.3-25 .4-34.3L311.4 296H24c-13.3 0-24-10.7-24-24v-32c0-13.3 10.7-24 24-24h287.4L190.9 101.2c-9.8-9.3-10-24.8-.4-34.3z"
+                  />
+                </svg>
+              </a>
+            </div>
+            <div
+              class="relative mt-10 md:mt-14"
+              style="opacity: 0; transform: translateY(28px);"
+            >
+              <div
+                class="relative mx-auto w-full overflow-hidden"
+                style="height: 535px;"
+              >
+                <div
+                  class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                  style="width: 520px; height: 455px; z-index: 30;"
+                >
+                  <article
+                  ...
+
+      280 |   const section = getSection(container);
+      281 |   expect(section.className).toContain("bg-[#050508]");
+    > 282 |   expect(screen.getByText("Top Offers").className).toContain("text-red-500");
+          |                 ^
+      283 |   expect(screen.getByRole("heading", { level: 2 }).className).toContain(
+      284 |     "text-white",
+      285 |   );
+
+      at Object.getElementError (node_modules/@testing-library/dom/dist/config.js:37:19)
+      at node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+      at node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+      at getByText (node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at Object.<anonymous> (src/components/TopOffers.test.js:282:17)
+      at TestScheduler.scheduleTests (node_modules/@jest/core/build/TestScheduler.js:333:13)
+      at runJest (node_modules/@jest/core/build/runJest.js:404:19)
+      at _run10000 (node_modules/@jest/core/build/cli/index.js:320:7)
+      at runCLI (node_modules/@jest/core/build/cli/index.js:173:3)
+
+  ΓùÅ autoplay ΓÇ║ moves to the next offer every 4 seconds and loops 12 ΓåÆ 01
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "01"
+    Received: "13"
+
+      344 |     /* infinite loop wraps 12 ΓåÆ 01 */
+      345 |     advance(4000);
+    > 346 |     expect(getActiveNumber(container)).toBe("01");
+          |                                        ^
+      347 |   });
+      348 |
+      349 |   test("next / previous / pagination clicks restart the 4s countdown", () => {
+
+      at Object.<anonymous> (src/components/TopOffers.test.js:346:40)
+      at TestScheduler.scheduleTests (node_modules/@jest/core/build/TestScheduler.js:333:13)
+      at runJest (node_modules/@jest/core/build/runJest.js:404:19)
+      at _run10000 (node_modules/@jest/core/build/cli/index.js:320:7)
+      at runCLI (node_modules/@jest/core/build/cli/index.js:173:3)
+
+Test Suites: 1 failed, 1 total
+Tests:       6 failed, 3 passed, 9 total
+Snapshots:   0 total
+Time:        3.594 s, estimated 11 s
+Ran all test suites matching /TopOffers/i.

@@ -22,7 +22,7 @@ const Insights = () => {
     const fetchLatestBlogs = async () => {
       try {
         const response = await fetch(
-          "https://bluconnetmedia.com/wp-json/wp/v2/posts?per_page=3&_embed",
+          "https://bluconnetmedia.com/wp-json/wp/v2/posts?per_page=3&_embed"
         );
 
         if (!response.ok) {
@@ -32,9 +32,11 @@ const Insights = () => {
         const posts = await response.json();
 
         const formattedPosts = posts.map((post) => {
-          // Robust image extraction with fallback
-          const featuredMedia = post._embedded?.["wp:featuredmedia"]?.[0];
-          const imageUrl = featuredMedia?.source_url || FALLBACK_IMAGE;
+          const featuredMedia =
+            post._embedded?.["wp:featuredmedia"]?.[0];
+
+          const imageUrl =
+            featuredMedia?.source_url || FALLBACK_IMAGE;
 
           return {
             id: post.id,
@@ -59,7 +61,7 @@ const Insights = () => {
         setInsights(formattedPosts);
       } catch (error) {
         console.error("Error fetching latest blogs:", error);
-        // Fallback data agar API fail ho jaye
+
         setInsights([
           {
             id: 1,
@@ -106,10 +108,16 @@ const Insights = () => {
   if (loading) {
     return (
       <section
-        className={`py-20 md:py-28 px-4 ${isDarkMode ? "bg-[#050508]" : "bg-white"} transition-colors duration-500`}
+        className={`py-20 md:py-28 px-4 ${
+          isDarkMode ? "bg-[#050508]" : "bg-white"
+        } transition-colors duration-500`}
       >
         <div className="max-w-7xl mx-auto text-center">
-          <p className={isDarkMode ? "text-gray-400" : "text-gray-600"}>
+          <p
+            className={
+              isDarkMode ? "text-gray-400" : "text-gray-600"
+            }
+          >
             Loading insights...
           </p>
         </div>
@@ -123,32 +131,51 @@ const Insights = () => {
 
   return (
     <section
-      className={`py-20 md:py-28 px-4 ${isDarkMode ? "bg-[#050508]" : "bg-white"} relative overflow-hidden transition-colors duration-500`}
+      className={`py-20 md:py-28 px-4 ${
+        isDarkMode ? "bg-[#050508]" : "bg-white"
+      } relative overflow-hidden transition-colors duration-500`}
     >
       {/* Background Glow Effects */}
       <div
-        className={`absolute top-1/4 right-0 w-96 h-96 ${isDarkMode ? "bg-[#d4e157]/10" : "bg-emerald-500/10"} rounded-full blur-3xl`}
+        className={`absolute top-1/4 right-0 w-96 h-96 ${
+          isDarkMode
+            ? "bg-[#d4e157]/10"
+            : "bg-emerald-500/10"
+        } rounded-full blur-3xl`}
       ></div>
+
       <div
-        className={`absolute bottom-1/4 left-0 w-96 h-96 ${isDarkMode ? "bg-[#06b6d4]/10" : "bg-cyan-600/10"} rounded-full blur-3xl`}
+        className={`absolute bottom-1/4 left-0 w-96 h-96 ${
+          isDarkMode
+            ? "bg-[#06b6d4]/10"
+            : "bg-cyan-600/10"
+        } rounded-full blur-3xl`}
       ></div>
 
       {/* Subtle Grid Pattern */}
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: `radial-gradient(circle, ${isDarkMode ? "#d4e157" : "#10b981"} 1px, transparent 1px)`,
+          backgroundImage: `radial-gradient(circle, ${
+            isDarkMode ? "#d4e157" : "#10b981"
+          } 1px, transparent 1px)`,
           backgroundSize: "30px 30px",
         }}
       ></div>
 
       {/* Background Geometric Shapes */}
       <div
-        className={`absolute top-20 right-20 w-32 h-32 md:w-48 md:h-48 ${isDarkMode ? "opacity-10" : "opacity-20"} pointer-events-none`}
+        className={`absolute top-20 right-20 w-32 h-32 md:w-48 md:h-48 ${
+          isDarkMode ? "opacity-10" : "opacity-20"
+        } pointer-events-none`}
       >
         <svg
           viewBox="0 0 100 100"
-          className={`w-full h-full ${isDarkMode ? "text-[#d4e157]" : "text-emerald-500"}`}
+          className={`w-full h-full ${
+            isDarkMode
+              ? "text-[#d4e157]"
+              : "text-emerald-500"
+          }`}
         >
           <path
             d="M20 30 L50 10 L80 30 L80 70 L50 90 L20 70 Z"
@@ -164,12 +191,19 @@ const Insights = () => {
           />
         </svg>
       </div>
+
       <div
-        className={`absolute bottom-20 left-16 w-24 h-24 md:w-40 md:h-40 ${isDarkMode ? "opacity-10" : "opacity-20"} pointer-events-none rotate-12`}
+        className={`absolute bottom-20 left-16 w-24 h-24 md:w-40 md:h-40 ${
+          isDarkMode ? "opacity-10" : "opacity-20"
+        } pointer-events-none rotate-12`}
       >
         <svg
           viewBox="0 0 100 100"
-          className={`w-full h-full ${isDarkMode ? "text-[#06b6d4]" : "text-cyan-600"}`}
+          className={`w-full h-full ${
+            isDarkMode
+              ? "text-[#06b6d4]"
+              : "text-cyan-600"
+          }`}
         >
           <path
             d="M20 30 L50 10 L80 30 L80 70 L50 90 L20 70 Z"
@@ -208,16 +242,20 @@ const Insights = () => {
                     : "bg-emerald-50 border border-emerald-200 text-emerald-700"
                 }`}
               >
-                {/* Blinking Circle */}
                 <span className="relative flex h-2.5 w-2.5">
                   <span
                     className={`absolute inline-flex h-full w-full rounded-full animate-ping ${
-                      isDarkMode ? "bg-[#d4e157]" : "bg-emerald-500"
+                      isDarkMode
+                        ? "bg-[#d4e157]"
+                        : "bg-emerald-500"
                     } opacity-75`}
                   ></span>
+
                   <span
                     className={`relative inline-flex h-2.5 w-2.5 rounded-full ${
-                      isDarkMode ? "bg-[#d4e157]" : "bg-emerald-500"
+                      isDarkMode
+                        ? "bg-[#d4e157]"
+                        : "bg-emerald-500"
                     }`}
                   ></span>
                 </span>
@@ -227,30 +265,54 @@ const Insights = () => {
             </motion.div>
 
             <h2
-              className={`text-3xl md:text-5xl lg:text-6xl font-extrabold ${isDarkMode ? "text-white" : "text-gray-900"} mb-6 leading-tight`}
+              className={`text-3xl md:text-5xl lg:text-6xl font-extrabold ${
+                isDarkMode
+                  ? "text-white"
+                  : "text-gray-900"
+              } mb-6 leading-tight`}
             >
-              <span className={isDarkMode ? "text-white" : "text-gray-900"}>
+              <span
+                className={
+                  isDarkMode
+                    ? "text-white"
+                    : "text-gray-900"
+                }
+              >
                 INSIGHTS &{" "}
               </span>
+
               <span
-                className={`text-transparent bg-clip-text bg-gradient-to-r ${isDarkMode ? "from-[#d4e157] to-[#06b6d4]" : "from-emerald-500 to-cyan-600"}`}
+                className={`text-transparent bg-clip-text bg-gradient-to-r ${
+                  isDarkMode
+                    ? "from-[#d4e157] to-[#06b6d4]"
+                    : "from-emerald-500 to-cyan-600"
+                }`}
               >
                 RESOURCES
               </span>
             </h2>
 
             <p
-              className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} text-base md:text-lg mt-4 max-w-2xl`}
+              className={`${
+                isDarkMode
+                  ? "text-gray-400"
+                  : "text-gray-600"
+              } text-base md:text-lg mt-4 max-w-2xl`}
             >
-              Stay ahead with expert insights, strategic guides, and industry
-              trends from our partnership marketing specialists.
+              Stay ahead with expert insights, strategic guides,
+              and industry trends from our partnership marketing
+              specialists.
             </p>
           </div>
 
           {/* View All Link */}
           <motion.button
             whileHover={{ x: 5 }}
-            className={`hidden md:flex items-center gap-2 ${isDarkMode ? "text-[#d4e157]" : "text-emerald-600"} font-bold text-sm uppercase tracking-wider group`}
+            className={`hidden md:flex items-center gap-2 ${
+              isDarkMode
+                ? "text-[#d4e157]"
+                : "text-emerald-600"
+            } font-bold text-sm uppercase tracking-wider group`}
           >
             View All Articles
             <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
@@ -259,7 +321,7 @@ const Insights = () => {
 
         {/* Magazine-Style Grid Layout */}
         <div className="grid md:grid-cols-2 lg:grid-cols-12 gap-6 md:gap-8 mb-12">
-          {/* Featured Card - Takes 8 columns */}
+          {/* Featured Card */}
           <Link
             to={`/blog/${insights[0].slug}`}
             className="lg:col-span-8 block"
@@ -270,14 +332,35 @@ const Insights = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
               whileHover={{ y: -8 }}
-              className={`text-start group relative bg-gradient-to-br ${isDarkMode ? "from-[#0f1535] to-[#0a0e27]" : "from-white to-slate-50"} border-2 rounded-3xl overflow-hidden ${isDarkMode ? "hover:border-[#d4e157]/50" : "hover:border-emerald-500/50"} transition-all duration-500 cursor-pointer ${isDarkMode ? "shadow-black/50" : "shadow-gray-200/50"} shadow-lg h-full`}
+              className={`text-start group relative bg-gradient-to-br ${
+                isDarkMode
+                  ? "from-[#0f1535] to-[#0a0e27]"
+                  : "from-white to-slate-50"
+              } border-2 rounded-3xl overflow-hidden ${
+                isDarkMode
+                  ? "hover:border-[#d4e157]/50"
+                  : "hover:border-emerald-500/50"
+              } transition-all duration-500 cursor-pointer ${
+                isDarkMode
+                  ? "shadow-black/50"
+                  : "shadow-gray-200/50"
+              } shadow-lg h-full`}
             >
               {/* Hover Glow */}
               <div
-                className={`absolute -top-20 -right-20 w-60 h-60 ${isDarkMode ? "bg-[#d4e157]/20" : "bg-emerald-500/20"} rounded-full blur-3xl transition-all duration-500`}
+                className={`absolute -top-20 -right-20 w-60 h-60 ${
+                  isDarkMode
+                    ? "bg-[#d4e157]/20"
+                    : "bg-emerald-500/20"
+                } rounded-full blur-3xl transition-all duration-500`}
               ></div>
+
               <div
-                className={`absolute -bottom-20 -left-20 w-60 h-60 ${isDarkMode ? "bg-[#06b6d4]/20" : "bg-cyan-600/20"} rounded-full blur-3xl transition-all duration-500`}
+                className={`absolute -bottom-20 -left-20 w-60 h-60 ${
+                  isDarkMode
+                    ? "bg-[#06b6d4]/20"
+                    : "bg-cyan-600/20"
+                } rounded-full blur-3xl transition-all duration-500`}
               ></div>
 
               <div className="grid md:grid-cols-2 h-full">
@@ -293,29 +376,34 @@ const Insights = () => {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
 
-                  {/* Overlay */}
-                  <div
-                    className={`absolute inset-0 ${isDarkMode ? "bg-gradient-to-r from-transparent to-[#0a0e27]/80 md:block hidden" : "bg-gradient-to-r from-transparent to-white/80 md:block hidden"}`}
-                  ></div>
-                  <div
-                    className={`absolute inset-0 ${isDarkMode ? "bg-gradient-to-t from-[#0a0e27]/80 to-transparent md:hidden" : "bg-gradient-to-t from-white/80 to-transparent md:hidden"}`}
-                  ></div>
-
                   {/* Featured Badge */}
                   <div className="absolute top-6 left-6 flex items-center gap-2">
                     <div
-                      className={`${isDarkMode ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27]" : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white"} px-3 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wide shadow-lg flex items-center gap-2`}
+                      className={`${
+                        isDarkMode
+                          ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27]"
+                          : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white"
+                      } px-3 py-1.5 rounded-lg font-bold text-xs uppercase tracking-wide shadow-lg flex items-center gap-2`}
                     >
                       <span
-                        className={`w-2 h-2 ${isDarkMode ? "bg-[#0a0e27]" : "bg-white"} rounded-full animate-pulse`}
+                        className={`w-2 h-2 ${
+                          isDarkMode
+                            ? "bg-[#0a0e27]"
+                            : "bg-white"
+                        } rounded-full animate-pulse`}
                       ></span>
+
                       FEATURED
                     </div>
                   </div>
 
-                  {/* Big Number */}
+                  {/* Big Number - 01 */}
                   <div
-                    className={`absolute bottom-6 right-6 text-8xl md:text-9xl font-black ${isDarkMode ? "text-white/10" : "text-gray-900/10"} leading-none select-none drop-shadow-lg`}
+                    className={`absolute bottom-6 right-6 text-8xl md:text-9xl font-black ${
+                      isDarkMode
+                        ? "text-[#d4e157]/30"
+                        : "text-emerald-500/25"
+                    } leading-none select-none drop-shadow-lg`}
                   >
                     01
                   </div>
@@ -327,14 +415,27 @@ const Insights = () => {
                     {/* Type Badge */}
                     <div className="inline-flex items-center gap-2 mb-4">
                       <div
-                        className={`w-8 h-8 ${isDarkMode ? "bg-[#d4e157]/20 border border-[#d4e157]/30" : "bg-emerald-100 border border-emerald-200"} rounded-lg flex items-center justify-center`}
+                        className={`w-8 h-8 ${
+                          isDarkMode
+                            ? "bg-[#d4e157]/20 border border-[#d4e157]/30"
+                            : "bg-emerald-100 border border-emerald-200"
+                        } rounded-lg flex items-center justify-center`}
                       >
                         {React.createElement(insights[0].icon, {
-                          className: `w-4 h-4 ${isDarkMode ? "text-[#d4e157]" : "text-emerald-600"}`,
+                          className: `w-4 h-4 ${
+                            isDarkMode
+                              ? "text-[#d4e157]"
+                              : "text-emerald-600"
+                          }`,
                         })}
                       </div>
+
                       <span
-                        className={`${isDarkMode ? "text-[#d4e157]" : "text-emerald-600"} text-xs font-bold uppercase tracking-wider`}
+                        className={`${
+                          isDarkMode
+                            ? "text-[#d4e157]"
+                            : "text-emerald-600"
+                        } text-xs font-bold uppercase tracking-wider`}
                       >
                         {insights[0].type}
                       </span>
@@ -342,43 +443,72 @@ const Insights = () => {
 
                     {/* Title */}
                     <h3
-                      className={`text-2xl md:text-3xl lg:text-4xl font-bold ${isDarkMode ? "text-white" : "text-gray-900"} mb-4 leading-tight ${isDarkMode ? "group-hover:text-[#d4e157]" : "group-hover:text-emerald-600"} transition-colors duration-300`}
-                      dangerouslySetInnerHTML={{ __html: insights[0].title }}
+                      className={`text-2xl md:text-3xl lg:text-4xl font-bold ${
+                        isDarkMode
+                          ? "text-white"
+                          : "text-gray-900"
+                      } mb-4 leading-tight ${
+                        isDarkMode
+                          ? "group-hover:text-[#d4e157]"
+                          : "group-hover:text-emerald-600"
+                      } transition-colors duration-300`}
+                      dangerouslySetInnerHTML={{
+                        __html: insights[0].title,
+                      }}
                     />
 
                     {/* Description */}
                     <p
-                      className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} text-base leading-relaxed mb-6`}
-                      dangerouslySetInnerHTML={{ __html: insights[0].desc }}
+                      className={`${
+                        isDarkMode
+                          ? "text-gray-400"
+                          : "text-gray-600"
+                      } text-base leading-relaxed mb-6`}
+                      dangerouslySetInnerHTML={{
+                        __html: insights[0].desc,
+                      }}
                     />
                   </div>
 
                   {/* Meta Info */}
                   <div
-                    className={`flex flex-wrap items-center justify-between gap-4 pt-6 border-t ${isDarkMode ? "border-white/10" : "border-gray-200"}`}
+                    className={`flex flex-wrap items-center justify-between gap-4 pt-6 border-t ${
+                      isDarkMode
+                        ? "border-white/10"
+                        : "border-gray-200"
+                    }`}
                   >
                     <div className="flex items-center gap-4 text-xs text-gray-500">
                       <div className="flex items-center gap-1.5">
                         <FaRegCalendar
                           className={
-                            isDarkMode ? "text-[#06b6d4]" : "text-cyan-600"
+                            isDarkMode
+                              ? "text-[#d4e157]"
+                              : "text-cyan-600"
                           }
                         />
                         <span>{insights[0].date}</span>
                       </div>
+
                       <div className="flex items-center gap-1.5">
                         <FaRegClock
                           className={
-                            isDarkMode ? "text-[#06b6d4]" : "text-cyan-600"
+                            isDarkMode
+                              ? "text-[#d4e157]"
+                              : "text-cyan-600"
                           }
                         />
                         <span>{insights[0].readTime}</span>
                       </div>
                     </div>
 
-                    {/* Read More Button */}
+                    {/* Read More */}
                     <div
-                      className={`flex items-center gap-2 ${isDarkMode ? "text-[#d4e157]" : "text-emerald-600"} font-bold text-sm uppercase tracking-wide group-hover:gap-3 transition-all duration-300`}
+                      className={`flex items-center gap-2 ${
+                        isDarkMode
+                          ? "text-[#d4e157]"
+                          : "text-emerald-600"
+                      } font-bold text-sm uppercase tracking-wide group-hover:gap-3 transition-all duration-300`}
                     >
                       <span>Read Article</span>
                       <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
@@ -389,12 +519,16 @@ const Insights = () => {
 
               {/* Bottom Accent Line */}
               <div
-                className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${isDarkMode ? "from-[#d4e157] to-[#06b6d4]" : "from-emerald-500 to-cyan-600"} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+                className={`absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r ${
+                  isDarkMode
+                    ? "from-[#d4e157] to-[#06b6d4]"
+                    : "from-emerald-500 to-cyan-600"
+                } opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
               ></div>
             </motion.div>
           </Link>
 
-          {/* Right Column - 2 Smaller Cards */}
+          {/* Right Column - 02 & 03 */}
           <div className="lg:col-span-4 flex flex-col gap-6 md:gap-8">
             {insights.slice(1).map((insight, index) => {
               const IconComponent = insight.icon;
@@ -409,13 +543,31 @@ const Insights = () => {
                     initial={{ opacity: 0, y: 30 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: (index + 1) * 0.15 }}
+                    transition={{
+                      delay: (index + 1) * 0.15,
+                    }}
                     whileHover={{ y: -5, x: -5 }}
-                    className={`group relative bg-gradient-to-br ${isDarkMode ? "from-[#0f1535] to-[#0a0e27]" : "from-white to-slate-50"} border-2 ${isDarkMode ? "border-white/10" : "border-gray-200"} rounded-2xl overflow-hidden ${isDarkMode ? "hover:border-[#06b6d4]/50" : "hover:border-cyan-500/50"} transition-all duration-500 cursor-pointer h-full`}
+                    className={`group relative bg-gradient-to-br ${
+                      isDarkMode
+                        ? "from-[#0f1535] to-[#0a0e27]"
+                        : "from-white to-slate-50"
+                    } border-2 ${
+                      isDarkMode
+                        ? "border-white/10"
+                        : "border-gray-200"
+                    } rounded-2xl overflow-hidden ${
+                      isDarkMode
+                        ? "hover:border-[#06b6d4]/50"
+                        : "hover:border-cyan-500/50"
+                    } transition-all duration-500 cursor-pointer h-full`}
                   >
                     {/* Hover Glow */}
                     <div
-                      className={`absolute -top-10 -right-10 w-32 h-32 ${isDarkMode ? "bg-[#06b6d4]/20" : "bg-cyan-600/20"} rounded-full blur-2xl transition-all duration-500`}
+                      className={`absolute -top-10 -right-10 w-32 h-32 ${
+                        isDarkMode
+                          ? "bg-[#06b6d4]/20"
+                          : "bg-cyan-600/20"
+                      } rounded-full blur-2xl transition-all duration-500`}
                     ></div>
 
                     <div className="flex h-full">
@@ -431,9 +583,13 @@ const Insights = () => {
                           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                         />
 
-                        {/* Number */}
+                        {/* Number - 02 / 03 */}
                         <div
-                          className={`absolute top-2 left-2 text-4xl font-black ${isDarkMode ? "text-white/10" : "text-gray-900/10"} leading-none drop-shadow-lg`}
+                          className={`absolute top-2 left-2 text-4xl font-black ${
+                            isDarkMode
+                              ? "text-[#d4e157]/30"
+                              : "text-cyan-600/25"
+                          } leading-none drop-shadow-lg`}
                         >
                           0{index + 2}
                         </div>
@@ -444,10 +600,19 @@ const Insights = () => {
                         {/* Type Badge */}
                         <div className="inline-flex items-center gap-1.5 mb-2">
                           {React.createElement(IconComponent, {
-                            className: `w-3 h-3 ${isDarkMode ? "text-[#06b6d4]" : "text-cyan-600"}`,
+                            className: `w-3 h-3 ${
+                              isDarkMode
+                                ? "text-[#d4e157]"
+                                : "text-cyan-600"
+                            }`,
                           })}
+
                           <span
-                            className={`${isDarkMode ? "text-[#06b6d4]" : "text-cyan-600"} text-[10px] md:text-xs font-bold uppercase tracking-wider`}
+                            className={`${
+                              isDarkMode
+                                ? "text-[#d4e157]"
+                                : "text-cyan-600"
+                            } text-[10px] md:text-xs font-bold uppercase tracking-wider`}
                           >
                             {insight.type}
                           </span>
@@ -455,31 +620,56 @@ const Insights = () => {
 
                         {/* Title */}
                         <h3
-                          className={`text-sm md:text-base font-bold ${isDarkMode ? "text-white" : "text-gray-900"} text-start mb-2 leading-snug ${isDarkMode ? "group-hover:text-[#d4e157]" : "group-hover:text-emerald-600"} transition-colors duration-300 line-clamp-2`}
-                          dangerouslySetInnerHTML={{ __html: insight.title }}
+                          className={`text-sm md:text-base font-bold ${
+                            isDarkMode
+                              ? "text-white"
+                              : "text-gray-900"
+                          } text-start mb-2 leading-snug ${
+                            isDarkMode
+                              ? "group-hover:text-[#d4e157]"
+                              : "group-hover:text-emerald-600"
+                          } transition-colors duration-300 line-clamp-2`}
+                          dangerouslySetInnerHTML={{
+                            __html: insight.title,
+                          }}
                         />
 
                         {/* Description */}
                         <p
-                          className={`${isDarkMode ? "text-gray-400" : "text-gray-600"} text-xs text-start leading-relaxed mb-3 line-clamp-2 hidden md:block`}
-                          dangerouslySetInnerHTML={{ __html: insight.desc }}
+                          className={`${
+                            isDarkMode
+                              ? "text-gray-400"
+                              : "text-gray-600"
+                          } text-xs text-start leading-relaxed mb-3 line-clamp-2 hidden md:block`}
+                          dangerouslySetInnerHTML={{
+                            __html: insight.desc,
+                          }}
                         />
 
                         {/* Meta */}
                         <div
-                          className={`mt-auto flex items-center justify-between gap-2 pt-3 border-t ${isDarkMode ? "border-white/10" : "border-gray-200"}`}
+                          className={`mt-auto flex items-center justify-between gap-2 pt-3 border-t ${
+                            isDarkMode
+                              ? "border-white/10"
+                              : "border-gray-200"
+                          }`}
                         >
                           <div className="flex items-center gap-1.5 text-[10px] text-gray-500">
                             <FaRegClock
                               className={
-                                isDarkMode ? "text-[#06b6d4]" : "text-cyan-600"
+                                isDarkMode
+                                  ? "text-[#d4e157]"
+                                  : "text-cyan-600"
                               }
                             />
                             <span>{insight.readTime}</span>
                           </div>
+
                           <FaArrowRight
                             className={`${
-                              isDarkMode ? "text-[#06b6d4]" : "text-cyan-600"
+                              isDarkMode
+                                ? "text-[#d4e157]"
+                                : "text-cyan-600"
                             } text-xs group-hover:translate-x-1 transition-transform`}
                           />
                         </div>
@@ -488,7 +678,11 @@ const Insights = () => {
 
                     {/* Bottom Accent Line */}
                     <div
-                      className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r ${isDarkMode ? "from-[#06b6d4] to-[#d4e157]" : "from-cyan-600 to-emerald-500"} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+                      className={`absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r ${
+                        isDarkMode
+                          ? "from-[#06b6d4] to-[#d4e157]"
+                          : "from-cyan-600 to-emerald-500"
+                      } opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
                     ></div>
                   </motion.div>
                 </Link>
@@ -497,7 +691,7 @@ const Insights = () => {
           </div>
         </div>
 
-        {/* ===== PREMIUM STYLISH CTA BUTTON ===== */}
+        {/* PREMIUM CTA BUTTON */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -516,9 +710,8 @@ const Insights = () => {
                   : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white shadow-[0_8px_30px_rgba(16,185,129,0.3)] hover:shadow-[0_15px_40px_rgba(16,185,129,0.5)]"
               }`}
             >
-              {/* Animated Shine/Sweep Effect on Hover */}
               <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/40 to-transparent z-10" />
-              
+
               <span className="relative z-20 flex items-center gap-3">
                 VIEW ALL INSIGHTS
                 <FaArrowRight className="text-lg group-hover:translate-x-1 transition-transform duration-300" />

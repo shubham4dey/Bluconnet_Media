@@ -5,26 +5,23 @@ const Preloader = ({ setIsLoading }) => {
   const [loadingProgress, setLoadingProgress] = useState(0);
 
   useEffect(() => {
-    /* Speed-optimized deterministic progress stages — one new percentage
-       every 180 ms so it feels snappy:
-       0 → 10 → 25 → 40 → 60 → 75 → 90 → 100 (≈1.26 s). The reveal effect
-       below then holds briefly and opens the website. */
-    const STAGES = [10, 25, 40, 60, 75, 90, 100];
+    // ⚡ ULTRA-FAST: Sirf 4 stages, 80ms ke interval par (Total ~320ms)
+    const STAGES = [30, 60, 85, 100];
     let index = 0;
 
     const timer = setInterval(() => {
       setLoadingProgress(STAGES[index]);
       index += 1;
       if (index >= STAGES.length) clearInterval(timer);
-    }, 180); // ⚡ reduced from 400ms → 180ms
+    }, 80); // ⚡ 180ms se gira kar 80ms kar diya
 
     return () => clearInterval(timer);
   }, []);
 
-  /* Once progress reaches 100%, hold briefly, then reveal the website. */
+  // ⚡ Jaise hi 100% hua, turant (50ms mein) website reveal karega
   useEffect(() => {
     if (loadingProgress < 100) return undefined;
-    const hideTimer = setTimeout(() => setIsLoading(false), 200); // ⚡ reduced from 400ms → 200ms
+    const hideTimer = setTimeout(() => setIsLoading(false), 50); // ⚡ 200ms se gira kar 50ms
     return () => clearTimeout(hideTimer);
   }, [loadingProgress, setIsLoading]);
 
@@ -33,7 +30,7 @@ const Preloader = ({ setIsLoading }) => {
       <motion.div
         className="fixed inset-0 z-[9999] bg-[#0a0e27] flex flex-col items-center justify-center"
         exit={{ opacity: 0, scale: 1.05, filter: "blur(6px)" }}
-        transition={{ duration: 0.45, ease: "easeInOut" }} // ⚡ exit transition slightly faster
+        transition={{ duration: 0.25, ease: "easeInOut" }} // ⚡ Exit animation bhi fast (0.45s → 0.25s)
       >
         {/* ===== 3D RINGS WITH BRAND COLORS ===== */}
         <div className="relative w-48 h-48 flex items-center justify-center">
@@ -42,7 +39,7 @@ const Preloader = ({ setIsLoading }) => {
             className="absolute w-48 h-48 rounded-full border-b-8"
             style={{
               borderBottomColor: "#d4e157",
-              animation: "rotate1 1.2s linear infinite", // ⚡ 2s → 1.2s
+              animation: "rotate1 0.8s linear infinite", // ⚡ 1.2s → 0.8s
             }}
           />
           {/* Ring 2 – Cyan */}
@@ -50,7 +47,7 @@ const Preloader = ({ setIsLoading }) => {
             className="absolute w-48 h-48 rounded-full border-b-8"
             style={{
               borderBottomColor: "#06b6d4",
-              animation: "rotate2 1.2s linear infinite", // ⚡ 2s → 1.2s
+              animation: "rotate2 0.8s linear infinite", // ⚡ 1.2s → 0.8s
             }}
           />
           {/* Ring 3 – Lighter Yellow */}
@@ -58,7 +55,7 @@ const Preloader = ({ setIsLoading }) => {
             className="absolute w-48 h-48 rounded-full border-b-8"
             style={{
               borderBottomColor: "#c4d94b",
-              animation: "rotate3 1.2s linear infinite", // ⚡ 2s → 1.2s
+              animation: "rotate3 0.8s linear infinite", // ⚡ 1.2s → 0.8s
             }}
           />
           {/* Ring 4 – Lighter Cyan */}
@@ -66,7 +63,7 @@ const Preloader = ({ setIsLoading }) => {
             className="absolute w-48 h-48 rounded-full border-b-8"
             style={{
               borderBottomColor: "#2db4d4",
-              animation: "rotate4 1.2s linear infinite", // ⚡ 2s → 1.2s
+              animation: "rotate4 0.8s linear infinite", // ⚡ 1.2s → 0.8s
             }}
           />
 
@@ -80,7 +77,7 @@ const Preloader = ({ setIsLoading }) => {
         <motion.h1
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.15 }} // ⚡ delay 0.3 → 0.15
+          transition={{ delay: 0.05 }} // ⚡ 0.15s → 0.05s
           className="text-white text-lg font-bold mt-6 tracking-tight"
         >
           Blu<span className="text-[#d4e157]">Connet</span>
@@ -91,7 +88,7 @@ const Preloader = ({ setIsLoading }) => {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.25 }} // ⚡ delay 0.5 → 0.25
+          transition={{ delay: 0.1 }} // ⚡ 0.25s → 0.1s
           data-i18n-skip=""
           className="mt-2 text-[#d4e157] font-mono font-bold text-sm tabular-nums"
         >

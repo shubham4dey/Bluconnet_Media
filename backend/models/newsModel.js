@@ -130,6 +130,12 @@ function createNewsModel({
       table: TABLE,
       requireDb: requireDb(),
       importMirror: importMirrorEnabled(),
+      /* What the public API is actually serving right now (the local read
+         mirror) and where it was hydrated from — reported by /api/health so a
+         deployed instance can be verified without host logs. */
+      mirror: list().length,
+      target: db.describeTarget ? db.describeTarget() : "",
+      connect: db.status ? db.status() : null,
       lastError: lastError || null,
     };
   }
@@ -266,6 +272,8 @@ function createNewsModel({
 
     ready = true;
     lastError = "";
+    /* The connection succeeded, so a previously recorded failure is stale. */
+    if (db.clearError) db.clearError();
     return { table: TABLE, target: db.describeTarget ? db.describeTarget() : "" };
   }
 
@@ -389,12 +397,19 @@ function createNewsModel({
   async function hydrate() {
     if (!importMirrorEnabled()) {
       info("local-mirror import disabled (NEWS_IMPORT_MIRROR=false) — MySQL is the only source");
+      /* Even with the mirror import switched off, the mirror still has to be
+         REFILLED FROM MySQL: it is what the public API reads. Returning here
+         without syncing left the API serving an empty list on a database that
+         already held published articles. Articles that only exist in the
+         mirror are kept (nothing is pushed into MySQL, nothing is dropped). */
+      const keepIds = list().map((r) => str(r && r.id));
+      const synced = await syncFromDb({ keepIds });
       return {
         imported: 0,
         importFailed: 0,
         seeded: 0,
-        articles: list().length,
-        kept: 0,
+        articles: synced.fromDb,
+        kept: synced.kept,
         skipped: "mirror-import-disabled",
       };
     }
@@ -416,10 +431,18 @@ function createNewsModel({
     };
   }
 
-  /** Re-read MySQL into the mirror (used by the optional refresh timer). */
+  /**
+   * Re-read MySQL into the mirror (used by the refresh timer).
+   *
+   * Mirror-only articles are imported first and their ids are kept, so a
+   * refresh can never delete an article that has not reached MySQL yet —
+   * the "no article is ever lost" rule holds for every sync, not just boot.
+   */
   async function refreshFromDb() {
-    if (!ready) return { fromDb: 0, kept: 0, skipped: true };
-    return syncFromDb();
+    if (!ready) return { fromDb: 0, kept: 0, imported: 0, skipped: true };
+    const imported = await importFromJson();
+    const synced = await syncFromDb({ keepIds: imported.failedIds });
+    return { ...synced, imported: imported.imported };
   }
 
   /** Read the articles straight from MySQL (verification scripts / CLI). */

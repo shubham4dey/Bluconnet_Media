@@ -155,11 +155,20 @@ SELECT * FROM contacts ORDER BY createdAt DESC;
 
 ## Frontend (admin login)
 
-- User:  `bluconnetnews`
-- Pass:  `bluconnetmedia@2026`
+The credentials are **not documented here any more** — they must never live in
+the repository (this file used to print the real password, and the shipped
+frontend bundle used to embed it so anyone could mint an admin token).
 
-These match `.env` (`ADMIN_USER` / `ADMIN_PASS`) and the existing
-`/login` page so every panel uses one credential set.
+- The single source of truth is the server environment: `ADMIN_USER` /
+  `ADMIN_PASS` (see `.env.example`). Without them `POST /api/admin/login`
+  answers `503` instead of accepting a default password.
+- `/login` (News panel) and `/admin/chat` (AI panel) both authenticate through
+  that endpoint and keep only the returned session token
+  (`bc_admin_token`, 12 h TTL, revoked by `POST /api/admin/logout`).
+- Nothing on the client knows or guesses a password any more.
+
+**If the old credential set was ever published, rotate it now:** set a new
+`ADMIN_PASS` on Render and restart the service.
 
 ## Configuration (`.env`)
 
@@ -186,12 +195,68 @@ These match `.env` (`ADMIN_USER` / `ADMIN_PASS`) and the existing
    on boot — `npm run migrate` is never needed manually).
 2. In the Render service, set `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`,
    `CLOUDINARY_API_SECRET` (from the Cloudinary dashboard → Settings → API Keys).
-3. Confirm with `GET /api/health`:
-   `news.store.durable` must be `true` (articles in MySQL) and
-   `news.images.configured` must be `true` (uploads to Cloudinary).
-4. Add a News article from the Admin panel with an image. The response stores
+3. **Set the MySQL connection — this is the step that was missing in
+   production.** The database runs on Namecheap, which only exposes the cPanel
+   SSH port (21098): MySQL 3306 is **not** reachable from the internet, so an
+   API hosted anywhere else must go through the built-in SSH tunnel
+   (`config/mysql.js`):
+
+   | Variable | Value |
+   | -------- | ----- |
+   | `NAMECHEAP_SSH_HOST` | `66.29.132.129` (cPanel server) |
+   | `NAMECHEAP_SSH_PORT` | `21098` |
+   | `NAMECHEAP_SSH_USER` | the cPanel user |
+   | `NAMECHEAP_SSH_KEY_B64` | the cPanel **private** key, base64-encoded on ONE line |
+   | `NAMECHEAP_SSH_PASSPHRASE` | only if the key has one |
+   | `MYSQL_DATABASE` (or `DB_NAME`) | the **full cPanel database name**, e.g. `bluchknj_bluconnet_media` |
+   | `MYSQL_USER` (or `DB_USER`) | the cPanel database user |
+   | `MYSQL_PASSWORD` (or `DB_PASSWORD`) | the database password |
+
+   Without the `NAMECHEAP_SSH_*` trio the process logs
+   `[mysql] Namecheap SSH tunnel DISABLED — missing: …` together with
+   `[mysql] UNREACHABLE TARGET: host=127.0.0.1 (loopback) …`, the `news` table
+   is never initialised and the public API answers from the **empty local
+   mirror** — i.e. the exact symptom of "the rows are in MySQL but the site
+   shows no news".
+4. Confirm with `GET /api/health`:
+
+   ```json
+   {"news":{"store":{"durable":true,"mirror":5,"target":"user@127.0.0.1:5522/bluchknj_bluconnet_media",
+     "connect":{"tunnel":"user@66.29.132.129:21098","lastError":null}},
+     "images":{"configured":true}}}
+   ```
+
+   - `store.durable` must be `true` (articles are read from MySQL).
+   - `store.mirror` is what `/api/news` is serving **right now** — if it is `0`
+     while the table has rows, `store.connect.lastError` (never contains the
+     password) names the failing step.
+   - `images.configured` must be `true` (uploads go to Cloudinary).
+5. Add a News article from the Admin panel with an image. The response stores
    `imageUrl` = `https://res.cloudinary.com/...` and the article survives the
    next restart/redeploy.
+
+### Frontend deploy (static build on Namecheap)
+
+The build must talk to the **deployed** backend, and the URL lives in exactly
+one place (`frontend/src/services/apiConfig.js`, fed by
+`frontend/.env.production`):
+
+```bash
+cd frontend
+npm run build      # → build/  (upload its contents next to index.html)
+```
+
+```bash
+grep -o "REACT_APP_API_URL:\"[^\"]*\"" build/static/js/main.*.js   # must print the deployed backend
+```
+
+> A transposed hostname (`bluconnet-backend-m2jl…` instead of `…-m2lj…`) was
+> shipped in this bundle once. That host does not exist, Render answers `404`
+> with the header `x-render-routing: no-server` for **every** path, and the
+> News page + Home "recent news" section silently fell back to their empty
+> state. `services/apiConfig.js` now holds the only copy of the URL and logs a
+> loud error when it points at that dead host.
+
 
 > **Gemini (optional):** add `GEMINI_API_KEY` to `.env` to enable
 > general-knowledge answers. The chatbot answers company questions from

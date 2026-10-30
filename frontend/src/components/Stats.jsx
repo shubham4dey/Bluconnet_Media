@@ -22,27 +22,27 @@ const Stats = () => {
 
   const stats = [
     {
-      number: "$8.6 BILLION",
+      number: "$2 MILLION",
       label: "CLIENT REVENUE DRIVEN (2025)",
     },
     {
-      number: "110M+",
+      number: "50k",
       label: "CONVERSIONS DRIVEN (2025)",
     },
-    {
-      number: "$430M+",
-      label: "ANNUAL MEDIA SPEND (2025)",
-    },
-    {
-      number: "30+",
-      label: "AWARDS WON",
-    },
+    // {
+    //   number: "$430M+",
+    //   label: "ANNUAL MEDIA SPEND (2025)",
+    // },
+    // {
+    //   number: "30+",
+    //   label: "AWARDS WON",
+    // },
     {
       number: "1000+",
       label: "ACTIVE CLIENTS MANAGED",
     },
     {
-      number: "4",
+      number: "6+",
       label: "CLIENTS IN FORTUNE 500'S TOP 10",
     },
   ];

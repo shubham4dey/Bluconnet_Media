@@ -11,18 +11,21 @@ import Hero from "./components/Hero";
 import AwardsBar from "./components/AwardsBar";
 import Stats from "./components/Stats";
 // import Clients from "./components/Clients";
-import Services from "./components/Services";
+// import Services from "./components/Services";
 import WhyChooseUs from "./components/WhyChooseUs";
-import AwardsSection from "./components/AwardsSection";
+// import AwardsSection from "./components/AwardsSection";
 import FeaturesGrid from "./components/FeaturesGrid";
 import APVision from "./components/APVision";
 import RealOutcomes from "./components/RealOutcomes";
+import PriorityGeos from "./components/PriorityGeos";
+import OurServices from "./components/OurServices";
+import TopOffers from "./components/TopOffers";
 import LogoSlider from "./components/LogoSlider";
 import Testimonials from "./components/Testimonials";
 import Guide2026 from "./components/Guide2026";
 import TechPartners from "./components/TechPartners";
 import Insights from "./components/Insights";
-import ContactForm from "./components/ContactForm";
+// import ContactForm from "./components/ContactForm";
 import SubscribeSection from "./components/SubscribeSection";
 import Footer from "./components/Footer";
 import MarqueeBanner from "./components/MarqueeBanner";
@@ -51,12 +54,10 @@ import CareerPage from "./pages/CareerPage";
 import ServicesCard from "./pages/ServicesCard";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsConditions from "./pages/TermsConditions";
+import FormSuccess from "./pages/FormSuccess";
 import DigitalServices from "./pages/DigitalServices";
 import RecaptchaProtection from "./components/RecaptchaProtection";
 import RecaptchaV2Checkbox from "./components/RecaptchaV2Checkbox";
-/* Right-click / drag / copy blocking (components/ContentProtection.jsx) —
-   renders nothing, only attaches the document-level guards. */
-import ContentProtection from "./components/ContentProtection";
 
 // Lazy-loaded AI assistant (zero impact on initial page load)
 const Chatbot = lazy(() => import("./components/chatbot/Chatbot"));
@@ -162,7 +163,11 @@ function App() {
         >
           <Navbar />
           <RouteScrollToTop />
-          <ScrollToTop isOpen={isChatOpen} onToggleChat={toggleChat} unread={unread} />
+          <ScrollToTop
+            isOpen={isChatOpen}
+            onToggleChat={toggleChat}
+            unread={unread}
+          />
           <Routes>
             <Route
               path="/"
@@ -172,19 +177,22 @@ function App() {
                   <AwardsBar />
                   <Stats />
                   {/* <Clients /> */}
-                  <Services />
+                  {/* <Services /> */}
                   <MarqueeBanner />
                   <WhyChooseUs />
                   {/* <AwardsSection /> */}
                   <FeaturesGrid />
                   <APVision />
                   <RealOutcomes />
+                  <PriorityGeos />
+                  <OurServices />
+                  <TopOffers />
                   <LogoSlider />
                   <Testimonials />
                   <Guide2026 />
                   <TechPartners />
                   <Insights />
-                  <ContactForm />
+                  {/* <ContactForm /> */}
                   <SubscribeSection />
                 </>
               }
@@ -193,7 +201,7 @@ function App() {
             <Route path="/about" element={<AboutUs />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/portfolio" element={<PortfolioPage />} />
-            <Route path="/digitalservices" element={<DigitalServices/>} />
+            <Route path="/digitalservices" element={<DigitalServices />} />
             <Route path="/blog" element={<Blog />} />
             <Route path="/blog/:slug" element={<BlogDetails />} />
             <Route path="/news" element={<News />} />
@@ -224,17 +232,22 @@ function App() {
             <Route path="/career" element={<CareerPage />} />
             <Route path="/services" element={<ServicesCard />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                        <Route path="/terms-conditions" element={<TermsConditions />} />
+            <Route path="/terms-conditions" element={<TermsConditions />} />
+            <Route path="/form-success" element={<FormSuccess />} />
             <Route path="/admin/chat" element={<ChatAdmin />} />
           </Routes>
           <Suspense fallback={null}>
-            <Chatbot isOpen={isChatOpen} onClose={closeChat} unread={unread} onBotReply={handleBotReply} />
+            <Chatbot
+              isOpen={isChatOpen}
+              onClose={closeChat}
+              unread={unread}
+              onBotReply={handleBotReply}
+            />
           </Suspense>
           <RecaptchaProtection />
           {/* v2 "I'm not a robot" checkbox, opened by clicking/tapping the
               badge above. Completely separate from the v3 integration. */}
           <RecaptchaV2Checkbox />
-          <ContentProtection />
           <Footer />
         </div>
       </div>

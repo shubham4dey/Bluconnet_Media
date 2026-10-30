@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { FaArrowRight, FaStar, FaTrophy, FaHandshake } from "react-icons/fa";
+import { FaStar, FaTrophy, FaHandshake } from "react-icons/fa";
 import { useTheme } from "../context/ThemeContext";
 
 // Import client logos

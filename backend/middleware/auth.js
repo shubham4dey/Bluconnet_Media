@@ -29,26 +29,59 @@ function tokenStore(settings) {
   return store && typeof store === "object" && !Array.isArray(store) ? store : {};
 }
 
-function issueToken() {
-  const settings = db.read("settings");
-  const token = crypto.randomBytes(32).toString("hex");
-  const store = tokenStore(settings);
-  // prune expired tokens
-  Object.keys(store).forEach((t) => {
-    if (!(store[t] > Date.now())) delete store[t];
-  });
-  store[token] = Date.now() + TOKEN_TTL_MS;
-  settings.adminTokens = store;
-  db.write("settings", settings);
-  return token;
+
+/** Extract expiry from either legacy numeric or current object-shaped token record. */
+function tokenExpiry(record) {
+  if (typeof record === "number") return record;
+  if (record && typeof record === "object" && !Array.isArray(record)) {
+    return typeof record.expiry === "number" ? record.expiry : null;
+  }
+  return null;
 }
+
+/** Remove expired/missing tokens from the in-memory role map. */
+function pruneTokenPayload(store) {
+  for (const [token, meta] of tokenPayload) {
+    if (!owns(store, token)) {
+      tokenPayload.delete(token);
+      continue;
+    }
+    const exp = (meta && typeof meta.expiry === "number")
+      ? meta.expiry
+      : tokenExpiry(store[token]);
+    if (typeof exp !== "number" || exp <= Date.now()) tokenPayload.delete(token);
+  }
+}
+
+/** Remove expired or invalid token records from both persistent and in-memory stores. */
+function pruneExpiredTokens() {
+  const settings = db.read("settings");
+  const store = tokenStore(settings);
+  let changed = false;
+  Object.keys(store).forEach((t) => {
+    const exp = tokenExpiry(store[t]);
+    if (typeof exp !== "number" || exp <= Date.now()) {
+      delete store[t];
+      changed = true;
+    }
+  });
+  pruneTokenPayload(store);
+  if (changed) {
+    settings.adminTokens = store;
+    db.write("settings", settings);
+  }
+}
+
 
 function isValidToken(token) {
   if (typeof token !== "string" || !token) return false;
   const store = tokenStore(db.read("settings"));
   if (!owns(store, token)) return false;
   const expiry = store[token];
-  return typeof expiry === "number" && expiry > Date.now();
+  const expiryTime = tokenExpiry(expiry);
+  const valid = typeof expiryTime === "number" && expiryTime > Date.now();
+  if (!valid) tokenPayload.delete(token);
+  return valid;
 }
 
 /** Drop one token (logout). Unknown tokens are ignored. */
@@ -60,6 +93,7 @@ function revokeToken(token) {
   delete store[token];
   settings.adminTokens = store;
   db.write("settings", settings);
+  tokenPayload.delete(token);
   return true;
 }
 
@@ -74,6 +108,7 @@ function hasRole(req, allowedRoles) {
   const token = readBearer(req);
   if (!token) return false;
   if (!Array.isArray(allowedRoles) || allowedRoles.length === 0) return true;
+  if (!isValidToken(token)) return false;
   const payload = tokenPayload.get(token);
   if (!payload) return false;
   return allowedRoles.includes(payload.role);
@@ -115,16 +150,18 @@ function issueToken(role = "super_admin") {
   const settings = db.read("settings");
   const token = crypto.randomBytes(32).toString("hex");
   const store = tokenStore(settings);
-  // prune expired tokens
+  // prune expired tokens (legacy numeric and object-shaped records)
   Object.keys(store).forEach((t) => {
-    if (!(store[t] > Date.now())) delete store[t];
+    const exp = tokenExpiry(store[t]);
+    if (typeof exp !== "number" || exp <= Date.now()) delete store[t];
   });
+  pruneTokenPayload(store);
   store[token] = { expiry: Date.now() + TOKEN_TTL_MS, role };
   settings.adminTokens = store;
   // Store in memory map for requireRole lookups
-  tokenPayload.set(token, { role });
+  tokenPayload.set(token, { role, expiry: Date.now() + TOKEN_TTL_MS });
   db.write("settings", settings);
   return token;
 }
 
-module.exports = { issueToken, isValidToken, revokeToken, readBearer, requireAuth };
+module.exports = { issueToken, isValidToken, revokeToken, readBearer, requireAuth, requireRole, pruneExpiredTokens, pruneExpiredTokenMetadata: pruneExpiredTokens, cleanupExpiredTokens: pruneExpiredTokens };

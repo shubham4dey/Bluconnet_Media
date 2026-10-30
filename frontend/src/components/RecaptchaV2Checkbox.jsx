@@ -11,9 +11,13 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
    tap behaviour, same tokens for the protected API routes).
 
    This component adds ONE thing on top of it: the v3 badge becomes clickable /
-   tappable and opens Google's REAL reCAPTCHA v2 "I'm not a robot" checkbox.
+   tappable and opens Google's REAL reCAPTCHA v2 "I'm not a robot" checkbox —
+   centred, with a fullscreen dimmed + subtly blurred backdrop behind it (the
+   same look the site's own modals use), so the website visibly sits behind the
+   verification while Google's widget stays sharp on top of it.
 
-       click / tap the badge  →  Google's own v2 checkbox is rendered
+       click / tap the badge  →  the page behind dims + blurs and Google's own
+                                 v2 checkbox is rendered, centred in the viewport
                               →  the visitor ticks it
                               →  Google verifies (and shows its own challenge
                                  whenever it decides one is required)
@@ -82,6 +86,7 @@ function v2SiteKey() {
 const BADGE_SELECTOR = ".grecaptcha-badge";
 const TRIGGER_CLASS = "bc-recaptcha-v2-trigger";
 const PANEL_ID = "bc-recaptcha-v2-panel";
+const BACKDROP_ID = "bc-recaptcha-v2-backdrop";
 
 /* Visible part of Google's collapsed badge (70x60 of its 256x60 box — measured
    on the live badge). The click target below spans the whole box on purpose:
@@ -96,15 +101,59 @@ const TRIGGER_INSET = "0px";
 const READY_TIMEOUT_MS = 10000;
 const READY_POLL_MS = 100;
 
-/* Panel geometry: nothing but a plain container for Google's widget, parked
-   above the badge AND above the site's own floating Chat / Scroll-to-top stack
-   (bottom-[86px] + safe area), so it never covers them. */
+/* Panel geometry: nothing but a plain container for Google's widget, centred on
+   the viewport — so the checkbox opens as its own centred popup instead of
+   sitting directly above / next to Google's bottom-right badge.
+
+   Google renders this "I'm not a robot" Checkbox as a fixed-size 304x78 box, so
+   the container is parked on the viewport's centre point and pulled back by
+   half of that box (left/top 50% + equal negative margins).
+
+   Plain offsets are used on purpose rather than a `transform`: the container
+   keeps exactly the same kind of parent Google's widget already had
+   (`position: fixed`, unchanged from before this positioning change), so
+   nothing about the widget itself moves or resizes — in particular the
+   challenge bubble Google draws next to the checkbox when a puzzle is required
+   keeps the geometry it has today. Only the location of the whole popup
+   changes. */
+const V2_WIDGET_WIDTH_PX = 304;
+const V2_WIDGET_HEIGHT_PX = 78;
+
 const PANEL_STYLE = {
   position: "fixed",
-  right: "14px",
-  bottom: "calc(240px + env(safe-area-inset-bottom, 0px))",
+  top: "50%",
+  left: "50%",
+  marginTop: `${-V2_WIDGET_HEIGHT_PX / 2}px`,
+  marginLeft: `${-V2_WIDGET_WIDTH_PX / 2}px`,
   zIndex: 10000,
   lineHeight: 0,
+};
+
+/* Modal backdrop: while Google's checkbox is open the website behind it is
+   dimmed and subtly blurred — the same treatment the site's own modals use
+   (`bg-black/60 backdrop-blur-sm`) — and Google's own widget in the panel above
+   stays completely sharp and clickable.
+
+   Layering, bottom to top:
+     website  →  this backdrop  →  the panel holding Google's widget
+   Backdrop z-index 9999 sits above the site's own floating stack (chat /
+   scroll-to-top / site modals = 9999, painted earlier in the DOM) and above
+   Google's badge (999), while the panel keeps its existing 10000 so the real
+   Google iframe is always on top of the dimming and is never blurred or
+   restyled. It is deliberately a SIBLING of the panel, not part of it: a
+   click/tap on it is therefore "outside the widget" and closes the popup
+   through the existing document handler, with no JS change at all. */
+const BACKDROP_STYLE = {
+  position: "fixed",
+  top: 0,
+  right: 0,
+  bottom: 0,
+  left: 0,
+  zIndex: 9999,
+  background: "rgba(0, 0, 0, 0.6)",
+  backdropFilter: "blur(4px)",
+  WebkitBackdropFilter: "blur(4px)",
+  pointerEvents: "auto",
 };
 
 const TRIGGER_STYLE = {
@@ -331,11 +380,17 @@ const RecaptchaV2Checkbox = ({ onVerified }) => {
   if (!key || !open) return null;
 
   return (
-    <div id={PANEL_ID} style={PANEL_STYLE}>
-      {/* Container for Google's own iframe — the widget itself is never styled,
-          resized, hidden or replaced. */}
-      <div ref={mountRef} />
-    </div>
+    <>
+      {/* Dimmed + blurred fullscreen backdrop. Rendered only while the popup is
+          open and removed with it, so the website is restored to its normal
+          appearance on close. Nothing of Google's widget is styled by it. */}
+      <div id={BACKDROP_ID} style={BACKDROP_STYLE} aria-hidden="true" />
+      <div id={PANEL_ID} style={PANEL_STYLE}>
+        {/* Container for Google's own iframe — the widget itself is never
+            styled, resized, hidden or replaced. */}
+        <div ref={mountRef} />
+      </div>
+    </>
   );
 };
 

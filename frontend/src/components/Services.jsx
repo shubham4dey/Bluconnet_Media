@@ -33,7 +33,7 @@ const Services = () => {
       icon: FaEnvelope,
 
       description:
-        "Build meaningful customer relationships and drive measurable growth with strategic email marketing campaigns. From targeted messaging and audience segmentation to automation and performance optimization, we create campaigns that turn every email into an opportunity to engage, convert, and retain customers.",
+        "Build meaningful customer relationships and drive quantifiable growth with a top-tier email marketing service. From targeted email advertising and audience division on a robust email marketing platform to automation and performance optimization, we design every email campaign to turn each send into an opportunity to engage, convert, and retain customers.",
 
       cards: [
         {
@@ -64,7 +64,7 @@ const Services = () => {
       icon: FaUsers,
 
       description:
-        "Generate high-quality opportunities with targeted lead generation strategies designed around your audience, industry, and growth objectives. We combine data, campaigns, landing experiences, and optimization to help businesses build a stronger pipeline.",
+        "Generate high-quality opportunities with online lead generation services designed around your audience, industry, and growth objectives. As a top-tier lead generation agency, we combine data-driven lead generation digital marketing, targeted campaigns, optimized landing experiences, and continuous optimization to help businesses build a stronger channel of qualified B2B & B2C sales leads.",
 
       cards: [
         {
@@ -95,7 +95,7 @@ const Services = () => {
       icon: FaMobileAlt,
 
       description:
-        "Connect with customers wherever they are through mobile-first marketing strategies designed to increase engagement, conversions, and brand loyalty. From mobile campaigns and personalized messaging to app-focused experiences, we help brands create meaningful connections throughout the customer journey.",
+        "Drive engagement, conversions, and brand loyalty by connecting with customers wherever they are. Using data-driven mobile advertising alongside the best app marketing strategies, we help brands deliver personalized messaging and create meaningful connections throughout the mobile customer journey",
 
       cards: [
         {
@@ -128,8 +128,7 @@ const Services = () => {
 
   const CurrentServiceIcon = currentService.icon;
 
-  const currentCard =
-    currentService.cards[activeCard];
+  const currentCard = currentService.cards[activeCard];
 
   const CurrentCardIcon = currentCard.icon;
 
@@ -480,8 +479,8 @@ const Services = () => {
                             ? "text-[#d4e157]"
                             : "text-emerald-600"
                           : isDarkMode
-                            ? "text-gray-400 hover:text-white"
-                            : "text-gray-500 hover:text-gray-900"
+                          ? "text-gray-400 hover:text-white"
+                          : "text-gray-500 hover:text-gray-900"
                       }`}
                     >
                       <Icon size={12} />
@@ -539,6 +538,7 @@ const Services = () => {
               transition={{
                 duration: 0.55,
               }}
+              className="text-left"
             >
               {/* Icon */}
 
@@ -570,7 +570,7 @@ const Services = () => {
               {/* Title */}
 
               <h3
-                className={`text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-5 ${
+                className={`text-left text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-5 ${
                   isDarkMode
                     ? "text-white"
                     : "text-gray-900"
@@ -582,7 +582,7 @@ const Services = () => {
               {/* Description */}
 
               <p
-                className={`max-w-xl text-base md:text-lg leading-8 mb-8 ${
+                className={`text-left max-w-xl text-sm sm:text-base leading-relaxed mb-10 ${
                   isDarkMode
                     ? "text-gray-400"
                     : "text-gray-600"
@@ -776,6 +776,7 @@ const Services = () => {
                     : "bg-white/95 border-gray-200 shadow-gray-200/70"
                 }`}
               >
+
                 {/* Top gradient */}
 
                 <div
@@ -823,7 +824,7 @@ const Services = () => {
                       repeat: Infinity,
                       ease: "easeInOut",
                     }}
-                    className={`w-14 h-14 rounded-2xl flex items-center justify-center border shrink-0 ${
+                    className={`mx-auto w-14 h-14 rounded-2xl flex items-center justify-center border shrink-0 ${
                       isDarkMode
                         ? "bg-gradient-to-br from-[#d4e157]/15 to-[#06b6d4]/15 border-[#d4e157]/20"
                         : "bg-gradient-to-br from-emerald-50 to-cyan-50 border-emerald-200"
@@ -841,7 +842,15 @@ const Services = () => {
 
                   {/* Insight label */}
 
-                  <div className="flex items-center gap-2 mt-5 mb-2">
+                  <div className="flex items-center justify-center gap-2 mt-5 mb-2 w-full">
+                    <span
+                      className={`w-8 h-px ${
+                        isDarkMode
+                          ? "bg-[#d4e157]/40"
+                          : "bg-emerald-300"
+                      }`}
+                    />
+
                     <span
                       className={`text-[10px] font-black uppercase tracking-[0.22em] ${
                         isDarkMode
@@ -887,10 +896,6 @@ const Services = () => {
 
                   {/* =================================================
                       CARD FOOTER
-
-                      IMPORTANT:
-                      This is NOT absolute.
-                      mt-auto keeps 01/03 at bottom.
                   ================================================= */}
 
                   <div className="mt-auto pt-5">
@@ -930,8 +935,7 @@ const Services = () => {
                           }`}
                         >
                           {String(
-                            currentService.cards
-                              .length
+                            currentService.cards.length
                           ).padStart(2, "0")}
                         </span>
                       </div>
@@ -946,16 +950,13 @@ const Services = () => {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setActiveCard(
-                                  index
-                                );
+                                setActiveCard(index);
                               }}
                               aria-label={`Show card ${
                                 index + 1
                               }`}
                               className={`relative overflow-hidden h-1.5 rounded-full transition-all duration-300 ${
-                                index ===
-                                activeCard
+                                index === activeCard
                                   ? "w-8"
                                   : "w-1.5"
                               } ${
@@ -964,8 +965,7 @@ const Services = () => {
                                   : "bg-gray-200"
                               }`}
                             >
-                              {index ===
-                                activeCard && (
+                              {index === activeCard && (
                                 <motion.span
                                   key={`${activeTab}-${activeCard}`}
                                   initial={{
@@ -1056,8 +1056,8 @@ const Services = () => {
                         ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4]"
                         : "bg-gradient-to-r from-emerald-500 to-cyan-600"
                       : isDarkMode
-                        ? "bg-white/20"
-                        : "bg-gray-300"
+                      ? "bg-white/20"
+                      : "bg-gray-300"
                   }`}
                 />
               )

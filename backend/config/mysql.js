@@ -36,26 +36,67 @@ const DEFAULTS = {
 // Environment
 // ------------------------------------------------------------
 
-const CONNECTION_URI = (
-  process.env.MYSQL_URL ||
-  process.env.DATABASE_URL ||
-  ""
-).trim();
+/* Every setting is read through this helper: the first NON-EMPTY value wins.
+   Both naming conventions are accepted, because the deployed service may
+   define the database with either set of names:
 
-const DATABASE = (
-  process.env.MYSQL_DATABASE ||
-  DEFAULTS.database
-).trim();
+     MYSQL_HOST   / DB_HOST
+     MYSQL_PORT   / DB_PORT
+     MYSQL_USER   / DB_USER
+     MYSQL_PASSWORD / DB_PASSWORD
+     MYSQL_DATABASE / DB_NAME / DB_DATABASE
 
-const SSH_ENABLED =
-  Boolean(process.env.NAMECHEAP_SSH_HOST) &&
-  Boolean(process.env.NAMECHEAP_SSH_USER) &&
-  Boolean(process.env.NAMECHEAP_SSH_KEY_B64);
+   Previously only the MYSQL_* names were read, so a service configured with
+   DB_HOST / DB_NAME silently fell back to the development defaults
+   (`root@127.0.0.1:3306/bluconnet_media`) — the exact configuration that can
+   never work in production (there is no MySQL inside the Render container),
+   which is why the news mirror stayed empty while the real rows sat in the
+   Namecheap database. */
+function envValue(...names) {
+  for (const name of names) {
+    const raw = process.env[name];
+    if (raw !== undefined && String(raw).trim() !== "") {
+      return String(raw).trim();
+    }
+  }
+  return "";
+}
 
-const SSH_HOST = process.env.NAMECHEAP_SSH_HOST || "";
-const SSH_PORT = Number(process.env.NAMECHEAP_SSH_PORT || 21098) || 21098;
-const SSH_USER = process.env.NAMECHEAP_SSH_USER || "";
-const SSH_PASSPHRASE = process.env.NAMECHEAP_SSH_PASSPHRASE || "";
+const CONNECTION_URI = envValue("MYSQL_URL", "DATABASE_URL");
+
+const DATABASE =
+  envValue("MYSQL_DATABASE", "DB_NAME", "DB_DATABASE") || DEFAULTS.database;
+
+const DB_HOST = envValue("MYSQL_HOST", "DB_HOST") || DEFAULTS.host;
+const DB_PORT = Number(envValue("MYSQL_PORT", "DB_PORT") || DEFAULTS.port) || DEFAULTS.port;
+const DB_USER = envValue("MYSQL_USER", "DB_USER") || DEFAULTS.user;
+const DB_PASSWORD = envValue("MYSQL_PASSWORD", "DB_PASSWORD") || DEFAULTS.password;
+
+const SSH_VARS = ["NAMECHEAP_SSH_HOST", "NAMECHEAP_SSH_USER", "NAMECHEAP_SSH_KEY_B64"];
+const SSH_MISSING = SSH_VARS.filter((name) => !envValue(name));
+const SSH_ENABLED = SSH_MISSING.length === 0;
+
+/* 127.0.0.1 is correct ONLY when the backend runs on the same server as MySQL
+   (a cPanel Node.js app). On any other host it points at the container itself,
+   where no MySQL is listening — the connection is refused, the news schema is
+   never initialised and the public API keeps answering from the empty local
+   mirror. That combination is named here so it cannot be mistaken for a
+   database/content problem. */
+const LOOPBACK_HOSTS = ["127.0.0.1", "localhost", "::1", "0.0.0.0"];
+if (!SSH_ENABLED && LOOPBACK_HOSTS.includes(DB_HOST.toLowerCase())) {
+  console.error(
+    `[mysql] UNREACHABLE TARGET: host=${DB_HOST} (loopback) but the Namecheap SSH ` +
+      "tunnel is disabled. A backend on another host cannot reach the Namecheap " +
+      "database this way. Either set NAMECHEAP_SSH_HOST / NAMECHEAP_SSH_USER / " +
+      "NAMECHEAP_SSH_KEY_B64 (recommended), or point MYSQL_HOST / DB_HOST at a " +
+      "MySQL server that is actually reachable from this host."
+  );
+}
+
+const SSH_HOST = envValue("NAMECHEAP_SSH_HOST");
+const SSH_PORT = Number(envValue("NAMECHEAP_SSH_PORT") || 21098) || 21098;
+const SSH_USER = envValue("NAMECHEAP_SSH_USER");
+const SSH_PASSPHRASE = envValue("NAMECHEAP_SSH_PASSPHRASE");
 
 const TUNNEL_LOCAL_HOST = "127.0.0.1";
 const TUNNEL_LOCAL_PORT =
@@ -275,6 +316,18 @@ function startNamecheapTunnel() {
 
 if (SSH_ENABLED) {
   startNamecheapTunnel();
+} else {
+  /* Namecheap MySQL is NOT reachable from the public internet on port 3306
+     (only the cPanel SSH port is open) — verified from an outside host. A
+     deployed backend that is not allowed to reach it over the internet has to
+     go through this tunnel, so the missing variables are logged explicitly
+     instead of failing later with an opaque ECONNREFUSED. */
+  console.warn(
+    `[mysql] Namecheap SSH tunnel DISABLED — missing: ${SSH_MISSING.join(", ")}. ` +
+      `Falling back to a direct MySQL connection to ${DB_HOST}:${DB_PORT}. ` +
+      "Set the NAMECHEAP_SSH_* variables (host, user, base64 private key) on the " +
+      "service to reach the Namecheap database from outside."
+  );
 }
 
 // ------------------------------------------------------------
@@ -288,6 +341,17 @@ const poolOptions = {
     Number(process.env.MYSQL_CONNECTION_LIMIT || 10) || 10,
 
   queueLimit: 0,
+
+  /* A connection through the Namecheap SSH tunnel is established lazily: the
+     very first `getConnection()` at boot waits for the SSH handshake
+     (66.29.132.129:21098) to complete and for the socket to be forwarded.
+     mysql2's own default is 10s, which a cold start + SSH handshake can easily
+     exceed — the connect then fails, the schema is never marked ready and the
+     API keeps serving an empty local mirror for the whole lifetime of the
+     instance. A longer budget (20s, `MYSQL_CONNECT_TIMEOUT` to override) makes
+     the first connect survive that handshake. */
+  connectTimeout:
+    Number(envValue("MYSQL_CONNECT_TIMEOUT") || 20000) || 20000,
 
   charset: "utf8mb4_unicode_ci",
 
@@ -325,23 +389,13 @@ const pool = CONNECTION_URI
       ...poolOptions,
     })
   : mysql.createPool({
-      host: SSH_ENABLED
-        ? TUNNEL_LOCAL_HOST
-        : process.env.MYSQL_HOST || DEFAULTS.host,
+      host: SSH_ENABLED ? TUNNEL_LOCAL_HOST : DB_HOST,
 
-      port: SSH_ENABLED
-        ? TUNNEL_LOCAL_PORT
-        : Number(
-            process.env.MYSQL_PORT || DEFAULTS.port
-          ) || DEFAULTS.port,
+      port: SSH_ENABLED ? TUNNEL_LOCAL_PORT : DB_PORT,
 
-      user:
-        process.env.MYSQL_USER ||
-        DEFAULTS.user,
+      user: DB_USER,
 
-      password:
-        process.env.MYSQL_PASSWORD ||
-        DEFAULTS.password,
+      password: DB_PASSWORD,
 
       database: DATABASE,
 
@@ -357,19 +411,19 @@ function getPool() {
 }
 
 function query(sql, params = []) {
-  return pool.query(sql, params);
+  return track(pool.query(sql, params));
 }
 
 function execute(sql, params = []) {
-  return pool.execute(sql, params);
+  return track(pool.execute(sql, params));
 }
 
 function getConnection() {
-  return pool.getConnection();
+  return track(pool.getConnection());
 }
 
 async function ping() {
-  const conn = await pool.getConnection();
+  const conn = await getConnection();
 
   try {
     await conn.ping();
@@ -377,6 +431,41 @@ async function ping() {
   } finally {
     conn.release();
   }
+}
+
+/* ------------------------------------------------------------
+   Diagnosis — the resolved target + the last connection error.
+   `/api/health` reports these so production can be verified without
+   access to the host's logs (the password is never included).
+   ------------------------------------------------------------ */
+
+let lastError = "";
+
+/** Remember the most recent connection failure (never throws). */
+async function track(promise) {
+  try {
+    return await promise;
+  } catch (err) {
+    lastError = safeError(err);
+    throw err;
+  }
+}
+
+function clearError() {
+  lastError = "";
+}
+
+function status() {
+  return {
+    target: describeTarget(),
+    database: DATABASE,
+    tunnel: SSH_ENABLED
+      ? `${SSH_USER}@${SSH_HOST}:${SSH_PORT}`
+      : "disabled",
+    tunnelMissing: SSH_ENABLED ? [] : SSH_MISSING,
+    connectTimeout: poolOptions.connectTimeout,
+    lastError: lastError || null,
+  };
 }
 
 /**
@@ -412,23 +501,13 @@ async function ensureDatabase() {
         ...poolOptions,
       })
     : mysql.createConnection({
-        host: SSH_ENABLED
-          ? TUNNEL_LOCAL_HOST
-          : process.env.MYSQL_HOST || DEFAULTS.host,
+        host: SSH_ENABLED ? TUNNEL_LOCAL_HOST : DB_HOST,
 
-        port: SSH_ENABLED
-          ? TUNNEL_LOCAL_PORT
-          : Number(
-              process.env.MYSQL_PORT || DEFAULTS.port
-            ) || DEFAULTS.port,
+        port: SSH_ENABLED ? TUNNEL_LOCAL_PORT : DB_PORT,
 
-        user:
-          process.env.MYSQL_USER ||
-          DEFAULTS.user,
+        user: DB_USER,
 
-        password:
-          process.env.MYSQL_PASSWORD ||
-          DEFAULTS.password,
+        password: DB_PASSWORD,
 
         ...poolOptions,
       }));
@@ -465,17 +544,9 @@ function describeTarget() {
     }
   }
 
-  return `${
-    process.env.MYSQL_USER || DEFAULTS.user
-  }@${
-    SSH_ENABLED
-      ? TUNNEL_LOCAL_HOST
-      : process.env.MYSQL_HOST || DEFAULTS.host
-  }:${
-    SSH_ENABLED
-      ? TUNNEL_LOCAL_PORT
-      : process.env.MYSQL_PORT || DEFAULTS.port
-  }/${DATABASE}`;
+  return `${DB_USER}@${
+    SSH_ENABLED ? TUNNEL_LOCAL_HOST : DB_HOST
+  }:${SSH_ENABLED ? TUNNEL_LOCAL_PORT : DB_PORT}/${DATABASE}`;
 }
 
 function safeError(err) {
@@ -540,8 +611,18 @@ module.exports = {
   ping,
   ensureDatabase,
   describeTarget,
+  status,
+  clearError,
   safeError,
   isConnectionError,
   close,
   DATABASE,
+  tunnel: () => ({
+    enabled: SSH_ENABLED,
+    host: SSH_HOST,
+    port: SSH_PORT,
+    user: SSH_USER,
+    missing: SSH_MISSING,
+    localPort: TUNNEL_LOCAL_PORT,
+  }),
 };

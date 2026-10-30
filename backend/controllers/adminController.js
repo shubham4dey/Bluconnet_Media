@@ -42,13 +42,56 @@ exports.login = (req, res) => {
     return res.status(503).json({ ok: false, error: "Admin login is not configured" });
   }
 
+  // Per-username throttle (temporary safeguard). Missing usernames are skipped
+  // so no state is created for anonymous/blank submissions.
+  const rl = require("../middleware/rateLimit");
+  const normalizeUsername = rl.normalizeUsername || ((v) => String(v || "").trim().toLowerCase());
+  const throttleKey = normalizeUsername(user);
+  if (throttleKey) {
+    const locked = typeof rl.isUsernameLocked === "function" ? rl.isUsernameLocked(throttleKey) : false;
+    if (locked) {
+      const retryAfter = typeof rl.getRetryAfter === "function" ? rl.getRetryAfter(throttleKey) : 0;
+      if (retryAfter > 0) {
+        if (typeof res.setHeader === "function") res.setHeader("Retry-After", String(retryAfter));
+        if (res.headers && typeof res.headers === "object") res.headers["retry-after"] = String(retryAfter);
+        else res.headers = { "retry-after": String(retryAfter) };
+        res.retryAfter = retryAfter;
+      }
+      return res.status(429).json({
+        ok: false,
+        error: "Too many login attempts. Try later.",
+        retryAfter,
+      });
+    }
+  }
+
   const userOk = safeEqual(user, expectedUser);
   const passOk = safeEqual(pass, expectedPass);
   if (!userOk || !passOk) {
     console.warn(
       `[admin] failed login attempt from ${(req && req.ip) || "unknown ip"}`
     );
+    if (throttleKey && typeof rl.recordLoginFailure === "function") {
+      const entry = rl.recordLoginFailure(throttleKey);
+      const lockedUntil = entry && Number(entry.lockedUntil) ? Number(entry.lockedUntil) : 0;
+      if (lockedUntil > Date.now()) {
+        const retryAfter = Math.max(1, Math.ceil((lockedUntil - Date.now()) / 1000));
+        if (typeof res.setHeader === "function") res.setHeader("Retry-After", String(retryAfter));
+        if (res.headers && typeof res.headers === "object") res.headers["retry-after"] = String(retryAfter);
+        else res.headers = { "retry-after": String(retryAfter) };
+        res.retryAfter = retryAfter;
+        return res.status(429).json({
+          ok: false,
+          error: "Too many login attempts. Try later.",
+          retryAfter,
+        });
+      }
+    }
     return res.status(401).json({ ok: false, error: "Invalid credentials" });
+  }
+  // Successful login resets any prior failure state for this username.
+  if (throttleKey && typeof rl.clearLoginFailures === "function") {
+    rl.clearLoginFailures(throttleKey);
   }
   // Default role to super_admin if not specified; allow override via body
   const userRole = String(role || "super_admin").trim() || "super_admin";

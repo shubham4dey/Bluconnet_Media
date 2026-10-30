@@ -22,6 +22,7 @@ import {
   getAdminToken,
   clearAdminToken,
 } from "../services/newsApi";
+import API_BASE from "../services/apiConfig";
 import { NEWS_THUMB_FALLBACK } from "../utils/newsImageFallback";
 
 const AdminNews = () => {
@@ -61,7 +62,7 @@ const AdminNews = () => {
   // never overwrite the image the admin picked afterwards.
   const uploadSeqRef = useRef(0);
 
-    // Security Check & Load Data (from the central database, never localStorage)
+  // Security Check & Load Data (from the central database, never localStorage)
   useEffect(() => {
     /* The gate is a real, backend-issued session token (pages/Login.jsx →
        POST /api/admin/login). It used to be `localStorage.bluconnet_admin_auth
@@ -120,6 +121,11 @@ const AdminNews = () => {
         return;
       }
 
+      console.log(
+        "[AdminNews] setNewsList called with",
+        list && list.length,
+        "items on mount",
+      );
       setNewsList(list);
 
       // One-time (per browser session) Cloudinary migration: any article still
@@ -142,7 +148,8 @@ const AdminNews = () => {
           const report = await migrateNewsImages();
           if (report && report.ok && report.migrated > 0) {
             const again = await listAdminNews();
-            if (!cancelled) setNewsList((again && again.ok && again.data) || []);
+            if (!cancelled)
+              setNewsList((again && again.ok && again.data) || []);
           }
         }
       } catch (e) {
@@ -164,7 +171,7 @@ const AdminNews = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-    const handleImageUpload = (e) => {
+  const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -196,24 +203,26 @@ const AdminNews = () => {
     pendingUploadRef.current = upload;
     setPendingUpload(upload);
     setUploadInProgress(true);
-    upload.then(({ url, error }) => {
-      // A slower, superseded upload (another file was picked, or the image was
-      // removed) must not touch the form any more.
-      if (uploadSeqRef.current !== seq) return;
-      if (url) {
-        setImageBase64(null);
-        setFormData((f) => ({ ...f, imageUrl: url }));
-      } else {
-        setUploadError(error || "Image upload failed.");
-        setImageBase64(null);
-        setFormData((f) => ({ ...f, imageUrl: "" }));
-      }
-    }).finally(() => {
-      if (uploadSeqRef.current !== seq) return;
-      pendingUploadRef.current = null;
-      setPendingUpload(null);
-      setUploadInProgress(false);
-    });
+    upload
+      .then(({ url, error }) => {
+        // A slower, superseded upload (another file was picked, or the image was
+        // removed) must not touch the form any more.
+        if (uploadSeqRef.current !== seq) return;
+        if (url) {
+          setImageBase64(null);
+          setFormData((f) => ({ ...f, imageUrl: url }));
+        } else {
+          setUploadError(error || "Image upload failed.");
+          setImageBase64(null);
+          setFormData((f) => ({ ...f, imageUrl: "" }));
+        }
+      })
+      .finally(() => {
+        if (uploadSeqRef.current !== seq) return;
+        pendingUploadRef.current = null;
+        setPendingUpload(null);
+        setUploadInProgress(false);
+      });
   };
 
   const removeImage = () => {
@@ -228,7 +237,7 @@ const AdminNews = () => {
     setFormData((f) => ({ ...f, imageUrl: "" }));
   };
 
-    const handleSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Wait for an in-flight image upload and take the Cloudinary `secure_url`
@@ -254,17 +263,27 @@ const AdminNews = () => {
         const okText = imageLost
           ? "News updated successfully, but the image could not be stored — please upload it again."
           : "News updated successfully!";
-        alert(res && res.ok ? okText : (res && res.error) || "Could not update news.");
+        alert(
+          res && res.ok
+            ? okText
+            : (res && res.error) || "Could not update news.",
+        );
       } else {
         // Publish explicitly — the backend stores status "published"
         // plus publishedAt (single global source of truth).
         const res = await createNews({ ...payload, status: "published" });
         const imageLost =
-          Boolean(payload.imageUrl) && Boolean(res && res.ok) && res.imageStored === false;
+          Boolean(payload.imageUrl) &&
+          Boolean(res && res.ok) &&
+          res.imageStored === false;
         const okText = imageLost
           ? "News published successfully, but the image could not be stored — please upload it again."
           : "News published successfully!";
-        alert(res && res.ok ? okText : (res && res.error) || "Could not publish news.");
+        alert(
+          res && res.ok
+            ? okText
+            : (res && res.error) || "Could not publish news.",
+        );
       }
       await loadNews();
     } catch {
@@ -294,7 +313,7 @@ const AdminNews = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-    const handleDelete = async (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this news?")) {
       await deleteNews(id);
       await loadNews();
@@ -324,7 +343,21 @@ const AdminNews = () => {
   };
 
   const handleLogout = () => {
+    const token = getAdminToken();
+    /* Drop it locally first (so a back-button cannot reuse it), then revoke it
+       server-side — otherwise the token stays valid for the rest of its 12h. */
     clearAdminToken();
+    if (token) {
+      try {
+        fetch(`${API_BASE}/admin/logout`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          keepalive: true,
+        }).catch(() => {});
+      } catch (e) {
+        /* offline / storage-disabled: the local session is gone either way */
+      }
+    }
     navigate("/login");
   };
 
@@ -423,7 +456,7 @@ const AdminNews = () => {
                   </label>
                 ) : (
                   <div className="relative">
-                                        <img
+                    <img
                       src={resolveUrl(imagePreview)}
                       alt="Preview"
                       className="w-full h-40 sm:h-44 sm:h-40 object-cover rounded-lg border border-gray-200"
@@ -505,7 +538,7 @@ const AdminNews = () => {
                     key={item.id}
                     className={`flex flex-col md:flex-row gap-4 p-3 md:p-4 rounded-xl border ${isDarkMode ? "border-white/5 bg-white/5" : "border-gray-100 bg-gray-50"}`}
                   >
-                                        {/* Image */}
+                    {/* Image */}
                     {item.imageUrl ? (
                       <img
                         src={resolveUrl(item.imageUrl)}

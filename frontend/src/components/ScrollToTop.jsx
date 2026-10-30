@@ -25,7 +25,7 @@ const ScrollToTop = ({ isOpen, onToggleChat, unread }) => {
   };
 
   return (
-    <div className="fixed z-[9998] bottom-6 right-6 sm:bottom-6 sm:right-6 flex flex-col items-center gap-4">
+    <div className="fixed z-[9998] bottom-[86px] right-6 sm:bottom-[86px] sm:right-6 flex flex-col items-center gap-4">
       {/* Scroll-to-top (conditional) */}
       {isVisible && (
         <button

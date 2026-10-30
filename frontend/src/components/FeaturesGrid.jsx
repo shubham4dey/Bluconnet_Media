@@ -1,17 +1,37 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { FaRocket, FaUsers, FaGlobe, FaHandshake } from "react-icons/fa";
+import {
+  FaRocket,
+  FaUsers,
+  FaGlobe,
+  FaHandshake,
+  FaArrowRight,
+  FaTrophy,
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
 
-// Apni image import karein
-import featuresImage from "../assets/img/h3.png";
+import backgroundVideo from "../assets/video/featuregrid.mp4";
+
+// =========================================================
+// CLOUDINARY CARD BACKGROUND IMAGES
+// =========================================================
+const cardImage1 =
+  "https://res.cloudinary.com/wyixfdon/image/upload/v1790936629/feature-card-1_lnlqly.png";
+
+const cardImage2 =
+  "https://res.cloudinary.com/wyixfdon/image/upload/v1790936644/feature-card-2_nyrhav.png";
+
+const cardImage3 =
+  "https://res.cloudinary.com/wyixfdon/image/upload/v1790936657/feature-card-3_fxxkv2.png";
+
+const cardImage4 =
+  "https://res.cloudinary.com/wyixfdon/image/upload/v1790936673/feature-card-4_xpabw9.png";
 
 const FeaturesGrid = () => {
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
 
-  // Entire section click → About Us
   const handleSectionClick = () => {
     navigate("/about");
   };
@@ -24,9 +44,11 @@ const FeaturesGrid = () => {
         "Customized partner recruitment",
       ],
       icon: FaRocket,
-      dayColor: "from-emerald-500 to-cyan-600",
-      nightColor: "from-[#d4e157] to-[#06b6d4]",
+      iconGradient: "from-[#00f5d4] to-[#00b4d8]",
+      glow: "#00f5d4",
+      image: cardImage1,
     },
+
     {
       title: "Expect a High-Touch Consultative Approach",
       points: [
@@ -34,9 +56,11 @@ const FeaturesGrid = () => {
         "Top award honors for performance & culture",
       ],
       icon: FaUsers,
-      dayColor: "from-cyan-600 to-emerald-500",
-      nightColor: "from-[#06b6d4] to-[#d4e157]",
+      iconGradient: "from-[#a855f7] to-[#6366f1]",
+      glow: "#a855f7",
+      image: cardImage2,
     },
+
     {
       title: "Grow or Launch Your Global Program to New Regions",
       points: [
@@ -44,9 +68,11 @@ const FeaturesGrid = () => {
         "20+ languages spoken by global employees",
       ],
       icon: FaGlobe,
-      dayColor: "from-emerald-500 to-amber-500",
-      nightColor: "from-[#d4e157] to-[#f59e0b]",
+      iconGradient: "from-[#ffd166] to-[#f59e0b]",
+      glow: "#ffd166",
+      image: cardImage3,
     },
+
     {
       title: "Tap Into A Massive Network of Global Partnerships",
       points: [
@@ -54,8 +80,9 @@ const FeaturesGrid = () => {
         "In-house publisher development team",
       ],
       icon: FaHandshake,
-      dayColor: "from-cyan-600 to-blue-600",
-      nightColor: "from-[#06b6d4] to-[#3b82f6]",
+      iconGradient: "from-[#00c6ff] to-[#2563eb]",
+      glow: "#00c6ff",
+      image: cardImage4,
     },
   ];
 
@@ -71,365 +98,581 @@ const FeaturesGrid = () => {
       tabIndex={0}
       role="link"
       aria-label="Learn more about BluConnet Media"
-      className={`py-20 md:py-28 px-4 ${
-        isDarkMode ? "bg-[#050508]" : "bg-white"
-      } relative overflow-hidden transition-colors duration-500 cursor-pointer`}
+      className="
+        relative
+        min-h-screen
+        w-full
+        overflow-hidden
+        cursor-pointer
+      "
     >
-      {/* Background Glow Effects */}
-      <div
-        className={`absolute top-1/4 left-0 w-96 h-96 ${
-          isDarkMode ? "bg-[#d4e157]/10" : "bg-emerald-500/10"
-        } rounded-full blur-3xl`}
-      ></div>
-
-      <div
-        className={`absolute bottom-1/4 right-0 w-96 h-96 ${
-          isDarkMode ? "bg-[#06b6d4]/10" : "bg-cyan-600/10"
-        } rounded-full blur-3xl`}
-      ></div>
-
-      {/* Subtle Grid Pattern */}
-      <div
-        className="absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage: `radial-gradient(circle, ${
-            isDarkMode ? "#d4e157" : "#10b981"
-          } 1px, transparent 1px)`,
-          backgroundSize: "30px 30px",
-        }}
-      ></div>
-
-      {/* Background Geometric Shapes */}
-      <div
-        className={`absolute top-20 left-20 w-32 h-32 md:w-48 md:h-48 ${
-          isDarkMode ? "opacity-10" : "opacity-20"
-        } pointer-events-none`}
+      {/* =========================================================
+          FULL BACKGROUND VIDEO
+      ========================================================== */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        className="
+          absolute
+          inset-0
+          w-full
+          h-full
+          object-cover
+          object-center
+        "
       >
-        <svg
-          viewBox="0 0 100 100"
-          className={`w-full h-full ${
-            isDarkMode ? "text-[#d4e157]" : "text-emerald-500"
-          }`}
+        <source src={backgroundVideo} type="video/mp4" />
+      </video>
+
+      {/* =========================================================
+          MAIN CONTENT
+          SAME WIDTH AS WHY CHOOSE US
+      ========================================================== */}
+      <div className="relative z-10 min-h-screen w-full flex items-center">
+        <div
+          className="
+            w-full
+            max-w-[1600px]
+            mx-auto
+            px-6
+            sm:px-8
+            lg:px-10
+            xl:px-12
+            py-16
+            lg:py-20
+          "
         >
-          <path
-            d="M20 30 L50 10 L80 30 L80 70 L50 90 L20 70 Z"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-
-          <path
-            d="M20 30 L50 50 L80 30 M50 50 L50 90"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-        </svg>
-      </div>
-
-      <div
-        className={`absolute bottom-20 right-20 w-24 h-24 md:w-40 md:h-40 ${
-          isDarkMode ? "opacity-10" : "opacity-20"
-        } pointer-events-none rotate-12`}
-      >
-        <svg
-          viewBox="0 0 100 100"
-          className={`w-full h-full ${
-            isDarkMode ? "text-[#06b6d4]" : "text-cyan-600"
-          }`}
-        >
-          <path
-            d="M20 30 L50 10 L80 30 L80 70 L50 90 L20 70 Z"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-
-          <path
-            d="M20 30 L50 50 L80 30 M50 50 L50 90"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          />
-        </svg>
-      </div>
-
-      <div className="max-w-7xl mx-auto relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-stretch">
-          {/* Left Side: Image with Overlay Effects */}
-          <motion.div
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-            className={`relative w-full aspect-square lg:aspect-auto lg:min-h-full rounded-2xl overflow-hidden border-2 ${
-              isDarkMode
-                ? "border-[#d4e157]/30"
-                : "border-emerald-500/30"
-            } shadow-2xl`}
+          <div
+            className="
+              grid
+              grid-cols-1
+              lg:grid-cols-12
+              gap-10
+              xl:gap-16
+              items-center
+            "
           >
-            {/* Main Image */}
-            <div className="absolute inset-0 flex items-center justify-center p-4">
-              <img
-                src={featuresImage}
-                alt="Features"
-                className="w-full h-full object-contain max-h-[700px]"
-                onError={(e) => {
-                  e.target.style.display = "none";
-
-                  if (e.target.nextElementSibling) {
-                    e.target.nextElementSibling.style.display = "flex";
-                  }
+            {/* =====================================================
+                LEFT CONTENT
+            ====================================================== */}
+            <motion.div
+              initial={{ opacity: 0, x: -40 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8 }}
+              className="
+                lg:col-span-6
+                xl:col-span-[5.7]
+                text-left
+              "
+            >
+              {/* =================================================
+                  10+ YEARS EXCELLENCE
+              ================================================== */}
+              <motion.div
+                initial={{ opacity: 0, y: -15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{
+                  delay: 0.15,
+                  duration: 0.6,
                 }}
-              />
-
-              {/* Fallback Placeholder */}
-              <div
-                className={`hidden absolute inset-0 items-center justify-center bg-gradient-to-br ${
-                  isDarkMode
-                    ? "from-[#0f1535] to-[#0a0e27]"
-                    : "from-white to-slate-50"
-                }`}
+                className={`
+                  inline-flex
+                  items-center
+                  gap-3
+                  px-5
+                  py-3
+                  rounded-full
+                  border
+                  mb-7
+                  transition-colors
+                  duration-500
+                  ${
+                    isDarkMode
+                      ? "border-[#d4e157]/60"
+                      : "border-emerald-500/50"
+                  }
+                `}
               >
-                <div className="text-center px-4">
-                  <div
-                    className={`w-20 h-20 mx-auto mb-4 ${
+                <FaTrophy
+                  className={`
+                    text-lg
+                    transition-colors
+                    duration-500
+                    ${
                       isDarkMode
-                        ? "bg-[#d4e157]/20"
-                        : "bg-emerald-100"
-                    } rounded-full flex items-center justify-center`}
-                  >
-                    <svg
-                      className={`w-10 h-10 ${
-                        isDarkMode
-                          ? "text-[#d4e157]"
-                          : "text-emerald-600"
-                      }`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
+                        ? "text-[#d4e157]"
+                        : "text-emerald-500"
+                    }
+                  `}
+                />
 
-                  <p
-                    className={`${
-                      isDarkMode ? "text-gray-400" : "text-gray-600"
-                    } text-sm`}
-                  >
-                    Add your image to
-                    <br />
-                    src/assets/img/h3.png
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Gradient Overlay */}
-            <div
-              className={`absolute inset-0 ${
-                isDarkMode
-                  ? "bg-gradient-to-t from-[#0a0e27]/30 via-transparent to-transparent"
-                  : "bg-gradient-to-t from-black/10 via-transparent to-transparent"
-              } pointer-events-none`}
-            ></div>
-
-            {/* Glowing lines effect */}
-            <div
-              className="absolute inset-0 opacity-5 pointer-events-none"
-              style={{
-                backgroundImage: isDarkMode
-                  ? "radial-gradient(circle at 50% 50%, #06b6d4 0%, transparent 60%)"
-                  : "radial-gradient(circle at 50% 50%, #10b981 0%, transparent 70%)",
-              }}
-            ></div>
-
-            {/* Animated Border Glow */}
-            <div
-              className={`absolute inset-0 border-2 border-transparent rounded-2xl bg-gradient-to-r ${
-                isDarkMode
-                  ? "from-[#d4e157]/10 via-[#06b6d4]/10 to-[#d4e157]/10"
-                  : "from-emerald-500/10 via-cyan-600/10 to-emerald-500/10"
-              } animate-pulse pointer-events-none`}
-            ></div>
-
-            {/* Yellow Diamond Logo at Bottom Center */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0, rotate: -180 }}
-              whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-              viewport={{ once: true }}
-              transition={{
-                delay: 0.5,
-                type: "spring",
-                stiffness: 150,
-              }}
-              className="absolute bottom-10 left-1/2 transform -translate-x-1/2 w-24 h-24 md:w-32 md:h-32 z-10"
-            >
-              <div className="relative w-full h-full">
-                {/* Glow behind diamond */}
-                <div
-                  className={`absolute inset-0 ${
-                    isDarkMode
-                      ? "bg-[#d4e157]/40"
-                      : "bg-emerald-400/30"
-                  } rounded-full blur-2xl`}
-                ></div>
-
-                {/* Diamond Shape */}
-                <svg
-                  viewBox="0 0 100 100"
-                  className={`w-full h-full ${
-                    isDarkMode
-                      ? "text-[#d4e157]"
-                      : "text-emerald-500"
-                  } fill-current drop-shadow-lg relative z-10`}
+                <span
+                  className={`
+                    font-bold
+                    text-sm
+                    md:text-base
+                    tracking-wide
+                    transition-colors
+                    duration-500
+                    ${
+                      isDarkMode
+                        ? "text-[#d4e157]"
+                        : "text-emerald-600"
+                    }
+                  `}
                 >
-                  <path d="M50 10 L90 50 L50 90 L10 50 Z" />
-                </svg>
-              </div>
-            </motion.div>
+                  10+ Years Excellence
+                </span>
+              </motion.div>
 
-            {/* Top Badge */}
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.3 }}
-              className={`absolute top-6 left-6 ${
-                isDarkMode
-                  ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27]"
-                  : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white"
-              } px-4 py-2 rounded-lg font-bold text-sm shadow-lg z-10`}
-            >
-              10+ Years Excellence
-            </motion.div>
-          </motion.div>
-
-          {/* Right Side: 2x2 Grid of Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {features.map((feature, index) => {
-              const activeColor = isDarkMode
-                ? feature.nightColor
-                : feature.dayColor;
-
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{
-                    delay: index * 0.15,
-                    duration: 0.5,
-                  }}
-                  whileHover={{ y: -8 }}
-                  className={`group relative bg-gradient-to-br ${
-                    isDarkMode
-                      ? "from-[#0f1535] to-[#0a0e27] border-white/10"
-                      : "from-white to-slate-50 border-gray-200"
-                  } border-2 rounded-2xl p-6 md:p-8 flex flex-col justify-between overflow-hidden ${
-                    isDarkMode
-                      ? "hover:border-[#d4e157]/50"
-                      : "hover:border-emerald-500/50"
-                  } ${
-                    isDarkMode
-                      ? "shadow-black/50"
-                      : "shadow-gray-200/50"
-                  } shadow-lg transition-all duration-500`}
-                >
-                  {/* Card Glow on Hover */}
-                  <div
-                    className={`absolute -top-20 -right-20 w-40 h-40 ${
-                      isDarkMode
-                        ? "bg-[#d4e157]/10"
-                        : "bg-emerald-500/10"
-                    } rounded-full blur-3xl transition-all duration-500`}
-                  ></div>
-
-                  <div
-                    className={`absolute -bottom-20 -left-20 w-40 h-40 ${
-                      isDarkMode
-                        ? "bg-[#06b6d4]/10"
-                        : "bg-cyan-600/10"
-                    } rounded-full blur-3xl transition-all duration-500`}
-                  ></div>
-
-                  {/* Top Accent Line */}
-                  <div
-                    className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${activeColor} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
-                  ></div>
-
-                  <div className="relative z-10">
-                    {/* Icon Badge */}
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      whileInView={{ scale: 1 }}
-                      viewport={{ once: true }}
-                      transition={{
-                        delay: 0.3 + index * 0.1,
-                        type: "spring",
-                        stiffness: 200,
-                      }}
-                      className={`w-14 h-14 mb-4 rounded-xl bg-gradient-to-br ${activeColor} border border-white/30 flex items-center justify-center group-hover:scale-110 group-hover:rotate-12 transition-all duration-500`}
-                    >
-                      <feature.icon className="w-7 h-7 text-white" />
-                    </motion.div>
-
-                    {/* Title */}
-                    <h3
-                      className={`text-lg md:text-xl font-bold text-start mb-4 leading-tight transition-colors duration-300 ${
-                        isDarkMode
-                          ? "text-white group-hover:text-[#d4e157]"
-                          : "text-gray-900 group-hover:text-emerald-600"
-                      }`}
-                    >
-                      {feature.title}
-                    </h3>
-                  </div>
-
-                  {/* Points */}
-                  <div className="relative z-10 space-y-3 mt-4">
-                    {feature.points.map((point, i) => (
-                      <motion.p
-                        key={i}
-                        initial={{ opacity: 0, x: -10 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{
-                          delay: 0.4 + index * 0.1 + i * 0.1,
-                        }}
-                        className={`${
-                          isDarkMode
-                            ? "text-gray-400"
-                            : "text-gray-600"
-                        } text-sm text-start md:text-base leading-relaxed flex items-start gap-2`}
-                      >
-                        <span
-                          className={`flex-shrink-0 w-1.5 h-1.5 rounded-full bg-gradient-to-r ${activeColor} mt-2`}
-                        ></span>
-
-                        {point}
-                      </motion.p>
-                    ))}
-                  </div>
-
-                  {/* Bottom Accent Line */}
-                  <div
-                    className={`mt-4 h-0.5 w-0 group-hover:w-full bg-gradient-to-r ${
+              {/* =================================================
+                  HEADING
+              ================================================== */}
+              <motion.h2
+                initial={{ opacity: 0, y: 25 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{
+                  delay: 0.25,
+                  duration: 0.7,
+                }}
+                className="
+                  text-4xl
+                  sm:text-5xl
+                  md:text-6xl
+                  xl:text-[64px]
+                  2xl:text-[68px]
+                  font-extrabold
+                  leading-[1.02]
+                  tracking-tight
+                  text-white
+                "
+              >
+                Global Growth
+                <br />
+                Through{" "}
+                <span
+                  className={`
+                    text-transparent
+                    bg-clip-text
+                    bg-gradient-to-r
+                    ${
                       isDarkMode
                         ? "from-[#d4e157] to-[#06b6d4]"
                         : "from-emerald-500 to-cyan-600"
-                    } transition-all duration-500`}
-                  ></div>
-                </motion.div>
-              );
-            })}
+                    }
+                  `}
+                >
+                  Possibilities
+                </span>
+              </motion.h2>
+
+              {/* =================================================
+                  DESCRIPTION
+              ================================================== */}
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{
+                  delay: 0.4,
+                  duration: 0.7,
+                }}
+                className="
+                  mt-7
+                  max-w-[560px]
+                  text-base
+                  md:text-lg
+                  xl:text-xl
+                  leading-relaxed
+                  text-gray-400
+                "
+              >
+                Strategic digital solutions that connect brands,
+                people and opportunities worldwide.
+              </motion.p>
+
+              {/* =================================================
+                  ACCENT LINE
+              ================================================== */}
+              <motion.div
+                initial={{ width: 0 }}
+                whileInView={{ width: 66 }}
+                viewport={{ once: true }}
+                transition={{
+                  delay: 0.6,
+                  duration: 0.7,
+                }}
+                className={`
+                  h-1.5
+                  rounded-full
+                  mt-7
+                  bg-gradient-to-r
+                  transition-all
+                  duration-500
+                  ${
+                    isDarkMode
+                      ? "from-[#d4e157] to-[#06b6d4]"
+                      : "from-emerald-500 to-cyan-600"
+                  }
+                `}
+              />
+
+              {/* =================================================
+                  CONNECTING IDEAS WORLDWIDE
+              ================================================== */}
+              <motion.div
+                initial={{ opacity: 0, y: 15 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{
+                  delay: 0.7,
+                  duration: 0.6,
+                }}
+                className="mt-8"
+              >
+                <p
+                  className={`
+                    text-3xl
+                    md:text-4xl
+                    leading-tight
+                    font-semibold
+                    text-transparent
+                    bg-clip-text
+                    bg-gradient-to-r
+                    transition-all
+                    duration-500
+                    ${
+                      isDarkMode
+                        ? "from-[#d4e157] to-[#06b6d4]"
+                        : "from-emerald-500 to-cyan-600"
+                    }
+                  `}
+                  style={{
+                    fontFamily:
+                      "'Brush Script MT', 'Segoe Script', cursive",
+                  }}
+                >
+                  Connecting
+                  <br />
+                  <span className="ml-12">
+                    Ideas Worldwide
+                  </span>
+                </p>
+
+                <div
+                  className={`
+                    ml-12
+                    mt-2
+                    w-48
+                    h-[2px]
+                    rounded-full
+                    rotate-[-5deg]
+                    bg-gradient-to-r
+                    transition-all
+                    duration-500
+                    ${
+                      isDarkMode
+                        ? "from-[#d4e157] to-[#06b6d4]"
+                        : "from-emerald-500 to-cyan-600"
+                    }
+                  `}
+                />
+              </motion.div>
+            </motion.div>
+
+            {/* =====================================================
+                RIGHT SIDE — 2x2 IMAGE CARDS
+            ====================================================== */}
+            <div
+              className="
+                lg:col-span-6
+                xl:col-span-[6.3]
+              "
+            >
+              <div
+                className="
+                  grid
+                  grid-cols-1
+                  sm:grid-cols-2
+                  gap-5
+                  md:gap-6
+                "
+              >
+                {features.map((feature, index) => {
+                  const Icon = feature.icon;
+
+                  return (
+                    <motion.div
+                      key={index}
+                      initial={{
+                        opacity: 0,
+                        y: 30,
+                      }}
+                      whileInView={{
+                        opacity: 1,
+                        y: 0,
+                      }}
+                      viewport={{ once: true }}
+                      transition={{
+                        delay: 0.15 + index * 0.12,
+                        duration: 0.65,
+                      }}
+                      className="
+                        group
+                        relative
+                        min-h-[270px]
+                        md:min-h-[285px]
+                        rounded-[20px]
+                        overflow-hidden
+                      "
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* =================================================
+                          CLOUDINARY CARD BACKGROUND IMAGE
+                      ================================================== */}
+                      <div
+                        className="
+                          absolute
+                          inset-0
+                          bg-cover
+                          bg-center
+                          bg-no-repeat
+                        "
+                        style={{
+                          backgroundImage: `url("${feature.image}")`,
+                        }}
+                      />
+
+                      {/* =================================================
+                          STRONG DARK OVERLAY
+                          Makes card text clearly visible
+                      ================================================== */}
+                      <div
+                        className="
+                          absolute
+                          inset-0
+                          bg-black/55
+                        "
+                      />
+
+                      {/* =================================================
+                          EXTRA COLOR OVERLAY
+                          Keeps the image visible but improves readability
+                      ================================================== */}
+                      <div
+                        className="
+                          absolute
+                          inset-0
+                          bg-gradient-to-br
+                          from-[#03141c]/35
+                          via-[#03141c]/40
+                          to-black/70
+                        "
+                      />
+
+                      {/* =================================================
+                          BOTTOM TEXT READABILITY OVERLAY
+                      ================================================== */}
+                      <div
+                        className="
+                          absolute
+                          inset-0
+                          bg-gradient-to-t
+                          from-black/75
+                          via-black/20
+                          to-transparent
+                        "
+                      />
+
+                      {/* =================================================
+                          GLASS EFFECT
+                      ================================================== */}
+                      <div
+                        className="
+                          absolute
+                          inset-0
+                          rounded-[20px]
+                          bg-white/[0.035]
+                          backdrop-blur-[1px]
+                          border
+                        "
+                        style={{
+                          borderColor: `${feature.glow}cc`,
+                          boxShadow: `
+                            inset 0 0 25px ${feature.glow}08,
+                            0 0 18px ${feature.glow}18
+                          `,
+                        }}
+                      />
+
+                      {/* =================================================
+                          CARD CONTENT
+                      ================================================== */}
+                      <div
+                        className="
+                          relative
+                          z-10
+                          h-full
+                          p-6
+                          md:p-7
+                          flex
+                          flex-col
+                          items-start
+                          text-left
+                        "
+                      >
+                        {/* =================================================
+                            TOP ROW
+                        ================================================== */}
+                        <div
+                          className="
+                            w-full
+                            flex
+                            items-start
+                            justify-between
+                          "
+                        >
+                          {/* ICON */}
+                          <div
+                            className={`
+                              w-14
+                              h-14
+                              md:w-16
+                              md:h-16
+                              rounded-full
+                              bg-gradient-to-br
+                              ${feature.iconGradient}
+                              flex
+                              items-center
+                              justify-center
+                              flex-shrink-0
+                            `}
+                            style={{
+                              boxShadow: `
+                                0 0 18px ${feature.glow}70,
+                                0 0 35px ${feature.glow}30
+                              `,
+                            }}
+                          >
+                            <Icon
+                              className="
+                                text-white
+                                text-2xl
+                                md:text-[27px]
+                              "
+                            />
+                          </div>
+
+                          {/* ARROW */}
+                          <div
+                            className="
+                              w-11
+                              h-11
+                              md:w-12
+                              md:h-12
+                              rounded-full
+                              border
+                              border-cyan-300/80
+                              bg-black/30
+                              flex
+                              items-center
+                              justify-center
+                              text-cyan-300
+                              flex-shrink-0
+                            "
+                          >
+                            <FaArrowRight
+                              className="
+                                text-lg
+                                md:text-xl
+                              "
+                            />
+                          </div>
+                        </div>
+
+                        {/* =================================================
+                            TITLE
+                        ================================================== */}
+                        <h3
+                          className="
+                            mt-6
+                            w-full
+                            text-left
+                            text-lg
+                            md:text-xl
+                            xl:text-[21px]
+                            font-extrabold
+                            text-white
+                            leading-[1.25]
+                            tracking-tight
+                            drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]
+                          "
+                        >
+                          {feature.title}
+                        </h3>
+
+                        {/* =================================================
+                            POINTS
+                        ================================================== */}
+                        <div
+                          className="
+                            mt-5
+                            w-full
+                            space-y-3.5
+                          "
+                        >
+                          {feature.points.map((point, i) => (
+                            <div
+                              key={i}
+                              className="
+                                flex
+                                items-start
+                                justify-start
+                                gap-3
+                                text-left
+                                text-sm
+                                md:text-[15px]
+                                text-white
+                                leading-[1.45]
+                                drop-shadow-[0_2px_6px_rgba(0,0,0,0.9)]
+                              "
+                            >
+                              {/* BULLET */}
+                              <span
+                                className="
+                                  mt-[7px]
+                                  w-1.5
+                                  h-1.5
+                                  rounded-full
+                                  flex-shrink-0
+                                "
+                                style={{
+                                  backgroundColor:
+                                    feature.glow,
+                                  boxShadow: `
+                                    0 0 7px ${feature.glow}
+                                  `,
+                                }}
+                              />
+
+                              <span className="text-left">
+                                {point}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         </div>
       </div>

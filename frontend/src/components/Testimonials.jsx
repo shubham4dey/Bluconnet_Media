@@ -9,31 +9,32 @@ import {
   FaFacebookF,
   FaExternalLinkAlt,
   FaHeart,
-  FaPen,
+  FaCommentDots,
 } from "react-icons/fa";
 import { useTheme } from "../context/ThemeContext";
 
-// Import client logos
-import reebokLogo from "../assets/img/logo.png";
-import swarovskiLogo from "../assets/img/logo.png";
-import crocsLogo from "../assets/img/logo.png";
-import redbubbleLogo from "../assets/img/logo.png";
+// Import client logos from Cloudinary
+const salesDoublerLogo =
+  "https://res.cloudinary.com/wyixfdon/image/upload/v1790940114/salesdoubler_logo_vccbsj.jpg";
+
+const beanstalkLogo =
+  "https://res.cloudinary.com/wyixfdon/image/upload/v1790940132/BeanstalkLogo-CMYK_ep5nl1.webp";
+
+const qubiqLogo =
+  "https://res.cloudinary.com/wyixfdon/image/upload/v1790940146/qubiq_unzn3p.png";
+
+const qontoLogo =
+  "https://res.cloudinary.com/wyixfdon/image/upload/v1790940164/Logo_Qonto_yflrgc.png";
 
 /* =========================================================
    REVIEW LINKS
-   ---------------------------------------------------------
-   IMPORTANT:
-   Replace these with your REAL review URLs.
-   
-   Google:
-   Use your Google Business Profile "Write a review" link.
-   
-   Facebook:
-   Use your Facebook Page review/recommendation link.
 ========================================================= */
 
-const GOOGLE_REVIEW_URL = "YOUR_GOOGLE_REVIEW_LINK";
-const FACEBOOK_REVIEW_URL = "YOUR_FACEBOOK_REVIEW_LINK";
+const GOOGLE_REVIEW_URL =
+  "https://search.google.com/local/writereview?placeid=ChIJj4tAh919eUgRnbwJ07NxqIo&utm_source=chatgpt.com";
+
+const FACEBOOK_REVIEW_URL =
+  "https://www.facebook.com/bluconnet/reviews";
 
 const Testimonials = () => {
   const { isDarkMode } = useTheme();
@@ -49,8 +50,8 @@ const Testimonials = () => {
     {
       quote:
         "Our partnership with Acceleration Partners has been unbelievably valuable. Through Acceleration Partners' strategic recommendations and knowledge, the affiliate channel has become a high-performing digital marketing channel for Reebok. We cannot say enough good things about everyone on the team.",
-      company: "Reebok",
-      logo: reebokLogo,
+      company: "SalesDoubler",
+      logo: salesDoublerLogo,
       position: "Global Marketing Director",
       rating: 5,
     },
@@ -58,8 +59,8 @@ const Testimonials = () => {
     {
       quote:
         "Acceleration Partners' excellent strategic support and strong local resources have significantly contributed in the growth of our global affiliate program. The team is sharp, hard-working and regularly reviews operational effectiveness to improve processes and performance.",
-      company: "Swarovski",
-      logo: swarovskiLogo,
+      company: "Beanstalk",
+      logo: beanstalkLogo,
       position: "Head of Digital Marketing",
       rating: 5,
     },
@@ -67,8 +68,8 @@ const Testimonials = () => {
     {
       quote:
         "Acceleration Partners is a strong agency with good expertise, timely responses, and a strong knowledge of regional partners. Their dedication to understanding our market has been exceptional.",
-      company: "Crocs",
-      logo: crocsLogo,
+      company: "Qubiq",
+      logo: qubiqLogo,
       position: "E-commerce Manager",
       rating: 5,
     },
@@ -76,8 +77,8 @@ const Testimonials = () => {
     {
       quote:
         "The team at Acceleration Partners has shown an enormous amount of passion for our brand and mission. Our check-in meetings often turn into brainstorming sessions where we bounce off ideas for new opportunities.",
-      company: "Redbubble",
-      logo: redbubbleLogo,
+      company: "Qonto",
+      logo: qontoLogo,
       position: "VP of Marketing",
       rating: 5,
     },
@@ -92,8 +93,7 @@ const Testimonials = () => {
 
     const timer = setInterval(() => {
       setCurrentIndex(
-        (prev) =>
-          (prev + 1) % testimonials.length
+        (prev) => (prev + 1) % testimonials.length
       );
     }, 6000);
 
@@ -106,8 +106,7 @@ const Testimonials = () => {
 
   const next = () => {
     setCurrentIndex(
-      (prev) =>
-        (prev + 1) % testimonials.length
+      (prev) => (prev + 1) % testimonials.length
     );
   };
 
@@ -126,8 +125,7 @@ const Testimonials = () => {
   const openGoogleReview = () => {
     if (
       !GOOGLE_REVIEW_URL ||
-      GOOGLE_REVIEW_URL ===
-        "YOUR_GOOGLE_REVIEW_LINK"
+      GOOGLE_REVIEW_URL === "YOUR_GOOGLE_REVIEW_LINK"
     ) {
       console.warn(
         "Please add your Google review URL in Testimonials.jsx"
@@ -164,9 +162,7 @@ const Testimonials = () => {
   return (
     <section
       className={`relative overflow-hidden py-20 md:py-28 px-4 transition-colors duration-500 ${
-        isDarkMode
-          ? "bg-[#050508]"
-          : "bg-white"
+        isDarkMode ? "bg-[#050508]" : "bg-white"
       }`}
     >
       {/* =====================================================
@@ -235,9 +231,7 @@ const Testimonials = () => {
         className="absolute inset-0 opacity-[0.03] pointer-events-none"
         style={{
           backgroundImage: `radial-gradient(circle, ${
-            isDarkMode
-              ? "#d4e157"
-              : "#10b981"
+            isDarkMode ? "#d4e157" : "#10b981"
           } 1px, transparent 1px)`,
           backgroundSize: "30px 30px",
         }}
@@ -258,9 +252,7 @@ const Testimonials = () => {
           ease: "easeInOut",
         }}
         className={`absolute top-20 right-8 md:right-20 w-28 h-28 md:w-48 md:h-48 ${
-          isDarkMode
-            ? "opacity-10"
-            : "opacity-20"
+          isDarkMode ? "opacity-10" : "opacity-20"
         } pointer-events-none`}
       >
         <svg
@@ -405,12 +397,8 @@ const Testimonials = () => {
 
         <div
           className="relative"
-          onMouseEnter={() =>
-            setIsPaused(true)
-          }
-          onMouseLeave={() =>
-            setIsPaused(false)
-          }
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
         >
           <AnimatePresence mode="wait">
             <motion.div
@@ -480,9 +468,10 @@ const Testimonials = () => {
                           : "from-emerald-500 to-cyan-600"
                       }`}
                     >
-                      {String(
-                        currentIndex + 1
-                      ).padStart(2, "0")}
+                      {String(currentIndex + 1).padStart(
+                        2,
+                        "0"
+                      )}
                     </span>
 
                     <span
@@ -524,9 +513,7 @@ const Testimonials = () => {
                   >
                     <img
                       src={
-                        testimonials[
-                          currentIndex
-                        ].logo
+                        testimonials[currentIndex].logo
                       }
                       alt={`${testimonials[currentIndex].company} logo`}
                       className="max-h-14 md:max-h-16 w-auto object-contain"
@@ -544,11 +531,7 @@ const Testimonials = () => {
                         : "text-emerald-600"
                     }`}
                   >
-                    {
-                      testimonials[
-                        currentIndex
-                      ].company
-                    }
+                    {testimonials[currentIndex].company}
                   </div>
 
                   <div
@@ -558,11 +541,7 @@ const Testimonials = () => {
                         : "text-gray-600"
                     }`}
                   >
-                    {
-                      testimonials[
-                        currentIndex
-                      ].position
-                    }
+                    {testimonials[currentIndex].position}
                   </div>
 
                   {/* Stars */}
@@ -570,9 +549,7 @@ const Testimonials = () => {
                   <div className="flex justify-center gap-1">
                     {[
                       ...Array(
-                        testimonials[
-                          currentIndex
-                        ].rating
+                        testimonials[currentIndex].rating
                       ),
                     ].map((_, i) => (
                       <motion.div
@@ -586,8 +563,7 @@ const Testimonials = () => {
                           scale: 1,
                         }}
                         transition={{
-                          delay:
-                            0.1 + i * 0.05,
+                          delay: 0.1 + i * 0.05,
                         }}
                       >
                         <FaStar
@@ -662,11 +638,7 @@ const Testimonials = () => {
                     }`}
                   >
                     "
-                    {
-                      testimonials[
-                        currentIndex
-                      ].quote
-                    }
+                    {testimonials[currentIndex].quote}
                     "
                   </p>
 
@@ -712,13 +684,15 @@ const Testimonials = () => {
                     : "text-gray-600"
                 }`}
               >
-                {String(
-                  currentIndex + 1
-                ).padStart(2, "0")}{" "}
+                {String(currentIndex + 1).padStart(
+                  2,
+                  "0"
+                )}{" "}
                 /{" "}
-                {String(
-                  testimonials.length
-                ).padStart(2, "0")}
+                {String(testimonials.length).padStart(
+                  2,
+                  "0"
+                )}
               </span>
 
               <div
@@ -811,7 +785,7 @@ const Testimonials = () => {
         </div>
 
         {/* =====================================================
-            WRITE A REVIEW SECTION
+            PREMIUM WRITE A REVIEW SECTION
         ===================================================== */}
 
         <motion.div
@@ -825,7 +799,7 @@ const Testimonials = () => {
           }}
           viewport={{
             once: true,
-            amount: 0.2,
+            amount: 0.15,
           }}
           transition={{
             duration: 0.8,
@@ -833,47 +807,62 @@ const Testimonials = () => {
           className="mt-16 md:mt-20"
         >
           <div
-            className={`relative overflow-hidden rounded-[28px] border ${
+            className={`relative overflow-hidden rounded-[36px] border ${
               isDarkMode
-                ? "bg-gradient-to-br from-[#0f1535] via-[#0a0e27] to-[#07151c] border-white/10"
-                : "bg-gradient-to-br from-white via-slate-50 to-emerald-50/50 border-gray-200"
+                ? "bg-[#080b14] border-white/10"
+                : "bg-[#f8fbfa] border-gray-200"
             } shadow-2xl`}
           >
             {/* =================================================
-                DECORATIVE GLOWS
+                BACKGROUND DECORATION
             ================================================= */}
 
             <div
-              className={`absolute -top-24 -left-24 w-72 h-72 rounded-full blur-[90px] ${
+              className={`absolute -top-40 -left-40 w-[420px] h-[420px] rounded-full blur-[120px] ${
                 isDarkMode
                   ? "bg-[#d4e157]/10"
-                  : "bg-emerald-400/15"
+                  : "bg-emerald-400/10"
               }`}
             />
 
             <div
-              className={`absolute -bottom-28 -right-20 w-80 h-80 rounded-full blur-[100px] ${
+              className={`absolute -bottom-40 -right-40 w-[450px] h-[450px] rounded-full blur-[130px] ${
                 isDarkMode
                   ? "bg-[#06b6d4]/10"
-                  : "bg-cyan-400/15"
+                  : "bg-cyan-400/10"
               }`}
             />
 
-            {/* Decorative circles */}
+            {/* Grid */}
+
+            <div
+              className="absolute inset-0 opacity-[0.025] pointer-events-none"
+              style={{
+                backgroundImage: `linear-gradient(${
+                  isDarkMode ? "#d4e157" : "#10b981"
+                } 1px, transparent 1px),
+                linear-gradient(90deg, ${
+                  isDarkMode ? "#d4e157" : "#10b981"
+                } 1px, transparent 1px)`,
+                backgroundSize: "40px 40px",
+              }}
+            />
+
+            {/* Decorative circle */}
 
             <motion.div
               animate={{
                 rotate: 360,
               }}
               transition={{
-                duration: 20,
+                duration: 25,
                 repeat: Infinity,
                 ease: "linear",
               }}
-              className={`absolute right-8 top-8 w-20 h-20 rounded-full border border-dashed ${
+              className={`absolute -right-16 -top-16 w-48 h-48 rounded-full border border-dashed ${
                 isDarkMode
-                  ? "border-[#d4e157]/15"
-                  : "border-emerald-500/15"
+                  ? "border-[#d4e157]/20"
+                  : "border-emerald-500/20"
               }`}
             />
 
@@ -882,11 +871,11 @@ const Testimonials = () => {
                 rotate: -360,
               }}
               transition={{
-                duration: 15,
+                duration: 20,
                 repeat: Infinity,
                 ease: "linear",
               }}
-              className={`absolute left-10 bottom-8 w-14 h-14 rounded-full border ${
+              className={`absolute -left-20 -bottom-20 w-40 h-40 rounded-full border ${
                 isDarkMode
                   ? "border-[#06b6d4]/15"
                   : "border-cyan-500/15"
@@ -894,277 +883,568 @@ const Testimonials = () => {
             />
 
             {/* =================================================
-                CONTENT
+                MAIN CONTENT
             ================================================= */}
 
-            <div className="relative z-10 px-6 py-10 md:px-12 md:py-12 lg:px-16">
+            <div className="relative z-10 p-6 sm:p-8 md:p-10 lg:p-12">
 
-              <div className="grid lg:grid-cols-[1fr_auto] gap-10 items-center">
+              <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-8 lg:gap-14 items-center">
 
-                {/* LEFT */}
+                {/* =================================================
+                    LEFT CONTENT
+                ================================================= */}
 
-                <div>
-                  {/* Mini badge */}
+                <div className="text-center lg:text-left">
 
-                  <div
-                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-5 ${
-                      isDarkMode
-                        ? "bg-[#d4e157]/10 border border-[#d4e157]/20"
-                        : "bg-emerald-50 border border-emerald-200"
-                    }`}
-                  >
-                    <FaHeart
-                      size={11}
-                      className={
+                  {/* =================================================
+                      YOUR VOICE MATTERS
+                  ================================================= */}
+
+                  <div className="flex items-center justify-center lg:justify-start gap-3 mb-6">
+
+                    {/* Left line */}
+
+                    <span
+                      className={`h-px w-10 ${
+                        isDarkMode
+                          ? "bg-[#d4e157]/60"
+                          : "bg-emerald-400"
+                      }`}
+                    />
+
+                    {/* Text */}
+
+                    <span
+                      className={`text-[9px] sm:text-[10px] uppercase tracking-[0.25em] font-black ${
                         isDarkMode
                           ? "text-[#d4e157]"
                           : "text-emerald-600"
-                      }
-                    />
-
-                    <span
-                      className={`text-[10px] sm:text-xs font-black uppercase tracking-[0.15em] ${
-                        isDarkMode
-                          ? "text-[#d4e157]"
-                          : "text-emerald-700"
                       }`}
                     >
                       YOUR VOICE MATTERS
                     </span>
+
+                    {/* Right line */}
+
+                    <span
+                      className={`h-px w-10 ${
+                        isDarkMode
+                          ? "bg-[#d4e157]/60"
+                          : "bg-emerald-400"
+                      }`}
+                    />
+
                   </div>
 
+                  {/* Heading */}
+
                   <h3
-                    className={`text-2xl md:text-3xl lg:text-4xl font-black mb-3 ${
+                    className={`text-4xl sm:text-5xl lg:text-[48px] xl:text-[54px] font-black leading-[0.98] tracking-[-0.04em] ${
                       isDarkMode
                         ? "text-white"
                         : "text-gray-900"
                     }`}
                   >
-                    Worked With Us?
+                    Loved working
                     <br />
 
                     <span
                       className={`text-transparent bg-clip-text bg-gradient-to-r ${
                         isDarkMode
-                          ? "from-[#d4e157] to-[#06b6d4]"
-                          : "from-emerald-500 to-cyan-600"
+                          ? "from-[#d4e157] via-[#b8d84b] to-[#06b6d4]"
+                          : "from-emerald-500 via-emerald-500 to-cyan-600"
                       }`}
                     >
-                      Tell Us About It.
+                      with us?
                     </span>
                   </h3>
 
+                  {/* Description */}
+
                   <p
-                    className={`max-w-xl text-sm md:text-base leading-7 ${
+                    className={`mt-5 max-w-md mx-auto lg:mx-0 text-sm sm:text-base leading-7 ${
                       isDarkMode
                         ? "text-gray-400"
                         : "text-gray-600"
                     }`}
                   >
-                    Your feedback helps us improve,
-                    build better experiences, and
-                    continue delivering meaningful
-                    results for our clients.
+                    Tell the world about your experience.
+                    A few honest words from you can help
+                    future clients discover what we do.
                   </p>
+
+                  {/* =================================================
+                      SHARE YOUR EXPERIENCE
+                  ================================================= */}
+
+                  <div className="mt-7 flex justify-center lg:justify-start">
+                    <div
+                      className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${
+                        isDarkMode
+                          ? "bg-[#d4e157]/[0.035] border-[#d4e157]/20"
+                          : "bg-emerald-50/70 border-emerald-200"
+                      }`}
+                    >
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <FaStar
+                            key={star}
+                            size={12}
+                            className={
+                              isDarkMode
+                                ? "text-[#d4e157]"
+                                : "text-emerald-500"
+                            }
+                          />
+                        ))}
+                      </div>
+
+                      <div
+                        className={`w-px h-4 ${
+                          isDarkMode
+                            ? "bg-[#d4e157]/20"
+                            : "bg-emerald-200"
+                        }`}
+                      />
+
+                      <span
+                        className={`text-[10px] font-black uppercase tracking-wider ${
+                          isDarkMode
+                            ? "text-[#d4e157]"
+                            : "text-emerald-600"
+                        }`}
+                      >
+                        Share your experience
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* =================================================
+                      YOUR FEEDBACK HELPS US GROW
+                  ================================================= */}
+
+                  <div
+                    className={`mt-7 hidden lg:flex items-center gap-3 ${
+                      isDarkMode
+                        ? "text-[#d4e157]"
+                        : "text-emerald-600"
+                    }`}
+                  >
+                    <div
+                      className={`w-9 h-9 rounded-full flex items-center justify-center ${
+                        isDarkMode
+                          ? "bg-[#d4e157]/10 text-[#d4e157]"
+                          : "bg-emerald-50 text-emerald-500"
+                      }`}
+                    >
+                      <FaCommentDots size={13} />
+                    </div>
+
+                    <span className="text-[10px] lg:text-xs font-semibold">
+                      Your feedback helps us grow.
+                    </span>
+                  </div>
                 </div>
 
                 {/* =================================================
-                    REVIEW BUTTONS
+                    RIGHT REVIEW CARDS
                 ================================================= */}
 
-                <div className="flex flex-col sm:flex-row lg:flex-col xl:flex-row gap-3 shrink-0">
+                <div className="relative">
 
-                  {/* GOOGLE */}
+                  {/* =================================================
+                      CHOOSE YOUR PLATFORM
+                  ================================================= */}
+
+                  <div className="flex items-center justify-between mb-4">
+
+                    <span
+                      className={`text-[9px] lg:text-[11px] uppercase tracking-[0.22em] font-black ${
+                        isDarkMode
+                          ? "text-[#d4e157]"
+                          : "text-emerald-600"
+                      }`}
+                    >
+                      CHOOSE YOUR PLATFORM
+                    </span>
+
+                    <div className="flex items-center gap-2">
+
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full ${
+                          isDarkMode
+                            ? "bg-[#06b6d4]"
+                            : "bg-cyan-500"
+                        }`}
+                      />
+
+                      <span
+                        className={`text-[9px] lg:text-[11px] uppercase tracking-wider font-bold ${
+                          isDarkMode
+                            ? "text-[#06b6d4]"
+                            : "text-cyan-600"
+                        }`}
+                      >
+                        QUICK & EASY
+                      </span>
+
+                    </div>
+                  </div>
+
+                  {/* =================================================
+                      GOOGLE CARD
+                  ================================================= */}
 
                   <motion.button
                     type="button"
                     onClick={openGoogleReview}
                     whileHover={{
-                      y: -4,
-                      scale: 1.02,
+                      y: -5,
                     }}
                     whileTap={{
-                      scale: 0.97,
+                      scale: 0.985,
                     }}
-                    className={`group relative min-w-[190px] flex items-center gap-4 px-5 py-4 rounded-2xl border text-left overflow-hidden ${
+                    className={`group relative w-full text-left overflow-hidden rounded-[24px] p-5 sm:p-6 lg:p-7 mb-4 border transition-all duration-500 ${
                       isDarkMode
-                        ? "bg-white/[0.04] border-white/10 hover:border-[#d4e157]/30"
+                        ? "bg-white/[0.045] border-white/10 hover:border-[#d4e157]/40"
                         : "bg-white border-gray-200 hover:border-emerald-300"
-                    } shadow-lg transition-all duration-300`}
+                    } shadow-xl`}
                   >
-                    {/* Hover glow */}
+                    {/* Hover gradient */}
 
                     <div
-                      className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+                      className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
                         isDarkMode
-                          ? "bg-gradient-to-r from-[#d4e157]/10 to-transparent"
-                          : "bg-gradient-to-r from-emerald-50 to-transparent"
+                          ? "bg-gradient-to-r from-[#d4e157]/10 via-transparent to-[#06b6d4]/5"
+                          : "bg-gradient-to-r from-emerald-50 via-transparent to-cyan-50"
                       }`}
                     />
 
-                    <div
-                      className={`relative z-10 w-11 h-11 rounded-xl flex items-center justify-center ${
+                    {/* Number */}
+
+                    <span
+                      className={`absolute right-5 top-4 text-[42px] font-black leading-none select-none ${
                         isDarkMode
-                          ? "bg-white/10"
-                          : "bg-gray-50"
+                          ? "text-[#d4e157]/[0.035]"
+                          : "text-emerald-900/[0.035]"
                       }`}
                     >
-                      <FaGoogle
-                        size={19}
-                        className={
-                          isDarkMode
-                            ? "text-[#d4e157]"
-                            : "text-emerald-600"
-                        }
-                      />
-                    </div>
+                      01
+                    </span>
 
-                    <div className="relative z-10">
-                      <div
-                        className={`text-sm font-black ${
-                          isDarkMode
-                            ? "text-white"
-                            : "text-gray-900"
-                        }`}
-                      >
-                        Review us on Google
-                      </div>
+                    <div className="relative z-10 flex items-center gap-4">
+
+                      {/* Google icon */}
 
                       <div
-                        className={`flex items-center gap-1.5 mt-1 text-[10px] uppercase tracking-wider font-bold ${
+                        className={`shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:scale-105 ${
                           isDarkMode
-                            ? "text-gray-500"
-                            : "text-gray-500"
+                            ? "bg-[#d4e157]/10"
+                            : "bg-emerald-50"
                         }`}
                       >
-                        <FaStar
-                          size={8}
+                        <FaGoogle
+                          size={25}
                           className={
                             isDarkMode
                               ? "text-[#d4e157]"
-                              : "text-emerald-500"
+                              : "text-emerald-600"
                           }
                         />
-
-                        Share your experience
-
-                        <FaExternalLinkAlt
-                          size={8}
-                        />
                       </div>
+
+                      {/* Content */}
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+
+                          <h4
+                            className={`text-base sm:text-lg lg:text-xl font-black ${
+                              isDarkMode
+                                ? "text-white"
+                                : "text-gray-900"
+                            }`}
+                          >
+                            Google
+                          </h4>
+
+                          <div className="flex gap-0.5">
+                            {[1, 2, 3, 4, 5].map(
+                              (star) => (
+                                <FaStar
+                                  key={star}
+                                  size={8}
+                                  className={
+                                    isDarkMode
+                                      ? "text-[#d4e157]"
+                                      : "text-emerald-500"
+                                  }
+                                />
+                              )
+                            )}
+                          </div>
+                        </div>
+
+                        <p
+                          className={`text-[10px] sm:text-xs lg:text-sm ${
+                            isDarkMode
+                              ? "text-[#d4e157]/70"
+                              : "text-emerald-600/70"
+                          }`}
+                        >
+                          Share your experience with us
+                        </p>
+                      </div>
+
+                      {/* Arrow */}
+
+                      <div
+                        className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 group-hover:translate-x-1 ${
+                          isDarkMode
+                            ? "bg-white/5 text-[#d4e157] group-hover:bg-[#d4e157] group-hover:text-[#071018]"
+                            : "bg-gray-50 text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white"
+                        }`}
+                      >
+                        <FaArrowRight size={11} />
+                      </div>
+                    </div>
+
+                    {/* CTA */}
+
+                    <div className="relative z-10 mt-5 flex items-center justify-between">
+
+                      <span
+                        className={`text-[9px] lg:text-[11px] uppercase tracking-[0.2em] font-black ${
+                          isDarkMode
+                            ? "text-[#d4e157]"
+                            : "text-emerald-600"
+                        }`}
+                      >
+                        Leave a Google Review
+                      </span>
+
+                      <FaExternalLinkAlt
+                        size={9}
+                        className={
+                          isDarkMode
+                            ? "text-[#d4e157]/50"
+                            : "text-emerald-500/50"
+                        }
+                      />
+
                     </div>
                   </motion.button>
 
-                  {/* FACEBOOK */}
+                  {/* =================================================
+                      FACEBOOK CARD
+                  ================================================= */}
 
                   <motion.button
                     type="button"
                     onClick={openFacebookReview}
                     whileHover={{
-                      y: -4,
-                      scale: 1.02,
+                      y: -5,
                     }}
                     whileTap={{
-                      scale: 0.97,
+                      scale: 0.985,
                     }}
-                    className={`group relative min-w-[190px] flex items-center gap-4 px-5 py-4 rounded-2xl border text-left overflow-hidden ${
+                    className={`group relative w-full text-left overflow-hidden rounded-[24px] p-5 sm:p-6 lg:p-7 border transition-all duration-500 ${
                       isDarkMode
-                        ? "bg-white/[0.04] border-white/10 hover:border-[#06b6d4]/30"
+                        ? "bg-white/[0.045] border-white/10 hover:border-[#06b6d4]/40"
                         : "bg-white border-gray-200 hover:border-cyan-300"
-                    } shadow-lg transition-all duration-300`}
+                    } shadow-xl`}
                   >
+                    {/* Hover gradient */}
+
                     <div
-                      className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${
+                      className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${
                         isDarkMode
-                          ? "bg-gradient-to-r from-[#06b6d4]/10 to-transparent"
-                          : "bg-gradient-to-r from-cyan-50 to-transparent"
+                          ? "bg-gradient-to-r from-[#06b6d4]/10 via-transparent to-[#d4e157]/5"
+                          : "bg-gradient-to-r from-cyan-50 via-transparent to-emerald-50"
                       }`}
                     />
 
-                    <div
-                      className={`relative z-10 w-11 h-11 rounded-xl flex items-center justify-center ${
+                    {/* Number */}
+
+                    <span
+                      className={`absolute right-5 top-4 text-[42px] font-black leading-none select-none ${
                         isDarkMode
-                          ? "bg-white/10"
-                          : "bg-gray-50"
+                          ? "text-[#06b6d4]/[0.035]"
+                          : "text-cyan-900/[0.035]"
                       }`}
                     >
-                      <FaFacebookF
-                        size={18}
-                        className={
-                          isDarkMode
-                            ? "text-[#06b6d4]"
-                            : "text-cyan-600"
-                        }
-                      />
-                    </div>
+                      02
+                    </span>
 
-                    <div className="relative z-10">
-                      <div
-                        className={`text-sm font-black ${
-                          isDarkMode
-                            ? "text-white"
-                            : "text-gray-900"
-                        }`}
-                      >
-                        Recommend us on Facebook
-                      </div>
+                    <div className="relative z-10 flex items-center gap-4">
+
+                      {/* Facebook icon */}
 
                       <div
-                        className={`flex items-center gap-1.5 mt-1 text-[10px] uppercase tracking-wider font-bold ${
+                        className={`shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:scale-105 ${
                           isDarkMode
-                            ? "text-gray-500"
-                            : "text-gray-500"
+                            ? "bg-[#06b6d4]/10"
+                            : "bg-cyan-50"
                         }`}
                       >
-                        <FaHeart
-                          size={8}
+                        <FaFacebookF
+                          size={24}
                           className={
                             isDarkMode
                               ? "text-[#06b6d4]"
                               : "text-cyan-600"
                           }
                         />
+                      </div>
 
-                        Leave your feedback
+                      {/* Content */}
 
-                        <FaExternalLinkAlt
-                          size={8}
-                        />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+
+                          <h4
+                            className={`text-base sm:text-lg lg:text-xl font-black ${
+                              isDarkMode
+                                ? "text-white"
+                                : "text-gray-900"
+                            }`}
+                          >
+                            Facebook
+                          </h4>
+
+                          <FaHeart
+                            size={10}
+                            className={
+                              isDarkMode
+                                ? "text-[#06b6d4]"
+                                : "text-cyan-600"
+                            }
+                          />
+
+                        </div>
+
+                        <p
+                          className={`text-[10px] sm:text-xs lg:text-sm ${
+                            isDarkMode
+                              ? "text-[#06b6d4]/70"
+                              : "text-cyan-600/70"
+                          }`}
+                        >
+                          Recommend us to your community
+                        </p>
+                      </div>
+
+                      {/* Arrow */}
+
+                      <div
+                        className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 group-hover:translate-x-1 ${
+                          isDarkMode
+                            ? "bg-white/5 text-[#06b6d4] group-hover:bg-[#06b6d4] group-hover:text-[#061014]"
+                            : "bg-gray-50 text-cyan-500 group-hover:bg-cyan-500 group-hover:text-white"
+                        }`}
+                      >
+                        <FaArrowRight size={11} />
                       </div>
                     </div>
+
+                    {/* CTA */}
+
+                    <div className="relative z-10 mt-5 flex items-center justify-between">
+
+                      <span
+                        className={`text-[9px] lg:text-[11px] uppercase tracking-[0.2em] font-black ${
+                          isDarkMode
+                            ? "text-[#06b6d4]"
+                            : "text-cyan-600"
+                        }`}
+                      >
+                        Recommend Us on Facebook
+                      </span>
+
+                      <FaExternalLinkAlt
+                        size={9}
+                        className={
+                          isDarkMode
+                            ? "text-[#06b6d4]/50"
+                            : "text-cyan-500/50"
+                        }
+                      />
+
+                    </div>
                   </motion.button>
+
+                  {/* =================================================
+                      THANK YOU FOR YOUR SUPPORT
+                  ================================================= */}
+
+                  <div className="mt-5 flex items-center justify-center gap-3">
+
+                    {/* Left line */}
+
+                    <div
+                      className={`h-px flex-1 ${
+                        isDarkMode
+                          ? "bg-[#d4e157]/40"
+                          : "bg-emerald-400/60"
+                      }`}
+                    />
+
+                    {/* Text */}
+
+                    <span
+                      className={`text-[8px] sm:text-[9px] lg:text-[10px] uppercase tracking-[0.2em] font-bold whitespace-nowrap ${
+                        isDarkMode
+                          ? "text-[#d4e157]"
+                          : "text-emerald-600"
+                      }`}
+                    >
+                      THANK YOU FOR YOUR SUPPORT
+                    </span>
+
+                    {/* Right line */}
+
+                    <div
+                      className={`h-px flex-1 ${
+                        isDarkMode
+                          ? "bg-[#d4e157]/40"
+                          : "bg-emerald-400/60"
+                      }`}
+                    />
+
+                  </div>
                 </div>
               </div>
 
               {/* =================================================
-                  BOTTOM MICRO CTA
+                  MOBILE BOTTOM MESSAGE
               ================================================= */}
 
               <div
-                className={`mt-8 pt-5 border-t flex flex-wrap items-center justify-center md:justify-start gap-2 ${
+                className={`mt-8 pt-5 border-t lg:hidden flex flex-col sm:flex-row items-center justify-center gap-3 ${
                   isDarkMode
-                    ? "border-white/10"
-                    : "border-gray-200"
+                    ? "border-[#d4e157]/15"
+                    : "border-emerald-200"
                 }`}
               >
-                <FaPen
-                  size={10}
-                  className={
+                <div
+                  className={`w-9 h-9 rounded-full flex items-center justify-center ${
                     isDarkMode
-                      ? "text-[#d4e157]"
-                      : "text-emerald-500"
-                  }
-                />
-
-                <span
-                  className={`text-[10px] sm:text-xs font-semibold ${
-                    isDarkMode
-                      ? "text-gray-500"
-                      : "text-gray-500"
+                      ? "bg-[#d4e157]/10 text-[#d4e157]"
+                      : "bg-emerald-50 text-emerald-500"
                   }`}
                 >
-                  A few words from you can make a
-                  big difference to us.
+                  <FaCommentDots size={13} />
+                </div>
+
+                <span
+                  className={`text-[10px] sm:text-xs font-semibold text-center ${
+                    isDarkMode
+                      ? "text-[#d4e157]"
+                      : "text-emerald-600"
+                  }`}
+                >
+                  A few words from you can make
+                  a big difference to us.
                 </span>
               </div>
             </div>
@@ -1194,8 +1474,8 @@ const Testimonials = () => {
           <span
             className={`text-[10px] uppercase tracking-[0.25em] font-bold ${
               isDarkMode
-                ? "text-gray-600"
-                : "text-gray-400"
+                ? "text-[#d4e157]"
+                : "text-emerald-600"
             }`}
           >
             TRUSTED • EXPERIENCED • CLIENT FOCUSED

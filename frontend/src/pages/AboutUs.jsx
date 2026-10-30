@@ -6,7 +6,7 @@ import WhoWeAre from "../components/WhoWeAre";
 import AwardsVideo from "../components/AwardsVideo";
 import OurTeam from "../components/OurTeam";
 import MissionVision from "../components/MissionVision";
-import PortfolioCTA from "../components/PortfolioCTA";
+// import PortfolioCTA from "../components/PortfolioCTA";
 import SubscribeSection from "../components/SubscribeSection";
 
 const AboutUs = () => {
@@ -37,7 +37,7 @@ const AboutUs = () => {
       <MissionVision />
 
       {/* Section 6: Portfolio CTA */}
-      <PortfolioCTA />
+      {/* <PortfolioCTA /> */}
 
       {/* Section 7: Subscribe - Same Component, Different Props */}
       <SubscribeSection 

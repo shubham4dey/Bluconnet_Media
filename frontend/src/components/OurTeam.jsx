@@ -58,11 +58,16 @@ const OurTeam = () => {
     if (memberName === "Shikha Sharma") return "center 28%";
     if (memberName === "Harry Chotu") return "center 28%";
     if (memberName === "Atreyee Som") return "center 40%";
-    if (memberName === "Shubham Dey") return "center 30%";
+    if (memberName === "Shubham Dey") return "center 35%";
     if (memberName === "Ronit Das") return "center 8%";
     if (memberName === "Pue Das") return "center 30%";
     if (memberName === "Poulami Pal") return "center 70%";
     return "center";
+  };
+
+  const getImageTransform = (memberName) => {
+    if (memberName === "Shubham Dey") return "scale(1.15) translateY(-6%)";
+    return undefined;
   };
 
   const teamMembers = [
@@ -78,7 +83,7 @@ const OurTeam = () => {
         pinterest: "#",
         youtube: "#",
       },
-      bio: "Shikha leads the company's vision with a focus on innovation, strategic growth, and building lasting client partnerships through digital-first business solutions.",
+      bio: "Leads the company's vision with a focus on innovation, strategic growth, and building lasting client partnerships through digital-first business solutions.",
       expertise: [
         "Business Strategy",
         "Leadership",
@@ -98,7 +103,7 @@ const OurTeam = () => {
         pinterest: "#",
         youtube: "#",
       },
-      bio: "Harry builds strong affiliate partnerships, manages publisher relationships, and drives campaign growth through strategic optimization and performance-focused management.",
+      bio: "Builds strong affiliate partnerships, manages publisher relationships, and drives campaign growth through strategic optimization and performance-focused management.",
       expertise: [
         "Affiliate Marketing",
         "Partner Management",
@@ -118,7 +123,7 @@ const OurTeam = () => {
         pinterest: "#",
         youtube: "#",
       },
-      bio: "Ravi manages social media campaigns, creates engaging content, and drives audience growth through strategic marketing and performance-focused execution.",
+      bio: "Manages social media campaigns, creates engaging content, and drives audience growth through strategic marketing and performance-focused execution.",
       expertise: [
         "Social Media Marketing",
         "Content Strategy",
@@ -138,7 +143,7 @@ const OurTeam = () => {
         pinterest: "#",
         youtube: "#",
       },
-      bio: "Atreyee manages HR operations, streamlines internal processes, and fosters a productive workplace while ensuring efficient coordination across teams.",
+      bio: "Manages HR operations, streamlines internal processes, and fosters a productive workplace while ensuring efficient coordination across teams.",
       expertise: [
         "HR Management",
         "Operations Management",
@@ -158,7 +163,7 @@ const OurTeam = () => {
         pinterest: "#",
         youtube: "#",
       },
-      bio: "Kashif creates responsive, high-performance user interfaces using modern web technologies, delivering seamless experiences with clean, efficient, and maintainable code.",
+      bio: "Creates responsive, high-performance user interfaces using modern web technologies, delivering seamless experiences with clean, efficient, and maintainable code.",
       expertise: ["React", "Next.js", "Tailwind CSS", "API Integration"],
     },
     {
@@ -173,7 +178,7 @@ const OurTeam = () => {
         pinterest: "#",
         youtube: "#",
       },
-      bio: "Shubham develops secure, scalable backend systems, builds robust APIs, and optimizes databases to ensure reliable performance across all applications.",
+      bio: "Develops secure, scalable backend systems, builds robust APIs, and optimizes databases to ensure reliable performance across all applications.",
       expertise: [
         "Node.js",
         "REST APIs",
@@ -182,9 +187,10 @@ const OurTeam = () => {
       ],
     },
     {
-      name: "Moumita Ghosh",
-      role: "Campaign Specialist",
-      image: teamImages.moumita,
+      name: "",
+      role: "Accounts Executive",
+      image:
+        "https://res.cloudinary.com/r6av8t7e/image/upload/v1791280509/1782804744662_mihiou.jpg",
       social: {
         facebook: "#",
         twitter: "#",
@@ -193,18 +199,19 @@ const OurTeam = () => {
         pinterest: "#",
         youtube: "#",
       },
-      bio: "Moumita plans, manages, and optimizes marketing campaigns to maximize reach, improve performance, and deliver measurable results for every client.",
+      bio: "Manages client accounts, coordinates billing and reporting, and ensures smooth communication between clients and the team.",
       expertise: [
-        "Campaign Strategy",
-        "Audience Segmentation",
-        "Performance Optimization",
-        "Marketing Analytics",
+        "Account Management",
+        "Client Coordination",
+        "Billing & Invoicing",
+        "Reporting",
       ],
     },
     {
-      name: "Rumki Deb",
-      role: "Lead Generation Specialist",
-      image: teamImages.rumki,
+      name: "",
+      role: "SEO Executive",
+      image:
+        "https://res.cloudinary.com/r6av8t7e/image/upload/v1791280738/imgo_fyrgsp.jpg",
       social: {
         facebook: "#",
         twitter: "#",
@@ -213,12 +220,12 @@ const OurTeam = () => {
         pinterest: "#",
         youtube: "#",
       },
-      bio: "Rumki identifies high-quality prospects, develops targeted outreach strategies, and generates valuable leads that help drive consistent business growth.",
+      bio: "Optimizes websites for search engines, researches keywords, and implements on-page and technical SEO strategies to grow organic traffic.",
       expertise: [
-        "Lead Generation",
-        "Prospect Research",
-        "Email Outreach",
-        "CRM Management",
+        "Keyword Research",
+        "On-Page SEO",
+        "Technical SEO",
+        "Organic Growth",
       ],
     },
     {
@@ -233,7 +240,7 @@ const OurTeam = () => {
         pinterest: "#",
         youtube: "#",
       },
-      bio: "Konica oversees campaign workflows, manages traffic distribution, and ensures projects are delivered on time with seamless coordination and operational efficiency.",
+      bio: "Oversees campaign workflows, manages traffic distribution, and ensures projects are delivered on time with seamless coordination and operational efficiency.",
       expertise: [
         "Traffic Management",
         "Campaign Operations",
@@ -253,7 +260,7 @@ const OurTeam = () => {
         pinterest: "#",
         youtube: "#",
       },
-      bio: "Ronit manages key client accounts, builds lasting partnerships, and ensures every project is executed smoothly while driving business growth and client satisfaction.",
+      bio: "Manages key client accounts, builds lasting partnerships, and ensures every project is executed smoothly while driving business growth and client satisfaction.",
       expertise: [
         "Client Relations",
         "Account Management",
@@ -273,7 +280,7 @@ const OurTeam = () => {
         pinterest: "#",
         youtube: "#",
       },
-      bio: "Sumana focuses on client success by managing accounts, improving collaboration, and delivering tailored solutions that drive lasting business value.",
+      bio: "Focuses on client success by managing accounts, improving collaboration, and delivering tailored solutions that drive lasting business value.",
       expertise: [
         "Customer Success",
         "Account Strategy",
@@ -293,7 +300,7 @@ const OurTeam = () => {
         pinterest: "#",
         youtube: "#",
       },
-      bio: "Pue builds strong client relationships, coordinates project execution, and ensures every solution aligns with business goals while delivering measurable results.",
+      bio: "Builds strong client relationships, coordinates project execution, and ensures every solution aligns with business goals while delivering measurable results.",
       expertise: [
         "Client Relations",
         "Account Management",
@@ -313,7 +320,7 @@ const OurTeam = () => {
         pinterest: "#",
         youtube: "#",
       },
-      bio: "Lasmi manages client relationships, coordinates project execution, and ensures every account is handled with efficiency, professionalism, and a strong focus on client success.",
+      bio: "Manages client relationships, coordinates project execution, and ensures every account is handled with efficiency, professionalism, and a strong focus on client success.",
       expertise: [
         "Client Management",
         "Account Strategy",
@@ -333,7 +340,7 @@ const OurTeam = () => {
         pinterest: "#",
         youtube: "#",
       },
-      bio: "Poulami oversees client accounts, strengthens business relationships, and ensures projects are delivered efficiently while maintaining exceptional service and client satisfaction.",
+      bio: "Oversees client accounts, strengthens business relationships, and ensures projects are delivered efficiently while maintaining exceptional service and client satisfaction.",
       expertise: [
         "Client Success",
         "Account Management",
@@ -499,12 +506,13 @@ const OurTeam = () => {
                   >
                     <img
                       src={pair[0].image}
-                      alt={pair[0].name}
+                      alt={pair[0].role}
                       loading="lazy"
                       decoding="async"
                       className="w-full h-full object-cover"
                       style={{
                         objectPosition: getImageObjectPosition(pair[0].name),
+                        transform: getImageTransform(pair[0].name),
                       }}
                     />
                     <motion.div
@@ -581,7 +589,7 @@ const OurTeam = () => {
                 </div>
               </motion.div>
 
-              {/* Center - Premium Capsule Design for Names */}
+              {/* Center - Premium Capsule Design for Designations */}
               <motion.div
                 className={`${colors.cardBg} rounded-3xl p-5 border-2 ${colors.borderColor} shadow-2xl flex flex-col justify-center gap-4 relative overflow-hidden`}
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -616,7 +624,7 @@ const OurTeam = () => {
                       >
                         <img
                           src={pair[0].image}
-                          alt={pair[0].name}
+                          alt={pair[0].role}
                           loading="lazy"
                           decoding="async"
                           className="w-full h-full object-cover"
@@ -624,6 +632,7 @@ const OurTeam = () => {
                             objectPosition: getImageObjectPosition(
                               pair[0].name,
                             ),
+                            transform: getImageTransform(pair[0].name),
                           }}
                         />
                       </div>
@@ -639,13 +648,8 @@ const OurTeam = () => {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4
-                        className={`font-bold text-base truncate transition-all duration-300 ${activeSpeaker === `left-${rowIndex}` ? (isDarkMode ? "text-[#d4e157]" : "text-emerald-700") : isDarkMode ? "text-white" : "text-gray-900"}`}
-                      >
-                        {pair[0].name}
-                      </h4>
                       <p
-                        className={`text-sm transition-colors duration-300 ${activeSpeaker === `left-${rowIndex}` ? (isDarkMode ? "text-[#06b6d4]" : "text-cyan-700") : isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                        className={`font-semibold text-base leading-snug transition-colors duration-300 ${activeSpeaker === `left-${rowIndex}` ? (isDarkMode ? "text-[#06b6d4]" : "text-cyan-700") : isDarkMode ? "text-gray-400" : "text-gray-600"}`}
                       >
                         {pair[0].role}
                       </p>
@@ -684,7 +688,7 @@ const OurTeam = () => {
                       >
                         <img
                           src={pair[1].image}
-                          alt={pair[1].name}
+                          alt={pair[1].role}
                           loading="lazy"
                           decoding="async"
                           className="w-full h-full object-cover"
@@ -692,6 +696,7 @@ const OurTeam = () => {
                             objectPosition: getImageObjectPosition(
                               pair[1].name,
                             ),
+                            transform: getImageTransform(pair[1].name),
                           }}
                         />
                       </div>
@@ -707,13 +712,8 @@ const OurTeam = () => {
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4
-                        className={`font-bold text-base truncate transition-all duration-300 ${activeSpeaker === `right-${rowIndex}` ? (isDarkMode ? "text-[#d4e157]" : "text-emerald-700") : isDarkMode ? "text-white" : "text-gray-900"}`}
-                      >
-                        {pair[1].name}
-                      </h4>
                       <p
-                        className={`text-sm transition-colors duration-300 ${activeSpeaker === `right-${rowIndex}` ? (isDarkMode ? "text-[#06b6d4]" : "text-cyan-700") : isDarkMode ? "text-gray-400" : "text-gray-600"}`}
+                        className={`font-semibold text-base leading-snug transition-colors duration-300 ${activeSpeaker === `right-${rowIndex}` ? (isDarkMode ? "text-[#06b6d4]" : "text-cyan-700") : isDarkMode ? "text-gray-400" : "text-gray-600"}`}
                       >
                         {pair[1].role}
                       </p>
@@ -767,12 +767,13 @@ const OurTeam = () => {
                   >
                     <img
                       src={pair[1].image}
-                      alt={pair[1].name}
+                      alt={pair[1].role}
                       loading="lazy"
                       decoding="async"
                       className="w-full h-full object-cover"
                       style={{
                         objectPosition: getImageObjectPosition(pair[1].name),
+                        transform: getImageTransform(pair[1].name),
                       }}
                     />
                     <motion.div
@@ -952,7 +953,7 @@ const OurTeam = () => {
                   >
                     <img
                       src={selectedMember.image}
-                      alt={selectedMember.name}
+                      alt={selectedMember.role}
                       loading="lazy"
                       decoding="async"
                       className="w-full h-full object-cover"
@@ -960,6 +961,7 @@ const OurTeam = () => {
                         objectPosition: getImageObjectPosition(
                           selectedMember.name,
                         ),
+                        transform: getImageTransform(selectedMember.name),
                       }}
                     />
                   </div>
@@ -973,11 +975,6 @@ const OurTeam = () => {
 
                 <div className="p-8 md:p-10 flex flex-col justify-center items-start text-start w-full">
                   <div className="mb-6 w-full">
-                    <h3
-                      className={`text-3xl md:text-4xl font-black mb-3 ${isDarkMode ? "text-white" : "text-gray-900"} text-start`}
-                    >
-                      {selectedMember.name}
-                    </h3>
                     <span
                       className={`inline-block px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider ${isDarkMode ? "bg-[#d4e157]/10 text-[#d4e157] border border-[#d4e157]/30" : "bg-emerald-50 text-emerald-700 border border-emerald-200"}`}
                     >

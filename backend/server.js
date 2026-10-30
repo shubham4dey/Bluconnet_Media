@@ -14,6 +14,7 @@ const multer = require("multer");
 const db = require("./config/database");
 const mysql = require("./config/mysql");
 const contacts = require("./models/contactModel");
+const subscribers = require("./models/subscriberModel");
 const newsModel = require("./models/newsModel");
 const { globalLimiter } = require("./middleware/rateLimit");
 const cloudinary = require("./services/cloudinary");
@@ -38,6 +39,22 @@ contacts
   .catch((err) =>
     console.error(
       `[mysql] contacts schema unavailable (${mysql.safeError(err)}) — run \`npm run migrate\` once MySQL is up`
+    )
+  );
+
+/* Newsletter subscriptions live in MySQL (`subscribers` table, migration 002).
+   Bootstrap it on every boot with the same best-effort pattern as `contacts`:
+   a missing/unreachable database must never take the API down — the model
+   self-heals on first write and POST /api/subscribe answers a clean 500
+   until MySQL is reachable (`npm run migrate` re-applies the schema). */
+subscribers
+  .ensureSchema()
+  .then(() =>
+    console.log(`[mysql] ${mysql.describeTarget()} — \`${subscribers.TABLE}\` table ready`)
+  )
+  .catch((err) =>
+    console.error(
+      `[mysql] subscribers schema unavailable (${mysql.safeError(err)}) — run \`npm run migrate\` once MySQL is up`
     )
   );
 
@@ -196,42 +213,47 @@ app.use(
 /* ---------------- routes ---------------- */
 app.set("trust proxy", 1);
 
-/* Health + storage diagnostics. `news` reports where articles and images are
-   actually stored (no secrets) so production can be verified with one request:
-     store.durable      → true = articles are in MySQL (survive a redeploy)
-     store.requireDb    → true = a failed MySQL write is reported as an error
-     images.configured  → Cloudinary credentials present on this service      */
+/* Health endpoint: public responses report only minimal operational status.
+   Detailed storage diagnostics name the database target and last connection
+   error, but those stay available for operations only. As soon as a HEALTH_TOKEN
+   is configured, the detail requires that token (`x-health-token: <token>`),
+   so the endpoint no longer publishes infrastructure identifiers to anonymous
+   callers. With no HEALTH_TOKEN configured the endpoint fails closed and never
+   exposes details, so existing monitoring (which relies on the minimal public
+   fields) keeps working unchanged. */
 const health = (req, res) => {
-  /* SECURITY: the storage diagnostics can carry the last database connection
-     error. It stays available for operations, but only when the caller presents
-     the configured token (`x-health-token: <token>`), so the endpoint does not
-     publish connection details to anonymous callers. With no HEALTH_TOKEN set
-     the response is exactly what it was before, so monitoring keeps working. */
+  /* SECURITY: public responses report only minimal operational status.
+     Detailed storage diagnostics name the database target and last connection
+     error, but those stay available for operations only. As soon as a
+     HEALTH_TOKEN is configured, the detail requires that token
+     (`x-health-token: <token>`), so the endpoint no longer publishes
+     infrastructure identifiers to anonymous callers. With no HEALTH_TOKEN set
+     the endpoint fails closed and never exposes details; normal monitoring
+     keeps working unchanged. */
   const healthToken = String(process.env.HEALTH_TOKEN || "");
-  const canSeeDetail =
-    Boolean(healthToken) && (req.headers["x-health-token"] || "") === healthToken;
+  const authorized =
+    healthToken !== "" && (req.headers["x-health-token"] || "") === healthToken;
 
   const store = {
     durable: newsModel.isDurable(),
-    table: newsModel.TABLE,
+    mirror: newsModel.status().mirror,
     requireDb: newsModel.status().requireDb,
   };
-  if (canSeeDetail) {
-    store.lastError = newsModel.status().lastError || null;
+
+  const images = { configured: cloudinary.isConfigured() };
+  if (authorized) {
+    const s = newsModel.status();
+    store.target = s.target;
+    store.connect = s.connect;
+    images.cloud = cloudinary.cloudName();
+    images.folder = cloudinary.NEWS_FOLDER;
   }
 
   return res.json({
     ok: true,
     service: "bluconnet-ai-backend",
     time: new Date().toISOString(),
-    news: {
-      store,
-      images: {
-        configured: cloudinary.isConfigured(),
-        cloud: cloudinary.cloudName(),
-        folder: cloudinary.NEWS_FOLDER,
-      },
-    },
+    news: { store, images },
   });
 };
 
@@ -274,20 +296,42 @@ app.use((err, req, res, next) => {
    keeps answering with whatever the mirror holds. */
 console.log(`[cloudinary] ${cloudinary.describe()}`);
 
-async function bootstrapNews() {
-  try {
-    const schema = await newsModel.ensureSchema();
-    console.log(`[news] storage : MySQL \`${schema.table}\` via ${schema.target}`);
-  } catch (err) {
-    console.error(
-      `[news] MySQL unavailable (${mysql.safeError(err)}) — articles are kept in the local mirror only ` +
-        "until the database is reachable (check the NAMECHEAP_SSH_* / MYSQL_* variables)"
-    );
-    return;
-  }
+/* ---------------- permanent News storage on boot ----------------
+   Articles live in MySQL (`news` table) with `backend/data/news.json` as a
+   local read mirror; images live on Cloudinary. The order below matters:
 
+     1. create/verify the news schema (idempotent, same SQL as `npm run migrate`)
+     2. upgrade legacy image references (local `/uploads/...` paths Render has
+        already wiped, inline base64) to permanent Cloudinary assets
+     3. import mirror articles MySQL does not have yet — INSERT IGNORE on the
+        primary key, so no duplicate and no overwrite ever happens
+     4. hydrate the mirror from MySQL, so the public API serves the database
+
+   Every step is independent and best-effort, and the whole sequence is
+   IDEMPOTENT, so it is safe to re-run.
+
+   The first attempt is retried a few times because the FIRST connection of an
+   instance is the fragile one: a cold start plus the Namecheap SSH handshake
+   (66.29.132.129:21098) has to finish before the forwarded socket can carry
+   MySQL traffic. Previously that single attempt was the only one ever made —
+   when it lost that race the instance served an empty mirror for its entire
+   lifetime (news pages showed "coming soon" while the rows sat in MySQL).
+   A watchdog then keeps the store honest for as long as the instance lives. */
+
+const BOOT_RETRY_MS = Number(process.env.NEWS_BOOT_RETRY_MS || 5000) || 5000;
+const BOOT_RETRY_MAX = Number(process.env.NEWS_BOOT_RETRY_MAX || 6) || 6;
+const WATCHDOG_MS = Number(process.env.NEWS_DB_REFRESH_MS || 60000) || 60000;
+
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+let imagesReconciled = false;
+
+/* Legacy image upgrade — runs once, only after MySQL is known to be usable. */
+async function reconcileImages() {
+  if (imagesReconciled) return;
   try {
     const report = await newsImage.migrateNewsImages({ allowRemote: false });
+    imagesReconciled = true;
     if (report.migrated) {
       console.log(
         `[cloudinary] migrated ${report.migrated} legacy news image(s) (scanned=${report.scanned}, unmigrated=${report.unmigrated})`
@@ -300,31 +344,87 @@ async function bootstrapNews() {
   } catch (err) {
     console.error(`[cloudinary] news image migration skipped (${err.message})`);
   }
+}
 
-  try {
-    const report = await newsModel.hydrate();
-    console.log(
-      `[news] articles: ${report.articles} stored in MySQL ` +
-        `(imported=${report.imported}, recovered=${report.seeded}, importFailed=${report.importFailed}, mirrorOnly=${report.kept})`
-    );
-  } catch (err) {
-    console.error(`[news] mirror hydration skipped (${err.message})`);
+/** Connect to MySQL and sync the read mirror. Resolves true when durable. */
+async function connectAndHydrate() {
+  if (!newsModel.isDurable()) {
+    const schema = await newsModel.ensureSchema();
+    console.log(`[news] storage : MySQL \`${schema.table}\` via ${schema.target}`);
   }
 
-  /* Optional: keep the local mirror in step with MySQL when something else
-     writes to the table (multi-instance / manual SQL). Disabled by default —
-     a single instance always mirrors its own writes. */
-  const refreshMs = Number(process.env.NEWS_DB_REFRESH_MS || 0) || 0;
-  if (refreshMs > 0) {
-    setInterval(() => {
-      newsModel
-        .refreshFromDb()
-        .catch((err) => console.error(`[news] mirror refresh skipped (${err.message})`));
-    }, refreshMs).unref();
+  await reconcileImages();
+
+  const report = await newsModel.hydrate();
+  console.log(
+    `[news] articles: ${report.articles} stored in MySQL ` +
+      `(imported=${report.imported}, recovered=${report.seeded}, importFailed=${report.importFailed}, mirrorOnly=${report.kept}) ` +
+      `— /api/news serves ${newsModel.status().mirror}`
+  );
+  return true;
+}
+
+async function bootstrapNews() {
+  for (let attempt = 1; attempt <= BOOT_RETRY_MAX; attempt += 1) {
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      await connectAndHydrate();
+      if (attempt > 1) {
+        console.log(`[news] MySQL reachable on attempt ${attempt} — articles are live`);
+      }
+      break;
+    } catch (err) {
+      const last = attempt === BOOT_RETRY_MAX;
+      console.error(
+        `[news] MySQL connection attempt ${attempt}/${BOOT_RETRY_MAX} failed ` +
+          `(${mysql.safeError(err)})${last ? " — giving up for now" : ` — retrying in ${BOOT_RETRY_MS / 1000}s`}`
+      );
+      if (last) {
+        console.error(
+          `[news] the public API now serves the local mirror (${newsModel.status().mirror} article(s)). ` +
+            `Fix the database configuration — \`GET /api/health\` reports the resolved target, the tunnel state and the last error.`
+        );
+        break;
+      }
+      // eslint-disable-next-line no-await-in-loop
+      await delay(BOOT_RETRY_MS);
+    }
   }
 }
 
-bootstrapNews();
+/* Watchdog: self-heal a failed connection, then keep the mirror in step with
+   MySQL. Both paths are idempotent and never delete an article that has not
+   reached the database yet (see models/newsModel.js). */
+function startNewsWatchdog() {
+  const timer = setInterval(async () => {
+    if (!newsModel.isDurable()) {
+      try {
+        await connectAndHydrate();
+        console.log("[news] MySQL became reachable — articles are live again");
+      } catch (err) {
+        console.error(`[news] MySQL still unreachable (${mysql.safeError(err)})`);
+      }
+      return;
+    }
+
+    try {
+      const report = await newsModel.refreshFromDb();
+      if (report.skipped) {
+        console.warn("[news] mirror refresh skipped — the store is not initialised yet");
+      } else if (report.imported || report.kept) {
+        console.log(
+          `[news] mirror refreshed from MySQL (${report.fromDb} article(s), imported=${report.imported}, mirrorOnly=${report.kept})`
+        );
+      }
+    } catch (err) {
+      console.error(`[news] mirror refresh skipped (${mysql.safeError(err)})`);
+    }
+  }, WATCHDOG_MS);
+
+  timer.unref();
+}
+
+bootstrapNews().then(startNewsWatchdog);
 
 app.listen(PORT, () => {
   console.log(`✅ BluConnet AI backend running on port ${PORT} (NODE_ENV=${process.env.NODE_ENV || "development"})`);

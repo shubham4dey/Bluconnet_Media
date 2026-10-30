@@ -1,29 +1,21 @@
 import React, { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
-import { FaPaperPlane, FaCheckCircle } from "react-icons/fa";
+import { FaPaperPlane } from "react-icons/fa";
 import { useTheme } from "../context/ThemeContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { getRecaptchaToken } from "./RecaptchaProtection";
+import API_BASE from "../services/apiConfig";
 
 /* =========================================================
    CONTACT FORM API — the ONE existing endpoint: POST /api/contact
    (stores the enquiry in the MySQL `contacts` table).
 
-   Same environment convention as pages/contact.jsx, so localhost
-   is never used in a production build:
-     .env             → REACT_APP_API_URL=http://localhost:5000/api
-     .env.production  → REACT_APP_API_URL=https://bluconnet-backend-m2jl.onrender.com/api
+   The URL itself lives in ONE place (services/apiConfig.js), which reads
+   REACT_APP_API_URL (.env for dev, .env.production for `npm run build`) and
+   falls back to the deployed production backend — so localhost is never used
+   in a production build and the URL exists in exactly one file.
    ========================================================= */
-
-const RAW_API_URL = (
-  process.env.REACT_APP_API_URL ||
-  "https://bluconnet-backend-m2jl.onrender.com/api"
-).replace(/\/+$/, "");
-
-/* Accepts both ".../api" (project default) and a bare origin ("...:5000"). */
-const API_BASE = /\/api$/.test(RAW_API_URL)
-  ? RAW_API_URL
-  : `${RAW_API_URL}/api`;
 
 const CONTACT_ENDPOINT = `${API_BASE}/contact`;
 
@@ -54,8 +46,9 @@ const ContactHome = () => {
      double click could otherwise fire two POSTs before React re-renders. */
   const submittingRef = useRef(false);
 
-  // In-page success feedback (replaces the old success alert()).
-  const [showSuccess, setShowSuccess] = useState(false);
+  // Success UX lives on the shared dedicated page — keep every
+  // field, validation, endpoint, and submission behaviour unchanged.
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const value =
@@ -77,6 +70,9 @@ const ContactHome = () => {
     setSubmitting(true);
 
     try {
+      /* reCAPTCHA v3 token — verified server-side via backend/middleware/recaptcha. */
+      const recaptchaToken = await getRecaptchaToken("contact_form");
+
       const response = await fetch(CONTACT_ENDPOINT, {
         method: "POST",
         headers: {
@@ -94,6 +90,7 @@ const ContactHome = () => {
           agreeToContact: formData.agreeToContact,
           // Which form this enquiry came from (Admin Panel filtering).
           source: "home-contact",
+          recaptchaToken: recaptchaToken || undefined,
         }),
       });
 
@@ -116,7 +113,11 @@ const ContactHome = () => {
       }
 
       // HTTP 201 — the enquiry is stored in the MySQL `contacts` table.
-      setShowSuccess(true);
+      // Success UX lives on the shared dedicated page — keep every
+      // field, validation, endpoint, and submission behaviour unchanged.
+      navigate("/form-success?type=contact", {
+        state: { type: "contact", email: formData.email },
+      });
 
       setFormData({
         firstName: "",
@@ -888,184 +889,6 @@ const ContactHome = () => {
         </motion.div>
       </div>
 
-      {/* =================================================
-          SUCCESS FEEDBACK — in-page (no browser alert)
-      ================================================= */}
-
-      <AnimatePresence>
-        {showSuccess && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            onClick={() => setShowSuccess(false)}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="home-contact-success-title"
-            className="
-              fixed
-              inset-0
-              z-[9999]
-              flex
-              items-center
-              justify-center
-              bg-black/60
-              px-4
-              py-6
-              backdrop-blur-sm
-            "
-          >
-            <motion.div
-              onClick={(e) => e.stopPropagation()}
-              initial={{ opacity: 0, scale: 0.9, y: 24 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 12 }}
-              transition={{ type: "spring", stiffness: 260, damping: 22 }}
-              className={`
-                relative
-                w-full
-                max-w-md
-                overflow-hidden
-                rounded-3xl
-                border
-                p-6
-                text-center
-                backdrop-blur-xl
-                shadow-2xl
-                sm:p-8
-                ${theme.cardBg}
-                ${theme.borderColor}
-              `}
-            >
-              <div
-                className={`
-                  pointer-events-none
-                  absolute
-                  -top-20
-                  left-1/2
-                  h-44
-                  w-44
-                  -translate-x-1/2
-                  rounded-full
-                  blur-3xl
-                  ${
-                    isDarkMode
-                      ? "bg-[#d4e157]/20"
-                      : "bg-emerald-400/20"
-                  }
-                `}
-              />
-
-              <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center">
-                <motion.span
-                  animate={{ scale: [1, 1.35, 1.35], opacity: [0.35, 0, 0] }}
-                  transition={{
-                    duration: 1.8,
-                    repeat: Infinity,
-                    ease: "easeOut",
-                  }}
-                  className={`
-                    absolute
-                    inset-0
-                    rounded-full
-                    bg-gradient-to-r
-                    ${theme.gradientBg}
-                  `}
-                />
-
-                <motion.div
-                  initial={{ scale: 0, rotate: -30 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{
-                    delay: 0.12,
-                    type: "spring",
-                    stiffness: 280,
-                    damping: 18,
-                  }}
-                  className={`
-                    relative
-                    flex
-                    h-20
-                    w-20
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-gradient-to-r
-                    ${theme.gradientBg}
-                    ${theme.btnText}
-                    ${
-                      isDarkMode
-                        ? "shadow-[0_8px_30px_rgba(212,225,87,0.35)]"
-                        : "shadow-[0_8px_30px_rgba(16,185,129,0.35)]"
-                    }
-                  `}
-                >
-                  <FaCheckCircle className="text-4xl" />
-                </motion.div>
-              </div>
-
-              <h3
-                id="home-contact-success-title"
-                className={`
-                  bg-gradient-to-r
-                  bg-clip-text
-                  text-2xl
-                  font-black
-                  uppercase
-                  tracking-wide
-                  text-transparent
-                  sm:text-3xl
-                  ${theme.gradientText}
-                `}
-              >
-                Successfully Submitted!
-              </h3>
-
-              <p
-                className={`
-                  mt-3
-                  text-sm
-                  leading-relaxed
-                  ${theme.muted}
-                `}
-              >
-                Thank you! We have received your message and will get back to you soon.
-              </p>
-
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.03, y: -2 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setShowSuccess(false)}
-                className={`
-                  mt-7
-                  w-full
-                  rounded-xl
-                  bg-gradient-to-r
-                  px-6
-                  py-3.5
-                  text-sm
-                  font-bold
-                  uppercase
-                  tracking-widest
-                  transition-all
-                  duration-300
-                  ${theme.gradientBg}
-                  ${theme.btnText}
-                  ${
-                    isDarkMode
-                      ? "shadow-[0_8px_30px_rgba(212,225,87,0.25)] hover:shadow-[0_12px_35px_rgba(212,225,87,0.4)]"
-                      : "shadow-[0_8px_30px_rgba(16,185,129,0.25)] hover:shadow-[0_12px_35px_rgba(16,185,129,0.4)]"
-                  }
-                `}
-              >
-                Done
-              </motion.button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </section>
   );
 };

@@ -6,9 +6,9 @@
 const express = require("express");
 const router = express.Router();
 
-const { submitLimiter, uploadLimiter, publicUploadLimiter, authLimiter, aiLimiter } = require("../middleware/rateLimit");
+const { submitLimiter, uploadLimiter, publicUploadLimiter, authLimiter, aiLimiter, usernameThrottle } = require("../middleware/rateLimit");
 const { requireRecaptcha } = require("../middleware/recaptcha");
-const { requireAuth } = require("../middleware/auth");
+const { requireAuth, requireRole } = require("../middleware/auth");
 const { imageUpload, imageSignatureGuard } = require("../middleware/upload");
 const submissions = require("../controllers/submissionController");
 const chat = require("../controllers/chatController");
@@ -86,7 +86,7 @@ router.use("/contact", contactRoutes);
 router.use("/subscribe", subscribeRoutes);
 
 /* ---------------- admin ---------------- */
-router.post("/admin/login", authLimiter, admin.login);
+router.post("/admin/login", authLimiter, usernameThrottle, admin.login);
 /* Logout revokes the presented token immediately (no remaining 12h TTL) */
 router.post("/admin/logout", requireAuth, admin.logout);
 /* /admin/news must be registered before the generic /admin/:collection route */
@@ -107,11 +107,11 @@ router.post(
 router.post("/admin/news/migrate-images", requireAuth, requireRole("super_admin"), news.migrateImages);
 router.put("/admin/news/:id", requireAuth, requireRole("super_admin"), news.update);
 router.delete("/admin/news/:id", requireAuth, requireRole("super_admin"), news.remove);
-router.get("/admin/dashboard", requireRole("super_admin"), admin.dashboard);
-router.get("/admin/settings", requireRole("super_admin"), admin.getSettings);
+router.get("/admin/dashboard", requireAuth, requireRole("super_admin"), admin.dashboard);
+router.get("/admin/settings", requireAuth, requireRole("super_admin"), admin.getSettings);
 router.get("/admin/:collection", requireAuth, requireRole("super_admin"), admin.listCollection);
-router.get("/admin/export/:collection", requireRole("super_admin"), admin.exportCsv);
-router.put("/admin/settings", requireRole("super_admin"), admin.updateSettings);
+router.get("/admin/export/:collection", requireAuth, requireRole("super_admin"), admin.exportCsv);
+router.put("/admin/settings", requireAuth, requireRole("super_admin"), admin.updateSettings);
 router.put("/admin/:collection/:id", requireAuth, requireRole("super_admin"), admin.updateRecord);
 router.delete("/admin/:collection/:id", requireAuth, requireRole("super_admin"), admin.deleteRecord);
 
@@ -121,7 +121,8 @@ router.get("/admin/leads/stats", requireAuth, requireRole("super_admin"), leads.
 router.get("/admin/leads/:id", requireAuth, requireRole("super_admin"), leads.getLeadWithHistory);
 router.put("/admin/leads/:id", requireAuth, requireRole("super_admin"), leads.updateLead);
 router.delete("/admin/leads/:id", requireAuth, requireRole("super_admin"), leads.deleteLead);
-router.post("/admin/leads/bulk-delete", requireRole("super_admin"), leads.bulkDelete);
+// router.post("/admin/leads/bulk-delete", requireRole("super_admin"), leads.bulkDelete);
+router.post("/admin/leads/bulk-delete", requireAuth, requireRole("super_admin"), leads.bulkDelete);
 router.post("/admin/leads/:id/note", requireAuth, requireRole("super_admin"), leads.addNote);
 
 /* ---------------- Chat Session Management ---------------- */

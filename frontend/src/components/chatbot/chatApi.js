@@ -11,13 +11,11 @@ import axios from "axios";
 /* reCAPTCHA v3 — the backend verifies every protected submission with Google
    (backend/middleware/recaptcha.js) using the token this client sends. */
 import { getRecaptchaToken } from "../RecaptchaProtection";
+import API_BASE from "../../services/apiConfig";
 
-/* Production default — same host that serves the built frontend.
-   Local dev overrides this via frontend/.env
-   (REACT_APP_API_URL=http://localhost:5000/api). */
-const API = (
-  process.env.REACT_APP_API_URL || "https://bluconnetmedia.com/api"
-).replace(/\/+$/, "");
+/* Backend base URL — defined once in services/apiConfig.js (REACT_APP_API_URL
+   with the deployed production backend as the fallback). */
+const API = API_BASE;
 
 const client = axios.create({
   baseURL: API,

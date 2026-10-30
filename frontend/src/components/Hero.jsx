@@ -1,36 +1,24 @@
 import React, { useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  FaArrowRight,
-  FaStar,
-  FaPaperPlane,
-  FaCheckCircle,
-} from "react-icons/fa";
+import { motion } from "framer-motion";
+import { FaArrowRight, FaStar, FaPaperPlane } from "react-icons/fa";
 import { useTheme } from "../context/ThemeContext";
 import { useLanguage } from "../context/LanguageContext";
 import getThemeColors from "../utils/themeColors";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { getRecaptchaToken } from "./RecaptchaProtection";
+import API_BASE from "../services/apiConfig";
 
 // =========================================================
 // SIGNUP LINKS
 // =========================================================
 
 const AFFILIATE_SIGNUP_URL = "https://bluconnet.affise.com/v2/sign/up";
-const ADVERTISER_SIGNUP_URL = "https://bluconnet.affise.com/v2/sign/up";
+const ADVERTISER_SIGNUP_URL = "contact";
 
 /* =========================================================
    CONTACT FORM API — the ONE existing endpoint: POST /api/contact
    (stores the enquiry in the MySQL `contacts` table).
    ========================================================= */
-
-const RAW_API_URL = (
-  process.env.REACT_APP_API_URL ||
-  "https://bluconnet-backend-m2jl.onrender.com/api"
-).replace(/\/+$/, "");
-
-const API_BASE = /\/api$/.test(RAW_API_URL)
-  ? RAW_API_URL
-  : `${RAW_API_URL}/api`;
 
 const CONTACT_ENDPOINT = `${API_BASE}/contact`;
 
@@ -59,7 +47,7 @@ const Hero = () => {
 
   const [submitting, setSubmitting] = useState(false);
   const submittingRef = useRef(false);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const navigate = useNavigate();
 
   // =========================================================
   // HERO TITLE
@@ -68,21 +56,21 @@ const Hero = () => {
   const heroTitle = t("hero.title");
 
   const heroSplit = (() => {
-  const splitText = "Digital Growth.";
-  const i = heroTitle.indexOf(splitText);
+    const splitText = "Performance Marketing.";
+    const i = heroTitle.indexOf(splitText);
 
-  if (i === -1) {
+    if (i === -1) {
+      return {
+        first: heroTitle,
+        second: "",
+      };
+    }
+
     return {
-      first: heroTitle,
-      second: "",
+      first: heroTitle.slice(0, i).trim(),
+      second: heroTitle.slice(i).trim(),
     };
-  }
-
-  return {
-    first: heroTitle.slice(0, i).trim(),
-    second: heroTitle.slice(i).trim(),
-  };
-})();
+  })();
 
   // =========================================================
   // FORM OPTIONS
@@ -146,6 +134,9 @@ const Hero = () => {
     setSubmitting(true);
 
     try {
+      /* reCAPTCHA v3 token — verified server-side via backend/middleware/recaptcha. */
+      const recaptchaToken = await getRecaptchaToken("contact_form");
+
       const response = await fetch(CONTACT_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -160,6 +151,7 @@ const Hero = () => {
           hearAbout: formData.hearAbout,
           agreeToContact: formData.agreeToContact,
           source: "hero",
+          recaptchaToken: recaptchaToken || undefined,
         }),
       });
 
@@ -176,7 +168,11 @@ const Hero = () => {
         throw new Error(message);
       }
 
-      setShowSuccess(true);
+      // Success UX lives on the shared dedicated page — keep every
+      // field, validation, endpoint, and submission behaviour unchanged.
+      navigate("/form-success?type=contact", {
+        state: { type: "contact", email: formData.email },
+      });
       setFormData({
         firstName: "",
         lastName: "",
@@ -324,7 +320,7 @@ const Hero = () => {
   // =========================================================
 
   const inputClass = `
-    w-full px-4 py-3 rounded-xl border
+    w-full min-w-0 px-4 py-3 rounded-xl border
     ${colors.borderColor} ${colors.innerCardBg} ${colors.textColor}
     placeholder-gray-400 text-sm outline-none transition-all duration-300
     focus:ring-2
@@ -361,7 +357,7 @@ const Hero = () => {
       />
 
       <div className="max-w-7xl mx-auto relative z-10 w-full">
-        <div className="grid lg:grid-cols-[0.9fr_1.1fr] gap-10 lg:gap-14 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-[0.9fr_1.1fr] gap-8 sm:gap-10 lg:gap-14 items-center min-w-0">
           {/* =================================================
               LEFT HERO
           ================================================= */}
@@ -369,7 +365,7 @@ const Hero = () => {
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-left"
+            className="text-left min-w-0 w-full"
           >
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -396,32 +392,32 @@ const Hero = () => {
             </motion.div>
 
             <motion.h1
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: 0.2, duration: 0.8 }}
-  data-i18n-skip
-  className={`text-4xl sm:text-5xl md:text-6xl lg:text-[4rem] xl:text-7xl font-extrabold leading-[1.08] ${
-    isDarkMode ? "text-white" : "text-gray-900"
-  }`}
->
-  <span>{heroSplit.first} </span>
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+              data-i18n-skip
+              className={`max-w-full min-w-0 break-words text-3xl min-[375px]:text-4xl sm:text-5xl md:text-6xl lg:text-[4rem] xl:text-7xl font-extrabold leading-[1.08] ${
+                isDarkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              <span>{heroSplit.first} </span>
 
-  <span
-    className={`text-transparent bg-clip-text bg-gradient-to-r ${
-      isDarkMode
-        ? "from-[#d4e157] to-[#06b6d4]"
-        : "from-emerald-500 to-cyan-600"
-    }`}
-  >
-    {heroSplit.second}
-  </span>
-</motion.h1>
+              <span
+                className={`text-transparent bg-clip-text bg-gradient-to-r ${
+                  isDarkMode
+                    ? "from-[#d4e157] to-[#06b6d4]"
+                    : "from-emerald-500 to-cyan-600"
+                }`}
+              >
+                {heroSplit.second}
+              </span>
+            </motion.h1>
 
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.8 }}
-              className={`mt-6 ${colors.textMuted} text-base md:text-lg leading-relaxed max-w-xl`}
+              className={`mt-6 ${colors.textMuted} text-base md:text-lg leading-relaxed max-w-xl break-words`}
             >
               BluConnet Media delivers intelligent, AI-powered marketing
               solutions that transform businesses worldwide. From digital
@@ -434,7 +430,7 @@ const Hero = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.8 }}
-              className="mt-8 flex flex-col sm:flex-row gap-4"
+              className="mt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
             >
               <motion.button
                 type="button"
@@ -486,14 +482,14 @@ const Hero = () => {
             {/* =================================================
                 RATING (UPDATED WITH IMAGES)
             ================================================= */}
-            <motion.div
+            {/* <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 0.8 }}
               className="mt-8 flex items-center gap-3"
             >
               <div className="flex -space-x-2">
-                {/* Aap in URLs ko apni actual images se replace kar sakte hain */}
+
                 <img
                   src="https://randomuser.me/api/portraits/men/32.jpg"
                   alt="User 1"
@@ -520,7 +516,7 @@ const Hero = () => {
                 <span className={`${colors.textColor} font-bold`}>4.8</span>
                 <span className={`${colors.textMuted} text-sm`}>(150K)</span>
               </div>
-            </motion.div>
+            </motion.div> */}
           </motion.div>
 
           {/* =================================================
@@ -530,7 +526,7 @@ const Hero = () => {
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.35, duration: 0.8 }}
-            className="relative w-full"
+            className="relative w-full min-w-0"
           >
             <div
               className={`absolute -inset-1 rounded-[28px] blur-xl opacity-20 ${
@@ -543,7 +539,7 @@ const Hero = () => {
             <div
               className={`relative rounded-[26px] border ${colors.borderColor} ${
                 isDarkMode ? "bg-[#0b1029]/90" : "bg-white/90"
-              } backdrop-blur-2xl shadow-2xl p-5 sm:p-6 md:p-7 overflow-hidden`}
+              } backdrop-blur-2xl shadow-2xl p-4 sm:p-6 md:p-7 overflow-hidden`}
             >
               <div
                 className={`absolute top-0 right-0 w-40 h-40 rounded-full blur-3xl pointer-events-none ${isDarkMode ? "bg-[#06b6d4]/10" : "bg-cyan-500/10"}`}
@@ -564,7 +560,7 @@ const Hero = () => {
                       Let's Connect
                     </div>
                     <h2
-                      className={`text-2xl sm:text-3xl font-extrabold text-left ${colors.textColor}`}
+                      className={`text-xl min-[375px]:text-2xl sm:text-3xl font-extrabold text-left break-words ${colors.textColor}`}
                     >
                       Let's build something{" "}
                       <span
@@ -574,7 +570,7 @@ const Hero = () => {
                       </span>
                     </h2>
                     <p
-                      className={`mt-2 text-xs sm:text-sm leading-relaxed text-left whitespace-nowrap ${colors.textMuted}`}
+                      className={`mt-2 text-xs sm:text-sm leading-relaxed text-left whitespace-normal break-words ${colors.textMuted}`}
                     >
                       Tell us about your project and our team will get back to
                       you within 24 hours.
@@ -801,7 +797,7 @@ const Hero = () => {
                 <div className="flex items-start gap-3 pt-1">
                   <label
                     htmlFor="hero-agree-to-contact"
-                    className="relative mt-0.5 w-5 h-5 flex-shrink-0 cursor-pointer"
+                    className="relative mt-0.5 h-4 w-4 md:h-5 md:w-5 flex-shrink-0 cursor-pointer"
                   >
                     <input
                       type="checkbox"
@@ -810,15 +806,15 @@ const Hero = () => {
                       checked={formData.agreeToContact}
                       onChange={handleChange}
                       required
-                      className="peer absolute inset-0 z-10 h-5 w-5 cursor-pointer opacity-0"
+                      className="peer absolute inset-0 z-10 h-4 w-4 md:h-5 md:w-5 cursor-pointer opacity-0"
                     />
                     <span
                       aria-hidden="true"
-                      className={`absolute inset-0 flex h-5 w-5 items-center justify-center rounded-md border-2 transition-all duration-200 ${formData.agreeToContact ? (isDarkMode ? "bg-[#d4e157] border-[#d4e157]" : "bg-emerald-500 border-emerald-500") : isDarkMode ? "bg-white/5 border-white/10" : "bg-white border-gray-300"}`}
+                      className={`absolute inset-0 flex h-4 w-4 md:h-5 md:w-5 items-center justify-center rounded-md border-2 transition-all duration-200 ${formData.agreeToContact ? (isDarkMode ? "bg-[#d4e157] border-[#d4e157]" : "bg-emerald-500 border-emerald-500") : isDarkMode ? "bg-white/5 border-white/10" : "bg-white border-gray-300"}`}
                     >
                       {formData.agreeToContact && (
                         <svg
-                          className={`h-3.5 w-3.5 ${isDarkMode ? "text-black" : "text-white"}`}
+                          className={`h-3 w-3 md:h-3.5 md:w-3.5 ${isDarkMode ? "text-black" : "text-white"}`}
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -836,7 +832,7 @@ const Hero = () => {
                   </label>
                   <label
                     htmlFor="hero-agree-to-contact"
-                    className={`block text-left text-[11px] leading-relaxed ${colors.textMuted} cursor-pointer`}
+                    className={`block min-w-0 text-left text-[11px] leading-relaxed ${colors.textMuted} cursor-pointer break-words`}
                   >
                     <span className="text-red-500">*</span> I agree to be
                     contacted by BluConnet Media and receive news and other
@@ -881,80 +877,6 @@ const Hero = () => {
           </motion.div>
         </div>
       </div>
-
-      <AnimatePresence>
-        {showSuccess && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            onClick={() => setShowSuccess(false)}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="hero-contact-success-title"
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 px-4 py-6 backdrop-blur-sm"
-          >
-            <motion.div
-              onClick={(e) => e.stopPropagation()}
-              initial={{ opacity: 0, scale: 0.9, y: 24 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 12 }}
-              transition={{ type: "spring", stiffness: 260, damping: 22 }}
-              className={`relative w-full max-w-md overflow-hidden rounded-3xl border p-6 text-center shadow-2xl sm:p-8 ${colors.cardBg} ${isDarkMode ? "border-white/10" : "border-gray-200"}`}
-            >
-              <div
-                className={`pointer-events-none absolute -top-20 left-1/2 h-44 w-44 -translate-x-1/2 rounded-full blur-3xl ${isDarkMode ? "bg-[#d4e157]/20" : "bg-emerald-400/20"}`}
-              />
-              <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center">
-                <motion.span
-                  animate={{ scale: [1, 1.35, 1.35], opacity: [0.35, 0, 0] }}
-                  transition={{
-                    duration: 1.8,
-                    repeat: Infinity,
-                    ease: "easeOut",
-                  }}
-                  className={`absolute inset-0 rounded-full bg-gradient-to-r ${isDarkMode ? "from-[#d4e157] to-[#06b6d4]" : "from-emerald-500 to-cyan-600"}`}
-                />
-                <motion.div
-                  initial={{ scale: 0, rotate: -30 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{
-                    delay: 0.12,
-                    type: "spring",
-                    stiffness: 280,
-                    damping: 18,
-                  }}
-                  className={`relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r ${isDarkMode ? "from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_8px_30px_rgba(212,225,87,0.35)]" : "from-emerald-500 to-cyan-600 text-white shadow-[0_8px_30px_rgba(16,185,129,0.35)]"}`}
-                >
-                  <FaCheckCircle className="text-4xl" />
-                </motion.div>
-              </div>
-
-              <h3
-                id="hero-contact-success-title"
-                className={`bg-gradient-to-r bg-clip-text text-2xl font-black uppercase tracking-wide text-transparent sm:text-3xl ${isDarkMode ? "from-[#d4e157] to-[#06b6d4]" : "from-emerald-500 to-cyan-600"}`}
-              >
-                Successfully Submitted!
-              </h3>
-              <p className={`mt-3 text-sm leading-relaxed ${colors.textMuted}`}>
-                Thank you! We have received your message and will get back to
-                you soon.
-              </p>
-
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.03, y: -2 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setShowSuccess(false)}
-                className={`mt-7 w-full rounded-xl bg-gradient-to-r px-6 py-3.5 text-sm font-extrabold uppercase tracking-widest transition-all duration-300 ${isDarkMode ? "from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_8px_30px_rgba(212,225,87,0.25)] hover:shadow-[0_12px_35px_rgba(212,225,87,0.4)]" : "from-emerald-500 to-cyan-600 text-white shadow-[0_8px_30px_rgba(16,185,129,0.25)] hover:shadow-[0_12px_35px_rgba(16,185,129,0.4)]"}`}
-              >
-                Done
-              </motion.button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </section>
   );
 };

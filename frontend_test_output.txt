@@ -1,0 +1,1025 @@
+
+> frontend@0.1.0 test
+> react-scripts test --watchAll=false --passWithNoTests
+
+PASS src/services/sanitizeHtml.test.js
+PASS src/services/newsApi.test.js (5.017 s)
+  ΓùÅ Console
+
+    console.log
+      [apiConfig] backend ΓåÆ http://localhost:5000/api
+
+      at Object.<anonymous> (src/services/apiConfig.js:65:9)
+
+    console.log
+      [newsApi] upload -> http://localhost:5000/api /admin/news/upload; file: banner.png image/png 5
+
+      at uploadNewsImageFile (src/services/newsApi.js:173:13)
+
+    console.log
+      [newsApi] upload response: {"ok":true,"url":"https://res.cloudinary.com/wyixfdon/image/upload/v1786009999/bluconnet/news/banner.png","secureUrl":"https://res.cloudinary.com/wyixfdon/image/upload/v1786009999/bluconnet/news/banner.png","publicId":"bluconnet/news/banner"}
+
+      at uploadNewsImageFile (src/services/newsApi.js:182:13)
+
+    console.log
+      [newsApi] upload OK -> storing Cloudinary imageUrl: https://res.cloudinary.com/wyixfdon/image/upload/v1786009999/bluconnet/news/banner.png
+
+      at uploadNewsImageFile (src/services/newsApi.js:185:15)
+
+    console.warn
+      [newsApi] upload refused ΓÇö no admin session
+
+      163 |   const token = getAdminToken();
+      164 |   if (!token) {
+    > 165 |     console.warn("[newsApi] upload refused ΓÇö no admin session");
+          |             ^
+      166 |     return { url: null, publicId: "", error: "Admin session expired. Sign in again." };
+      167 |   }
+      168 |
+
+      at uploadNewsImageFile (src/services/newsApi.js:165:13)
+      at Object.<anonymous> (src/services/newsApi.test.js:116:45)
+
+    console.log
+      [newsApi] upload -> http://localhost:5000/api /admin/news/upload; file: banner.png image/png 5
+
+      at uploadNewsImageFile (src/services/newsApi.js:173:13)
+
+    console.error
+      [newsApi] upload ERROR -> 502 {"ok":false,"error":"Cloudinary upload failed: boom"}
+
+      209 |       };
+      210 |     }
+    > 211 |     console.error("[newsApi] upload ERROR ->", status, body || e.message);
+          |             ^
+      212 |     return { url: null, publicId: "", error: body || e.message || "Network error" };
+      213 |   }
+      214 | }
+
+      at uploadNewsImageFile (src/services/newsApi.js:211:13)
+      at Object.<anonymous> (src/services/newsApi.test.js:132:20)
+
+    console.log
+      [newsApi] upload -> http://localhost:5000/api /admin/news/upload; file: banner.png image/png 5
+
+      at uploadNewsImageFile (src/services/newsApi.js:173:13)
+
+    console.log
+      [newsApi] upload response: {"ok":false,"error":"no storage"}
+
+      at uploadNewsImageFile (src/services/newsApi.js:182:13)
+
+    console.warn
+      [newsApi] upload unexpected shape: {"ok":false,"error":"no storage"}
+
+      186 |       return { url, publicId: res.data.publicId || "", error: null };
+      187 |     }
+    > 188 |     console.warn("[newsApi] upload unexpected shape:", JSON.stringify(res.data));
+          |             ^
+      189 |     return {
+      190 |       url: null,
+      191 |       publicId: "",
+
+      at uploadNewsImageFile (src/services/newsApi.js:188:13)
+      at Object.<anonymous> (src/services/newsApi.test.js:144:20)
+
+    console.log
+      [newsApi] upload -> http://localhost:5000/api /admin/news/upload; file: banner.png image/png 5
+
+      at uploadNewsImageFile (src/services/newsApi.js:173:13)
+
+    console.warn
+      [newsApi] 401 on upload -> admin session expired, sign in again
+
+      201 |     // produces a token.
+      202 |     if (status === 401) {
+    > 203 |       console.warn("[newsApi] 401 on upload -> admin session expired, sign in again");
+          |               ^
+      204 |       clearAdminToken();
+      205 |       return {
+      206 |         url: null,
+
+      at uploadNewsImageFile (src/services/newsApi.js:203:15)
+      at Object.<anonymous> (src/services/newsApi.test.js:158:20)
+
+    console.error
+      [newsApi] migrateNewsImages ERROR -> undefined Admin session required for /admin/news/migrate-images
+
+      223 |       err.response.data &&
+      224 |       JSON.stringify(err.response.data);
+    > 225 |     console.error(`[newsApi] ${label} ERROR ->`, status, body || err.message);
+          |             ^
+      226 |   } else if (res) {
+      227 |     console.log(`[newsApi] ${label} ->`, JSON.stringify(res));
+      228 |   }
+
+      at _report (src/services/newsApi.js:225:13)
+      at src/services/newsApi.js:236:5
+      at Object.<anonymous> (src/services/newsApi.test.js:178:20)
+
+    console.error
+      [newsApi] listAdminNews ERROR -> undefined Admin session required for /admin/news
+
+      223 |       err.response.data &&
+      224 |       JSON.stringify(err.response.data);
+    > 225 |     console.error(`[newsApi] ${label} ERROR ->`, status, body || err.message);
+          |             ^
+      226 |   } else if (res) {
+      227 |     console.log(`[newsApi] ${label} ->`, JSON.stringify(res));
+      228 |   }
+
+      at _report (src/services/newsApi.js:225:13)
+      at src/services/newsApi.js:245:5
+      at Object.<anonymous> (src/services/newsApi.test.js:185:20)
+
+    console.error
+      [newsApi] listAdminNews ERROR -> undefined offline
+
+      223 |       err.response.data &&
+      224 |       JSON.stringify(err.response.data);
+    > 225 |     console.error(`[newsApi] ${label} ERROR ->`, status, body || err.message);
+          |             ^
+      226 |   } else if (res) {
+      227 |     console.log(`[newsApi] ${label} ->`, JSON.stringify(res));
+      228 |   }
+
+      at _report (src/services/newsApi.js:225:13)
+      at src/services/newsApi.js:245:5
+      at Object.<anonymous> (src/services/newsApi.test.js:211:20)
+
+PASS src/components/RecaptchaV2Checkbox.test.js (8.812 s)
+  ΓùÅ Console
+
+    console.warn
+      [recaptcha-v2] no v2 Checkbox site key configured ΓÇö the badge will not open the checkbox.
+
+      223 |     if (!key || typeof document === "undefined") {
+      224 |       if (!key) {
+    > 225 |         console.warn(
+          |                 ^
+      226 |           "[recaptcha-v2] no v2 Checkbox site key configured ΓÇö the badge will not open the checkbox."
+      227 |         );
+      228 |       }
+
+      at src/components/RecaptchaV2Checkbox.jsx:225:17
+      at Object.react_stack_bottom_frame (node_modules/react-dom/cjs/react-dom-client.development.js:25989:20)
+      at runWithFiberInDEV (node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+      at commitHookEffectListMount (node_modules/react-dom/cjs/react-dom-client.development.js:13249:29)
+      at commitHookPassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:13336:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:15484:13)
+      at recursivelyTraversePassiveMountEffects (node_modules/react-dom/cjs/react-dom-client.development.js:15439:11)
+      at commitPassiveMountOnFiber (node_modules/react-dom/cjs/react-dom-client.development.js:15519:11)
+      at flushPassiveEffects (node_modules/react-dom/cjs/react-dom-client.development.js:18432:9)
+      at node_modules/react-dom/cjs/react-dom-client.development.js:17923:15
+      at flushActQueue (node_modules/react/cjs/react.development.js:590:34)
+      at Object.<anonymous>.process.env.NODE_ENV.exports.act (node_modules/react/cjs/react.development.js:884:10)
+      at node_modules/@testing-library/react/dist/act-compat.js:46:25
+      at renderRoot (node_modules/@testing-library/react/dist/pure.js:189:26)
+      at render (node_modules/@testing-library/react/dist/pure.js:291:10)
+      at Object.<anonymous> (src/components/RecaptchaV2Checkbox.test.js:66:31)
+
+PASS src/pages/AdminNews.test.js (9.701 s)
+  ΓùÅ Console
+
+    console.log
+      [apiConfig] backend ΓåÆ http://localhost:5000/api
+
+      at Object.<anonymous> (src/services/apiConfig.js:65:9)
+
+    console.log
+      [AdminNews] setNewsList called with 0 items on mount
+
+      at src/pages/AdminNews.jsx:124:15
+
+    console.log
+      [AdminNews] setNewsList called with 0 items on mount
+
+      at src/pages/AdminNews.jsx:124:15
+
+    console.log
+      [AdminNews] setNewsList called with 1 items on mount
+
+      at src/pages/AdminNews.jsx:124:15
+
+    console.log
+      [AdminNews] setNewsList called with 0 items on mount
+
+      at src/pages/AdminNews.jsx:124:15
+
+FAIL src/components/OurServices.test.js (9.852 s)
+  ΓùÅ renders the red label, the heading with 'Deliver' and the description
+
+    TestingLibraryElementError: Unable to find an element with the text: Our Services. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+    Ignored nodes: comments, script, style
+    <body>
+      <div>
+        <section
+          aria-labelledby="our-services-heading"
+          class="
+              relative
+              border-b border-t border-slate-100 bg-white
+            "
+          id="our-services"
+          style="height: 1400vh;"
+        >
+          <div
+            class="sticky top-0 h-screen overflow-hidden"
+          >
+            <div
+              aria-hidden="true"
+              class="
+                  pointer-events-none absolute inset-0
+                  bg-[radial-gradient(circle_at_50%_35%,rgba(16,185,129,0.09),transparent_62%)]
+                "
+            />
+            <div
+              aria-hidden="true"
+              class="
+                  pointer-events-none absolute left-1/2 top-[42%]
+                  h-[350px] w-[700px] -translate-x-1/2 rounded-full
+                  blur-[150px]
+                  bg-cyan-300/[0.035]
+                "
+            />
+            <div
+              class="relative z-10 flex h-screen flex-col px-3 sm:px-4"
+            >
+              <header
+                class="
+     mx-auto w-full max-w-6xl shrink-0 text-center
+     pt-[44px] sm:pt-[68px] md:pt-[55px] lg:pt-[58px]
+     "
+                style="opacity: 0; transform: translateY(18px);"
+              >
+                <div
+                  class="mb-3 sm:mb-4"
+                  style="opacity: 0; transform: translateY(15px);"
+                >
+                  <div
+                    class="
+                        inline-flex items-center gap-2 rounded-full border
+                        px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] font-bold
+                        uppercase tracking-[0.15em] sm:text-xs
+                        border-emerald-200 bg-emerald-50 text-emerald-700
+                      "
+                  >
+                    <span
+                      class="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5"
+                    >
+                      <span
+                        class="
+                            absolute inset-0 animate-ping rounded-full opacity-75
+                            bg-emerald-500
+                          "
+                      />
+                      <span
+                        class="
+                            relative h-2 w-2 rounded-full sm:h-2.5 sm:w-2.5
+                            bg-emerald-500
+                          "
+                      />
+                    </span>
+                    OUR SERVICES
+                  </div>
+                </div>
+                <h2
+                  class="
+                      mx-auto max-w-[1100px] font-black uppercase
+                      leading-[0.95] tracking-tight text-[27px]
+                      sm:text-4xl md:text-5xl lg:text-[62px] xl:text-[70px]
+                      text-[#07172f]
+                    "
+                  id="our-services-heading"
+                  style="opacity: 0; transform: translateY(24px);"
+                >
+                  <span
+                    class="block"
+                  >
+                    PERFORMANCE MARKETING
+                  </span>
+                  <span
+                    class="
+                        block bg-gradient-to-r bg-clip-text text-transparent
+                        from-emerald-500 to-cyan-600
+                      "
+                  >
+                    SOLUTIONS THAT DELIVER
+                  </span>
+                </h2>
+                <p
+                  class="
+                      mx-auto mt-5 max-w-4xl px-3 text-[11px] leading-5
+                      sm:mt-5 sm:px-0 sm:text-sm sm:leading-7 md:mt-5
+                      md:text-[15px] text-slate-600
+                    "
+                  style="opacity: 0; transform: translateY(18px);"
+                >
+                  Powerful performance marketing solutions built to connect brands, partners and audiences while driving measurable growth.
+                </p>
+              </header>
+              <div
+                class="
+     relative mx-auto min-h-0 w-full max-w-[1200px] flex-1
+     pt-8 pb-14 sm:pt-9 sm:pb-16 md:pt-16 md:pb-28
+     lg:pt-20 lg:pb-36
+     "
+              >
+                <div
+                  class="
+     absolute left-0 right-0 bottom-4 flex justify-center
+     top-8 sm:top-9 md:top-16
+     lg:top-6 lg:bottom-8
+     max-lg:bottom-8
+     "
+                >
+                  <div
+                    class="
+     h-full lg:h-auto w-full max-w-[calc(100vw-24px)]
+     sm:max-w-[700px] md:max-w-[820px]
+     lg:max-w-[1020px] xl:max-w-[1080px]
+     "
+                    style="opacity: 1; z-index: 1; visibility: visible; transform: none;"
+                  >
+                    <article
+                      class="
+            relative w-full overflow-hidden rounded-[24px] border
+            text-left transition-colors duration-500 h-full min-h-0
+            md:rounded-[32px]
+            lg:h-[590px] lg:max-h-[calc(100vh-220px)] lg:rounded-[34px]
+            xl:h-[600px] xl:max-h-[calc(100vh-220px)]
+            border-slate-200/90 bg-white shadow-[0_18px_35px_-18px_rgba(15,23,42,0.24),0_6px_12px_-8px_rgba(16,185,129,0.10),inset_0_1px_0_rgba(255,255,255,0.85)]
+          "
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-emerald-500 via-cyan-500 to-transparent"
+                      />
+                      <div
+                        aria-hidden="true"
+                        class="
+              pointer-events-none absolute -right-20 -top-24 h-56 w-56
+              rounded-full blur-3xl
+              bg-cyan-300/30
+            "
+                      />
+                      <div
+                        aria-hidden="true"
+                        class="
+              pointer-events-none absolute -bottom-28 -left-20 h-56 w-56
+              rounded-full blur-3xl
+              bg-emerald-300/25
+            "
+                      />
+                      <span
+                        aria-hidden="true"
+                        class="
+              pointer-events-none absolute right-4 top-3 select-none
+              font-black leading-none tracking-tighter text-[65px]
+              sm:right-5 sm:text-[85px] md:right-7 md:text-[105px]
+              lg:right-8 lg:text-[120px] text-slate-900/[0.055]
+    ...
+
+      80 |   const { container } = renderSection();
+      81 |
+    > 82 |   const label = screen.getByText("Our Services");
+         |                        ^
+      83 |   expect(label).toBeInTheDocument();
+      84 |   expect(label.textContent).toBe("Our Services");
+      85 |   expect(label.className).toContain("uppercase");
+
+      at Object.getElementError (node_modules/@testing-library/dom/dist/config.js:37:19)
+      at node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+      at node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+      at getByText (node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at Object.<anonymous> (src/components/OurServices.test.js:82:24)
+
+  ΓùÅ all six services render number, category label, title, description and icon
+
+    expect(element).toHaveTextContent()
+
+    Expected element to have text content:
+      Connect with the right partners
+    Received:
+      01PARTNERSPARTNERSAffiliate MarketingAffiliate marketing lets advertisers pay partners only to performance-based outcomes. Searching for affiliate marketing what is? In short: a partner promotes your offer through tracked affiliate links, and earns when a sale or lead follows. Some call it affiliate programs, affiliate market programs, an affiliate advertising program or program affiliate marketing. The goal is the same: pay for outcomes. A strong affiliate marketing programme has lucid terms. We review how affiliate marketing affiliate programs are set up, then run affiliate marketing programs directly or through affiliate networks and affiliate marketing networks. Every affiliate marketing platform should report clicks and conversions accurately. Partners include affiliate marketing websites, niche affiliate marketing sites and affiliate blogging publishers, prioritizing quality engagement over vanity metrics. Recruiting them is a distinct discipline, often referred to as affiliate marketing. New to the channel? Affiliate marketing for beginners works best when you start with one offer and simple commission terms. Talk to BLUCONNET MEDIA about building your programme.BluConnetView All Services
+
+      120 |     expect(card).toHaveTextContent(badge);
+      121 |     expect(card).toHaveTextContent(title);
+    > 122 |     expect(card).toHaveTextContent(description);
+          |                  ^
+      123 |     expect(card).toHaveTextContent("BluConnet");
+      124 |     expect(card.querySelector("svg")).toBeInTheDocument();
+      125 |     /* premium card shell */
+
+      at forEach (src/components/OurServices.test.js:122:18)
+          at Array.forEach (<anonymous>)
+      at Object.<anonymous> (src/components/OurServices.test.js:117:12)
+
+  ΓùÅ one tall section feeds a SINGLE sticky viewport stage
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "700vh"
+    Received: "1400vh"
+
+      134 |
+      135 |   /* the section supplies the scroll distance for all 6 cards */
+    > 136 |   expect(getSection(container).style.height).toBe("700vh");
+          |                                              ^
+      137 |
+      138 |   /* exactly one sticky stage, locked to the top of the viewport */
+      139 |   const stages = container.querySelectorAll(".sticky");
+
+      at Object.<anonymous> (src/components/OurServices.test.js:136:46)
+
+  ΓùÅ all six cards share ONE central slot and stack by rising z-index
+
+    expect(received).toContain(expected) // indexOf
+
+    Expected substring: "inset-0"
+    Received string:    "
+     absolute left-0 right-0 bottom-4 flex justify-center
+     top-8 sm:top-9 md:top-16
+     lg:top-6 lg:bottom-8
+     max-lg:bottom-8
+     "
+
+      162 |     slotClasses.add(slot.className);
+      163 |     expect(slot.className).toContain("absolute");
+    > 164 |     expect(slot.className).toContain("inset-0");
+          |                            ^
+      165 |     expect(slot.className).toContain("justify-center");
+      166 |
+      167 |     /* incoming card always lands ON TOP of the previous ones */
+
+      at forEach (src/components/OurServices.test.js:164:28)
+          at Proxy.forEach (<anonymous>)
+      at Object.<anonymous> (src/components/OurServices.test.js:156:9)
+
+  ΓùÅ night theme switches the section to the dark palette
+
+    TestingLibraryElementError: Unable to find an element with the text: Our Services. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+    Ignored nodes: comments, script, style
+    <body>
+      <div>
+        <section
+          aria-labelledby="our-services-heading"
+          class="
+              relative
+              bg-[#050508]
+            "
+          id="our-services"
+          style="height: 1400vh;"
+        >
+          <div
+            class="sticky top-0 h-screen overflow-hidden"
+          >
+            <div
+              aria-hidden="true"
+              class="
+                  pointer-events-none absolute inset-0
+                  bg-[radial-gradient(circle_at_50%_35%,rgba(6,182,212,0.10),transparent_62%)]
+                "
+            />
+            <div
+              aria-hidden="true"
+              class="
+                  pointer-events-none absolute left-1/2 top-[42%]
+                  h-[350px] w-[700px] -translate-x-1/2 rounded-full
+                  blur-[150px]
+                  bg-[#d4e157]/[0.025]
+                "
+            />
+            <div
+              class="relative z-10 flex h-screen flex-col px-3 sm:px-4"
+            >
+              <header
+                class="
+     mx-auto w-full max-w-6xl shrink-0 text-center
+     pt-[44px] sm:pt-[68px] md:pt-[55px] lg:pt-[58px]
+     "
+                style="opacity: 0; transform: translateY(18px);"
+              >
+                <div
+                  class="mb-3 sm:mb-4"
+                  style="opacity: 0; transform: translateY(15px);"
+                >
+                  <div
+                    class="
+                        inline-flex items-center gap-2 rounded-full border
+                        px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] font-bold
+                        uppercase tracking-[0.15em] sm:text-xs
+                        border-[#d4e157]/30 bg-[#d4e157]/10 text-[#d4e157]
+                      "
+                  >
+                    <span
+                      class="relative flex h-2 w-2 sm:h-2.5 sm:w-2.5"
+                    >
+                      <span
+                        class="
+                            absolute inset-0 animate-ping rounded-full opacity-75
+                            bg-[#d4e157]
+                          "
+                      />
+                      <span
+                        class="
+                            relative h-2 w-2 rounded-full sm:h-2.5 sm:w-2.5
+                            bg-[#d4e157]
+                          "
+                      />
+                    </span>
+                    OUR SERVICES
+                  </div>
+                </div>
+                <h2
+                  class="
+                      mx-auto max-w-[1100px] font-black uppercase
+                      leading-[0.95] tracking-tight text-[27px]
+                      sm:text-4xl md:text-5xl lg:text-[62px] xl:text-[70px]
+                      text-white
+                    "
+                  id="our-services-heading"
+                  style="opacity: 0; transform: translateY(24px);"
+                >
+                  <span
+                    class="block"
+                  >
+                    PERFORMANCE MARKETING
+                  </span>
+                  <span
+                    class="
+                        block bg-gradient-to-r bg-clip-text text-transparent
+                        from-[#d4e157] to-[#06b6d4]
+                      "
+                  >
+                    SOLUTIONS THAT DELIVER
+                  </span>
+                </h2>
+                <p
+                  class="
+                      mx-auto mt-5 max-w-4xl px-3 text-[11px] leading-5
+                      sm:mt-5 sm:px-0 sm:text-sm sm:leading-7 md:mt-5
+                      md:text-[15px] text-gray-400
+                    "
+                  style="opacity: 0; transform: translateY(18px);"
+                >
+                  Powerful performance marketing solutions built to connect brands, partners and audiences while driving measurable growth.
+                </p>
+              </header>
+              <div
+                class="
+     relative mx-auto min-h-0 w-full max-w-[1200px] flex-1
+     pt-8 pb-14 sm:pt-9 sm:pb-16 md:pt-16 md:pb-28
+     lg:pt-20 lg:pb-36
+     "
+              >
+                <div
+                  class="
+     absolute left-0 right-0 bottom-4 flex justify-center
+     top-8 sm:top-9 md:top-16
+     lg:top-6 lg:bottom-8
+     max-lg:bottom-8
+     "
+                >
+                  <div
+                    class="
+     h-full lg:h-auto w-full max-w-[calc(100vw-24px)]
+     sm:max-w-[700px] md:max-w-[820px]
+     lg:max-w-[1020px] xl:max-w-[1080px]
+     "
+                    style="opacity: 1; z-index: 1; visibility: visible; transform: none;"
+                  >
+                    <article
+                      class="
+            relative w-full overflow-hidden rounded-[24px] border
+            text-left transition-colors duration-500 h-full min-h-0
+            md:rounded-[32px]
+            lg:h-[590px] lg:max-h-[calc(100vh-220px)] lg:rounded-[34px]
+            xl:h-[600px] xl:max-h-[calc(100vh-220px)]
+            border-white/[0.08] bg-[#0a0f22] shadow-[0_18px_35px_-18px_rgba(0,0,0,0.65),0_6px_12px_-8px_rgba(6,182,212,0.12),inset_0_1px_0_rgba(255,255,255,0.06)]
+          "
+                    >
+                      <div
+                        aria-hidden="true"
+                        class="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-r from-[#d4e157] via-[#06b6d4] to-transparent"
+                      />
+                      <div
+                        aria-hidden="true"
+                        class="
+              pointer-events-none absolute -right-20 -top-24 h-56 w-56
+              rounded-full blur-3xl
+              bg-[#06b6d4]/[0.14]
+            "
+                      />
+                      <div
+                        aria-hidden="true"
+                        class="
+              pointer-events-none absolute -bottom-28 -left-20 h-56 w-56
+              rounded-full blur-3xl
+              bg-[#d4e157]/[0.08]
+            "
+                      />
+                      <span
+                        aria-hidden="true"
+                        class="
+              pointer-events-none absolute right-4 top-3 select-none
+              font-black leading-none tracking-tighter text-[65px]
+              sm:right-5 sm:text-[85px] md:right-7 md:text-[105px]
+              lg:right-8 lg:text-[120px] text-white/[0.055]
+            "
+                      ...
+
+      180 |
+      181 |   expect(getSection(container).className).toContain("bg-[#050508]");
+    > 182 |   expect(screen.getByText("Our Services").className).toContain("text-red-500");
+          |                 ^
+      183 |   expect(screen.getByRole("heading", { level: 2 }).className).toContain(
+      184 |     "text-white",
+      185 |   );
+
+      at Object.getElementError (node_modules/@testing-library/dom/dist/config.js:37:19)
+      at node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+      at node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+      at getByText (node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at Object.<anonymous> (src/components/OurServices.test.js:182:17)
+
+PASS src/components/Guide2026.test.js (9.949 s)
+  ΓùÅ Console
+
+    console.log
+      [apiConfig] backend ΓåÆ http://localhost:5000/api
+
+      at Object.<anonymous> (src/services/apiConfig.js:65:9)
+
+FAIL src/components/TopOffers.test.js (10.794 s)
+  ΓùÅ renders the header, description and View All Offers buttons
+
+    TestingLibraryElementError: Unable to find an element with the text: Top Offers. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+    Ignored nodes: comments, script, style
+    <body>
+      <div>
+        <section
+          aria-labelledby="top-offers-heading"
+          class="relative overflow-hidden px-4 py-16 transition-colors duration-500 md:py-24 border-b border-t border-slate-100 bg-white"
+          id="top-offers"
+        >
+          <div
+            class="relative z-10 mx-auto w-full max-w-[1500px]"
+          >
+            <div
+              class="relative mx-auto text-center"
+              style="opacity: 0; transform: translateY(24px);"
+            >
+              <div
+                class="mb-5"
+                style="opacity: 0; transform: translateY(15px);"
+              >
+                <div
+                  class="inline-flex items-center gap-3 rounded-full border px-4 py-2 bg-emerald-50 border-emerald-200 text-emerald-700"
+                >
+                  <div
+                    class="relative flex h-2.5 w-2.5 items-center justify-center"
+                  >
+                    <span
+                      class="h-2.5 w-2.5 rounded-full bg-emerald-500"
+                    />
+                    <span
+                      class="absolute inset-0 h-2.5 w-2.5 animate-ping rounded-full opacity-75 bg-emerald-500"
+                    />
+                  </div>
+                  <span
+                    class="text-[11px] font-bold uppercase tracking-wider sm:text-xs lg:text-sm"
+                  >
+                    TOP OFFERS
+                  </span>
+                </div>
+              </div>
+              <h2
+                class="mx-auto max-w-[1100px] text-3xl font-black leading-[0.95] tracking-tight sm:text-4xl md:text-5xl lg:text-[68px] xl:text-[76px] text-[#07172f]"
+                id="top-offers-heading"
+                style="opacity: 0; transform: translateY(24px);"
+              >
+                <span
+                  class="block"
+                >
+                  Explore
+                   
+                  <span
+                    class="bg-gradient-to-r bg-clip-text text-transparent from-emerald-500 to-cyan-600"
+                  >
+                    High-Converting
+                  </span>
+                   
+                  Offers
+                </span>
+              </h2>
+              <p
+                class="mx-auto mt-6 max-w-4xl text-[13px] leading-6 sm:text-sm sm:leading-7 md:text-[15px] lg:text-[15px] text-slate-600"
+                style="opacity: 0; transform: translateY(18px);"
+              >
+                Discover our top performing offers across multiple verticals and global markets. Start promoting high-quality offers and maximize your earnings.
+              </p>
+              <a
+                class="group absolute right-0 top-1/2 hidden -translate-y-1/2 items-center gap-2 rounded-[12px] border px-5 py-2.5 text-sm font-semibold transition-all duration-300 xl:inline-flex border-emerald-400 bg-transparent text-emerald-700 hover:border-emerald-500 hover:bg-emerald-50 hover:shadow-[0_8px_25px_rgba(16,185,129,0.12)]"
+                href="/portfolio"
+              >
+                <span>
+                  View All Offers
+                </span>
+                <svg
+                  aria-hidden="true"
+                  class="text-base transition-transform duration-300 group-hover:translate-x-1"
+                  fill="currentColor"
+                  height="1em"
+                  stroke="currentColor"
+                  stroke-width="0"
+                  viewBox="0 0 448 512"
+                  width="1em"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M190.5 66.9l22.2-22.2c9.4-9.4 24.6-9.4 33.9 0L441 239c9.4 9.4 9.4 24.6 0 33.9L246.6 467.3c-9.4 9.4-24.6 9.4-33.9 0l-22.2-22.2c-9.5-9.5-9.3-25 .4-34.3L311.4 296H24c-13.3 0-24-10.7-24-24v-32c0-13.3 10.7-24 24-24h287.4L190.9 101.2c-9.8-9.3-10-24.8-.4-34.3z"
+                  />
+                </svg>
+              </a>
+            </div>
+            <div
+              class="mt-7 flex justify-center xl:hidden"
+            >
+              <a
+                class="group inline-flex items-center gap-2 rounded-[12px] border px-5 py-2.5 text-sm font-semibold transition-all duration-300 border-emerald-400 bg-transparent text-emerald-700 hover:border-emerald-500 hover:bg-emerald-50 hover:shadow-[0_8px_25px_rgba(16,185,129,0.12)]"
+                href="/services/affiliate"
+              >
+                <span>
+                  View All Offers
+                </span>
+                <svg
+                  aria-hidden="true"
+                  class="text-base transition-transform duration-300 group-hover:translate-x-1"
+                  fill="currentColor"
+                  height="1em"
+                  stroke="currentColor"
+                  stroke-width="0"
+                  viewBox="0 0 448 512"
+                  width="1em"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M190.5 66.9l22.2-22.2c9.4-9.4 24.6-9.4 33.9 0L441 239c9.4 9.4 9.4 24.6 0 33.9L246.6 467.3c-9.4 9.4-24.6 9.4-33.9 0l-22.2-22.2c-9.5-9.5-9.3-25 .4-34.3L311.4 296H24c-13.3 0-24-10.7-24-24v-32c0-13.3 10.7-24 24-24h287.4L190.9 101.2c-9.8-9.3-10-24.8-.4-34.3z"
+                  />
+                </svg>
+              </a>
+            </div>
+            <div
+              class="relative mt-10 md:mt-14"
+              style="opacity: 0; transform: translateY(28px);"
+            >
+              <div
+                class="relative mx-auto w-full overflow-hidden"
+                style="height: 535px;"
+              >
+                <div
+                  class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                  style="width: 520px; height: 455px; z-index: 30;"
+                >
+     ...
+
+      126 |
+      127 |   /* small uppercase red label */
+    > 128 |   const label = screen.getByText("Top Offers");
+          |                        ^
+      129 |   expect(label).toBeInTheDocument();
+      130 |   expect(label.className).toContain("uppercase");
+      131 |   expect(label.className).toContain("text-red-600");
+
+      at Object.getElementError (node_modules/@testing-library/dom/dist/config.js:37:19)
+      at node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+      at node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+      at getByText (node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at Object.<anonymous> (src/components/TopOffers.test.js:128:24)
+
+  ΓùÅ renders all 12 offers with padded numbers, Cloudinary backgrounds and content
+
+    expect(received).toHaveLength(expected)
+
+    Expected length: 12
+    Received length: 14
+    Received object: [<article aria-hidden="false" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="true" style="opacity: 1; transform: none;"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0.92; transform: translateX(300px) scale(0.72);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0.3; transform: translateX(623px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(1043px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(1463px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(1883px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(2303px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(2723px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(-2303px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(-1883px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(-1463px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0; transform: translateX(-1043px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0.3; transform: translateX(-623px) scale(0.6);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>, <article aria-hidden="true" class="absolute inset-0 overflow-hidden rounded-[30px] border-2 border-emerald-300/70 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.45),0_0_0_1px_rgba(16,185,129,0.10)]" data-active="false" style="opacity: 0.92; transform: translateX(-300px) scale(0.72);"><img ΓÇª /><div ΓÇª /><div ΓÇª /><div ΓÇª /><span ΓÇª /><div ΓÇª /></article>]
+
+      163 |
+      164 |   const cards = container.querySelectorAll("article");
+    > 165 |   expect(cards).toHaveLength(12);
+          |                 ^
+      166 |
+      167 |   /* exactly the 12 provided images, in offer order, full-bleed
+      168 |      on the complete card background via object-cover */
+
+      at Object.<anonymous> (src/components/TopOffers.test.js:165:17)
+
+  ΓùÅ infinite loop wraps both ways and the arrows are never disabled
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "12"
+    Received: "14"
+
+      225 |   /* PREVIOUS ΓÇö centre becomes 12 (the left neighbour), then back */
+      226 |   fireEvent.click(prev);
+    > 227 |   expect(getActiveNumber(container)).toBe("12");
+          |                                      ^
+      228 |   fireEvent.click(next);
+      229 |   expect(getActiveNumber(container)).toBe("01");
+      230 |
+
+      at Object.<anonymous> (src/components/TopOffers.test.js:227:38)
+
+  ΓùÅ pagination shows exactly 12 pills and each pill activates its offer
+
+    expect(received).toHaveLength(expected)
+
+    Expected length: 12
+    Received length: 14
+    Received array:  [<button aria-current="true" aria-label="Show offer 01" class="h-2 rounded-full transition-all duration-300 w-9 bg-emerald-600" type="button" />, <button aria-label="Show offer 02" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 03" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 04" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 05" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 06" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 07" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 08" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 09" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 10" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 11" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 12" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 13" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />, <button aria-label="Show offer 14" class="h-2 rounded-full transition-all duration-300 w-5 bg-slate-300 hover:bg-slate-400" type="button" />]
+
+      257 |
+      258 |   const pills = screen.getAllByRole("button", { name: /^Show offer / });
+    > 259 |   expect(pills).toHaveLength(12);
+          |                 ^
+      260 |
+      261 |   /* the active pill is the wider, darker one */
+      262 |   const activePill = container.querySelector('[aria-current="true"]');
+
+      at Object.<anonymous> (src/components/TopOffers.test.js:259:17)
+
+  ΓùÅ night theme switches the shell, label, arrows and pills to the dark palette
+
+    TestingLibraryElementError: Unable to find an element with the text: Top Offers. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+    Ignored nodes: comments, script, style
+    <body>
+      <div>
+        <section
+          aria-labelledby="top-offers-heading"
+          class="relative overflow-hidden px-4 py-16 transition-colors duration-500 md:py-24 bg-[#050508]"
+          id="top-offers"
+        >
+          <div
+            class="relative z-10 mx-auto w-full max-w-[1500px]"
+          >
+            <div
+              class="relative mx-auto text-center"
+              style="opacity: 0; transform: translateY(24px);"
+            >
+              <div
+                class="mb-5"
+                style="opacity: 0; transform: translateY(15px);"
+              >
+                <div
+                  class="inline-flex items-center gap-3 rounded-full border px-4 py-2 bg-[#d4e157]/10 border-[#d4e157]/30 text-[#d4e157]"
+                >
+                  <div
+                    class="relative flex h-2.5 w-2.5 items-center justify-center"
+                  >
+                    <span
+                      class="h-2.5 w-2.5 rounded-full bg-[#d4e157]"
+                    />
+                    <span
+                      class="absolute inset-0 h-2.5 w-2.5 animate-ping rounded-full opacity-75 bg-[#d4e157]"
+                    />
+                  </div>
+                  <span
+                    class="text-[11px] font-bold uppercase tracking-wider sm:text-xs lg:text-sm"
+                  >
+                    TOP OFFERS
+                  </span>
+                </div>
+              </div>
+              <h2
+                class="mx-auto max-w-[1100px] text-3xl font-black leading-[0.95] tracking-tight sm:text-4xl md:text-5xl lg:text-[68px] xl:text-[76px] text-white"
+                id="top-offers-heading"
+                style="opacity: 0; transform: translateY(24px);"
+              >
+                <span
+                  class="block"
+                >
+                  Explore
+                   
+                  <span
+                    class="bg-gradient-to-r bg-clip-text text-transparent from-[#d4e157] to-[#06b6d4]"
+                  >
+                    High-Converting
+                  </span>
+                   
+                  Offers
+                </span>
+              </h2>
+              <p
+                class="mx-auto mt-6 max-w-4xl text-[13px] leading-6 sm:text-sm sm:leading-7 md:text-[15px] lg:text-[15px] text-gray-400"
+                style="opacity: 0; transform: translateY(18px);"
+              >
+                Discover our top performing offers across multiple verticals and global markets. Start promoting high-quality offers and maximize your earnings.
+              </p>
+              <a
+                class="group absolute right-0 top-1/2 hidden -translate-y-1/2 items-center gap-2 rounded-[12px] border px-5 py-2.5 text-sm font-semibold transition-all duration-300 xl:inline-flex border-[#d4e157]/60 bg-transparent text-[#d4e157] hover:border-[#d4e157] hover:bg-[#d4e157]/10 hover:shadow-[0_0_25px_rgba(212,225,87,0.12)]"
+                href="/portfolio"
+              >
+                <span>
+                  View All Offers
+                </span>
+                <svg
+                  aria-hidden="true"
+                  class="text-base transition-transform duration-300 group-hover:translate-x-1"
+                  fill="currentColor"
+                  height="1em"
+                  stroke="currentColor"
+                  stroke-width="0"
+                  viewBox="0 0 448 512"
+                  width="1em"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M190.5 66.9l22.2-22.2c9.4-9.4 24.6-9.4 33.9 0L441 239c9.4 9.4 9.4 24.6 0 33.9L246.6 467.3c-9.4 9.4-24.6 9.4-33.9 0l-22.2-22.2c-9.5-9.5-9.3-25 .4-34.3L311.4 296H24c-13.3 0-24-10.7-24-24v-32c0-13.3 10.7-24 24-24h287.4L190.9 101.2c-9.8-9.3-10-24.8-.4-34.3z"
+                  />
+                </svg>
+              </a>
+            </div>
+            <div
+              class="mt-7 flex justify-center xl:hidden"
+            >
+              <a
+                class="group inline-flex items-center gap-2 rounded-[12px] border px-5 py-2.5 text-sm font-semibold transition-all duration-300 border-[#d4e157]/60 bg-transparent text-[#d4e157] hover:border-[#d4e157] hover:bg-[#d4e157]/10 hover:shadow-[0_0_25px_rgba(212,225,87,0.12)]"
+                href="/services/affiliate"
+              >
+                <span>
+                  View All Offers
+                </span>
+                <svg
+                  aria-hidden="true"
+                  class="text-base transition-transform duration-300 group-hover:translate-x-1"
+                  fill="currentColor"
+                  height="1em"
+                  stroke="currentColor"
+                  stroke-width="0"
+                  viewBox="0 0 448 512"
+                  width="1em"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M190.5 66.9l22.2-22.2c9.4-9.4 24.6-9.4 33.9 0L441 239c9.4 9.4 9.4 24.6 0 33.9L246.6 467.3c-9.4 9.4-24.6 9.4-33.9 0l-22.2-22.2c-9.5-9.5-9.3-25 .4-34.3L311.4 296H24c-13.3 0-24-10.7-24-24v-32c0-13.3 10.7-24 24-24h287.4L190.9 101.2c-9.8-9.3-10-24.8-.4-34.3z"
+                  />
+                </svg>
+              </a>
+            </div>
+            <div
+              class="relative mt-10 md:mt-14"
+              style="opacity: 0; transform: translateY(28px);"
+            >
+              <div
+                class="relative mx-auto w-full overflow-hidden"
+                style="height: 535px;"
+              >
+                <div
+                  class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+                  style="width: 520px; height: 455px; z-index: 30;"
+                >
+                  <article
+                  ...
+
+      280 |   const section = getSection(container);
+      281 |   expect(section.className).toContain("bg-[#050508]");
+    > 282 |   expect(screen.getByText("Top Offers").className).toContain("text-red-500");
+          |                 ^
+      283 |   expect(screen.getByRole("heading", { level: 2 }).className).toContain(
+      284 |     "text-white",
+      285 |   );
+
+      at Object.getElementError (node_modules/@testing-library/dom/dist/config.js:37:19)
+      at node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+      at node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+      at getByText (node_modules/@testing-library/dom/dist/query-helpers.js:95:19)
+      at Object.<anonymous> (src/components/TopOffers.test.js:282:17)
+
+  ΓùÅ autoplay ΓÇ║ moves to the next offer every 4 seconds and loops 12 ΓåÆ 01
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: "01"
+    Received: "13"
+
+      344 |     /* infinite loop wraps 12 ΓåÆ 01 */
+      345 |     advance(4000);
+    > 346 |     expect(getActiveNumber(container)).toBe("01");
+          |                                        ^
+      347 |   });
+      348 |
+      349 |   test("next / previous / pagination clicks restart the 4s countdown", () => {
+
+      at Object.<anonymous> (src/components/TopOffers.test.js:346:40)
+
+Test Suites: 2 failed, 5 passed, 7 total
+Tests:       11 failed, 63 passed, 74 total
+Snapshots:   0 total
+Time:        23.975 s
+Ran all test suites.

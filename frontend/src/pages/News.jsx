@@ -12,14 +12,26 @@ const News = () => {
   const [filteredNews, setFilteredNews] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  /* "loading" / "ready" / "error" — an API failure must never be presented as
+     "no news yet" (that is what hid the broken backend URL in production). */
+  const [state, setState] = useState("loading");
 
   useEffect(() => {
+    let mounted = true;
+
     // Global published-news API — no admin/user/portal scoping.
     getPublishedNews().then((res) => {
-      const list = (res && res.ok && res.data) || [];
+      if (!mounted) return;
+      const ok = Boolean(res && res.ok);
+      const list = ok && Array.isArray(res.data) ? res.data : [];
       setNewsList(list);
       setFilteredNews(list);
+      setState(ok ? "ready" : "error");
     });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Real-time search filter (ONLY BY HEADING/TITLE)
@@ -109,11 +121,24 @@ const News = () => {
       <section className="news-content">
         {filteredNews.length === 0 ? (
           <div className="news-status">
-            <h2>{searchQuery ? "No news found" : "No news found"}</h2>
+            {/* A failed request is reported as a failure: the old copy
+                ("articles are currently unavailable") made a dead backend URL
+                look like an empty newsroom. */}
+            <h2>
+              {searchQuery
+                ? "No news found"
+                : state === "error"
+                ? "News could not be loaded"
+                : "No news found"}
+            </h2>
             <p>
               {searchQuery
                 ? "Try searching with different keywords in headings"
-                : "News articles are currently unavailable. Check back later or add from Admin Panel!"}
+                : state === "error"
+                ? "The news service did not answer. Open the browser console for the exact API error (the backend request failed)."
+                : state === "loading"
+                ? "Loading the latest news..."
+                : "No published articles yet. Publish one from the Admin Panel!"}
             </p>
           </div>
         ) : (

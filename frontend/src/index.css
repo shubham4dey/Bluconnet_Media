@@ -347,6 +347,171 @@ body {
     -15px 25px 0 #e5f041e6;
 }
 
+/* ============================================================================
+   FLOATING CORNERS - positioning / stacking only
+   ============================================================================
+   1) Google reCAPTCHA badge  -> STANDARD bottom-RIGHT footprint (stock Google
+      geometry: right:-186px / bottom:14px, expanding to right:14px on hover)
+   2) Scroll-to-top + Chat     -> bottom-RIGHT, docked ABOVE the badge
+      (ScrollToTop.jsx bottom offset) so both stay independently clickable
+
+   Google's badge (div.grecaptcha-badge, injected by
+   https://www.google.com/recaptcha/api.js?render=...) ships these INLINE styles:
+     width:256px; height:60px; position:fixed; bottom:14px; right:-186px;
+     box-shadow:gray 0 0 5px; transition:right .3s ease; and no z-index.
+   So it (a) sits in the same bottom-right corner as our buttons and (b) has
+   z-index:auto, which lets any page element with z-index >= 1 (cards, navbar,
+   sections) paint on top of it.
+
+   The rules below only re-anchor that same element and give it its own layer:
+   the badge stays Google's real badge (same box, same logo tile, same text
+   panel, same hover expand) and is never hidden.
+   ========================================================================== */
+
+/* Badge: STANDARD official Google v3 footprint, bottom-RIGHT.
+   Google injects div.grecaptcha-badge as a 256px box (186px text panel +
+   70px logo tile) parked with `right:-186px`/`bottom:14px` so only the logo
+   tile shows, expanding to `right:14px` on hover. That exact stock geometry
+   is kept here — nothing is redesigned, resized, or clipped.
+   The floating Chat / Scroll-to-Top stack (ScrollToTop.jsx) is docked ABOVE
+   the badge (see its `bottom` offset), so the two corners never overlap and
+   both stay independently clickable. */
+.grecaptcha-badge {
+  left: auto !important;
+  right: -186px !important;
+  bottom: 14px !important;
+
+  /* keep Google's full 256px box so the logo tile + text panel layout,
+     hover-expand animation target, and hit area are untouched.
+     Visibility guards only defend the official badge against an accidental
+     hiding rule elsewhere — the badge itself is never hidden. */
+  width: 256px !important;
+  overflow: visible !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+
+  /* layering: above page content/cards, below the site's own floating controls
+     so Chat and Scroll-to-Top stay independently clickable */
+  z-index: 999 !important;
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+
+  /* same property/duration/easing Google uses for the badge, driving `right` */
+  transition: right 0.3s ease !important;
+}
+
+/* The badge keeps its STANDARD `bottom:14px` offset on all screen sizes —
+   no responsive lifting, no redesign. The floating stack is docked above it. */
+
+/* Desktop mouse + mobile/tablet tap-to-expand (no custom JS, no fake popup):
+   `:hover` is kept UNCONDITIONAL so touch devices get sticky-hover expand on
+   first tap (iOS/Android apply :hover on tap) and the second tap hits Google's
+   real Privacy/Terms links. `:focus-within`/`:active` cover keyboard and
+   transient touch activation. Expanded box (right:14px, width:256px)
+   ends at left = viewport - 270px, so it stays inside the viewport even at
+   320px (left ~= 50px) with no horizontal overflow. */
+.grecaptcha-badge:hover,
+.grecaptcha-badge:focus-within,
+.grecaptcha-badge:active {
+  right: 14px !important;
+}
+
+/* The badge content itself (Google's iframe/links) must receive the hit — a
+   `pointer-events:none` anywhere above would silently eat tap/click. */
+.grecaptcha-badge iframe {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+}
+
+/* ============================================================================
+   reCAPTCHA badge — TAP TO OPEN ON TOUCH DEVICES (phone / tablet) ONLY
+   ============================================================================
+   DESKTOP IS NOT TOUCHED BY ANYTHING IN THIS BLOCK: every rule below lives
+   inside `@media (hover: none)` (a device with no mouse-style hover at all =
+   phone/tablet) and additionally requires the `grecaptcha-badge-touch` class,
+   which the JS below only adds on such a device. With no JS, or on any device
+   that has hover, not a single declaration here can match.
+
+   Why it is needed (measured on the live badge):
+   Google renders the whole badge — the 70px logo tile AND the panel — inside a
+   single 256x60 cross-origin iframe (`div.grecaptcha-badge > div.grecaptcha-logo
+   > iframe`, the div parked at right:-186px so only those 70px are on screen).
+   A touch tap therefore lands *inside* that iframe, the page never sees it, and
+   browsers do not apply `:hover` to ancestors of an iframe while the pointer is
+   over it — so neither the hover rule above nor Google's own slide-out could be
+   triggered: after two taps the box stayed at `right:-186px` (verified with
+   emulated taps on the production site).
+
+   The minimum fix:
+   • While collapsed, the anchor iframe does not take the tap, so the tap lands
+     on Google's own badge wrapper (same div, same 70px logo tile, same
+     position — nothing is added, resized, faked or re-designed).
+   • That tap adds `grecaptcha-badge-expanded`, which slides the real Google
+     panel out with the exact geometry the desktop hover uses.
+   • Once expanded the iframe is interactive again (the existing
+     `.grecaptcha-badge iframe { pointer-events: auto !important }` rule
+     applies again), so Google's own badge/links/verification UI receives every
+     subsequent tap — no tap is intercepted, simulated or replaced.
+   ========================================================================== */
+@media (hover: none) {
+  /* collapsed on a touch screen: let the tap reach Google's badge wrapper */
+  .grecaptcha-badge.grecaptcha-badge-touch:not(.grecaptcha-badge-expanded)
+    .grecaptcha-logo
+    iframe {
+    pointer-events: none !important;
+  }
+
+  /* opened by tap: same official panel, same 14px offset as desktop hover */
+  .grecaptcha-badge.grecaptcha-badge-touch.grecaptcha-badge-expanded {
+    right: 14px !important;
+  }
+}
+
+/* ============================================================================
+   reCAPTCHA badge — MOBILE / TABLET ONLY (max-width: 768px)
+   ============================================================================
+   Everything above this block is the DESKTOP behaviour and stays untouched:
+   same official Google badge, same stock geometry (bottom:14px,
+   right:-186px collapsed -> right:14px on hover/focus/tap), same 256px box,
+   same z-index, same transition. Nothing here is replaced, resized, hidden or
+   re-designed — this block only adds device clearance so the badge cannot end
+   up underneath the phone/tablet bottom UI.
+
+   Why it is needed
+   ----------------
+   On phones the bottom ~14-74px band is where the OS/browser draws its own
+   chrome (home indicator on notched iPhones, Android gesture bar). A fixed
+   badge parked 14px above the very bottom edge can therefore sit inside that
+   system area: it is partially covered and taps land on the system gesture
+   instead of the badge. `env(safe-area-inset-bottom)` is the standard CSS
+   value that reports exactly that area, so the badge is lifted by it.
+
+   The floating Chat / Scroll-to-top stack (ScrollToTop.jsx) is docked at
+   `bottom-[86px]`, only 12px above the badge. If the badge alone were lifted,
+   it would slide up BEHIND that stack (badge z-index 999 < stack 9998) and
+   both would become hard to tap — so the stack takes the SAME offset and the
+   two keep their existing 12px clearance on every device.
+
+   `env(safe-area-inset-bottom, 0px)` resolves to 0px on desktop and on any
+   screen without such an inset, so `calc(14px + 0px)` = 14px and
+   `calc(86px + 0px)` = 86px: identical to today's values. It only has an
+   effect where the device actually reports an inset.
+   ========================================================================== */
+@media (max-width: 768px) {
+  /* Badge: keeps Google's official bottom-RIGHT placement, lifted clear of the
+     device's bottom system area. */
+  .grecaptcha-badge {
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Chat / Scroll-to-top stack: same lift, so the badge stays fully visible
+     below it with the 12px gap it already has. Positioning offset only —
+     size, colour, icon, animation and behaviour are unchanged. */
+  .bottom-\[86px\] {
+    bottom: calc(86px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+}
+
 input:checked ~ .decoration {
   transform: translateX(-20px);
   width: 10px;
@@ -371,49 +536,26 @@ input:checked + .slider:before {
     inset 15px -4px 0 15px #efdf2b,
     0 0 10px #efdf2b;
 }
-/* ==========================================================================
-   ANTI-COPY (client requirement)
-   --------------------------------------------------------------------------
-   Text, headings, paragraphs, images and links are not selectable and cannot
-   be dragged out of the page; the matching right-click / Ctrl+C guards live in
-   components/ContentProtection.jsx, and frontend/public/.htaccess injects the
-   same rules into the built index.html so they already apply before this
-   bundle is parsed.
 
-   Anything a visitor actually types into keeps working normally. Escape hatch
-   for a component whose content must stay copyable: add `data-copy-allowed`.
-   ========================================================================== */
-body,
-body *:not(input):not(textarea):not(select):not(option):not([contenteditable]):not([data-copy-allowed]) {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-  -webkit-touch-callout: none;
+/* ============================================================================
+   Premium Day/Night text selection styling — BluConnet Media branding
+   ============================================================================
+   Day mode: soft green selection background #D1FAE5 with deep green text #064E3B
+   Night mode: teal selection background #0F766E with near-white text #F0FDFA
+
+   The ThemeProvider toggles the "dark" class on <html>, so these colours
+   update immediately when the theme is switched. <input> and <textarea>
+   are excluded so field selection and form interactions are untouched.
+   user-select behaviour is not modified.
+   ============================================================================ */
+:not(input):not(textarea)::selection {
+  background: #D1FAE5;
+  color: #064E3B;
 }
 
-input,
-textarea,
-select,
-option,
-[contenteditable],
-[contenteditable] *,
-[data-copy-allowed],
-[data-copy-allowed] * {
-  -webkit-user-select: text !important;
-  -moz-user-select: text !important;
-  -ms-user-select: text !important;
-  user-select: text !important;
-  -webkit-touch-callout: default;
+.dark :not(input):not(textarea)::selection {
+  background: #0F766E;
+  color: #F0FDFA;
 }
 
-img,
-svg,
-video,
-a {
-  -webkit-user-drag: none;
-  -khtml-user-drag: none;
-  -moz-user-drag: none;
-  -o-user-drag: none;
-}
 

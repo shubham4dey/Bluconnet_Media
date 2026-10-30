@@ -120,6 +120,107 @@ test("clicking the badge renders Google's v2 widget with the v2 site key", async
   expect(typeof options.callback("google-token")).toBe("undefined");
 });
 
+test("the checkbox popup is centred on the viewport, not parked next to the badge", async () => {
+  const badge = mountBadge();
+  stubGrecaptcha();
+  render(<RecaptchaV2Checkbox />);
+
+  fireEvent.click(badge.querySelector(".bc-recaptcha-v2-trigger"));
+  const panel = await waitFor(() =>
+    document.getElementById("bc-recaptcha-v2-panel")
+  );
+
+  /* centre point of the viewport + half of Google's 304x78 checkbox pulled
+     back, so the widget's own box is what ends up centred */
+  expect(panel.style.position).toBe("fixed");
+  expect(panel.style.top).toBe("50%");
+  expect(panel.style.left).toBe("50%");
+  expect(panel.style.marginTop).toBe("-39px");
+  expect(panel.style.marginLeft).toBe("-152px");
+
+  /* the old badge-adjacent offsets are gone, and no transform is used on the
+     container Google's widget lives in */
+  expect(panel.style.right).toBe("");
+  expect(panel.style.bottom).toBe("");
+  expect(panel.style.transform).toBe("");
+});
+
+test("the website behind the checkbox is dimmed + blurred by a fullscreen backdrop", async () => {
+  const badge = mountBadge();
+  stubGrecaptcha();
+  render(<RecaptchaV2Checkbox />);
+
+  /* nothing is dimmed while the popup is closed */
+  expect(document.getElementById("bc-recaptcha-v2-backdrop")).toBeNull();
+
+  fireEvent.click(badge.querySelector(".bc-recaptcha-v2-trigger"));
+  const backdrop = await waitFor(() =>
+    document.getElementById("bc-recaptcha-v2-backdrop")
+  );
+  const panel = document.getElementById("bc-recaptcha-v2-panel");
+
+  /* covers the whole viewport and dims + blurs what is painted behind it */
+  expect(backdrop.style.position).toBe("fixed");
+  expect(backdrop.style.top).toBe("0px");
+  expect(backdrop.style.right).toBe("0px");
+  expect(backdrop.style.bottom).toBe("0px");
+  expect(backdrop.style.left).toBe("0px");
+  expect(backdrop.style.background).toBe("rgba(0, 0, 0, 0.6)");
+  expect(backdrop.style.backdropFilter).toBe("blur(4px)");
+  expect(backdrop.style.pointerEvents).toBe("auto");
+
+  /* the real Google widget stays ABOVE the dimming and is never blurred or
+     re-styled itself (its container keeps Google's own iframe untouched).
+     jsdom reports a property that was never set as `undefined` rather than "",
+     hence the `|| ""` normalisation. */
+  expect(Number(backdrop.style.zIndex)).toBeLessThan(Number(panel.style.zIndex));
+  expect(panel.style.backdropFilter || "").toBe("");
+  expect(panel.style.filter || "").toBe("");
+});
+
+test("clicking the dimmed backdrop closes the popup, clicking inside the widget does not", async () => {
+  const badge = mountBadge();
+  stubGrecaptcha();
+  render(<RecaptchaV2Checkbox />);
+
+  fireEvent.click(badge.querySelector(".bc-recaptcha-v2-trigger"));
+  const backdrop = await waitFor(() =>
+    document.getElementById("bc-recaptcha-v2-backdrop")
+  );
+  const panel = document.getElementById("bc-recaptcha-v2-panel");
+
+  /* inside the widget (this is the container Google's own cross-origin iframe is
+     rendered into): the popup and the backdrop stay exactly as they are */
+  fireEvent.pointerDown(panel.firstElementChild);
+  expect(document.getElementById("bc-recaptcha-v2-backdrop")).not.toBeNull();
+  expect(document.getElementById("bc-recaptcha-v2-panel")).not.toBeNull();
+
+  /* anywhere on the dimmed page: popup closes and the backdrop is removed, so
+     the website goes back to its normal appearance */
+  fireEvent.pointerDown(backdrop);
+  await waitFor(() =>
+    expect(document.getElementById("bc-recaptcha-v2-backdrop")).toBeNull()
+  );
+  expect(document.getElementById("bc-recaptcha-v2-panel")).toBeNull();
+});
+
+test("Escape removes the backdrop together with the popup", async () => {
+  const badge = mountBadge();
+  stubGrecaptcha();
+  render(<RecaptchaV2Checkbox />);
+
+  fireEvent.click(badge.querySelector(".bc-recaptcha-v2-trigger"));
+  await waitFor(() =>
+    expect(document.getElementById("bc-recaptcha-v2-backdrop")).not.toBeNull()
+  );
+
+  fireEvent.keyDown(document, { key: "Escape" });
+  await waitFor(() =>
+    expect(document.getElementById("bc-recaptcha-v2-backdrop")).toBeNull()
+  );
+  expect(document.getElementById("bc-recaptcha-v2-panel")).toBeNull();
+});
+
 test("the widget draw is skipped when Google's library never becomes ready", async () => {
   const badge = mountBadge();
   const { render: grecaptchaRender } = stubGrecaptcha();

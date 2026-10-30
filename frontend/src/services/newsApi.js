@@ -9,11 +9,9 @@
  * ============================================================
  */
 import axios from "axios";
+import API_BASE, { API_ORIGIN as ORIGIN } from "./apiConfig";
 
-const API = (
-  process.env.REACT_APP_API_URL || "https://bluconnet-backend-m2lj.onrender.com/api"
-).replace(/\/+$/, "");
-const ORIGIN = API.replace(/\/api$/, "");
+const API = API_BASE;
 
 const client = axios.create({
   baseURL: API,
@@ -84,18 +82,46 @@ async function admin(path, { method = "get", data } = {}) {
   }
 }
 
-/* ---------- PUBLIC: published news (global) ---------- */
+/* ---------- PUBLIC: published news (global) ----------
+ * The failure contract (`{ ok:false, data:[] }`) is kept so the pages cannot
+ * crash, but the real reason is now LOGGED and returned as `error`: a dead
+ * backend URL (404 / connection refused) must be visible in the console and in
+ * the UI instead of being indistinguishable from "no articles published yet".
+ */
 export const getPublishedNews = (q = "") =>
   client
     .get("/news", { params: q ? { q } : undefined })
     .then((r) => r.data)
-    .catch(() => ({ ok: false, data: [] }));
+    .catch((e) => {
+      const status = e && e.response && e.response.status;
+      const body =
+        e && e.response && e.response.data && JSON.stringify(e.response.data);
+      console.error(
+        `[newsApi] GET ${API}/news FAILED ->`,
+        status || "(no HTTP status — network/CORS failure)",
+        body || e.message
+      );
+      return {
+        ok: false,
+        data: [],
+        error: body || e.message || "News request failed",
+        status: status || 0,
+      };
+    });
 
 export const getPublishedNewsById = (id) =>
   client
     .get(`/news/${id}`)
     .then((r) => r.data)
-    .catch(() => ({ ok: false, data: null }));
+    .catch((e) => {
+      const status = e && e.response && e.response.status;
+      console.error(
+        `[newsApi] GET ${API}/news/${id} FAILED ->`,
+        status || "(no HTTP status — network/CORS failure)",
+        (e && e.response && JSON.stringify(e.response.data)) || e.message
+      );
+      return { ok: false, data: null, status: status || 0 };
+    });
 
 /* Resolve a stored image URL for rendering.
  * Cloudinary `secure_url`s are already absolute and pass through unchanged —
@@ -212,7 +238,10 @@ export const migrateNewsImages = (options = {}) =>
   });
 
 export const listAdminNews = () =>
-  admin("/admin/news").catch((e) => {
+  admin("/admin/news").then((res) => {
+    const data = res && res.ok && Array.isArray(res.data) ? res.data : [];
+    return { ok: true, data };
+  }).catch((e) => {
     _report("listAdminNews", null, e);
     return { ok: false, data: [] };
   });

@@ -1,28 +1,20 @@
 import React, { useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { FaArrowRight, FaEnvelope, FaCheckCircle } from "react-icons/fa";
+import { motion } from "framer-motion";
+import { FaArrowRight, FaEnvelope } from "react-icons/fa";
 import { useTheme } from "../context/ThemeContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { getRecaptchaToken } from "./RecaptchaProtection";
+import API_BASE from "../services/apiConfig";
 
 /* =========================================================
    SUBSCRIBE API — the existing backend endpoint: POST /api/subscribe
    (stores the signup in the MySQL `subscribers` table).
 
-   Same environment convention as Hero.jsx / ContactForm.jsx /
-   pages/contact.jsx, so localhost is never used in a production build:
-     .env             → REACT_APP_API_URL=http://localhost:5000/api
-     .env.production  → REACT_APP_API_URL=https://bluconnet-backend-m2lj.onrender.com/api
+   The URL lives in ONE place (services/apiConfig.js): REACT_APP_API_URL
+   (.env for dev, .env.production for `npm run build`) with the deployed
+   production backend as the fallback — so a production bundle never talks to
+   localhost, and no page can drift to a different backend.
    ========================================================= */
-
-const RAW_API_URL = (
-  process.env.REACT_APP_API_URL ||
-  "https://bluconnet-backend-m2jl.onrender.com/api"
-).replace(/\/+$/, "");
-
-/* Accepts both ".../api" (project default) and a bare origin ("...:5000"). */
-const API_BASE = /\/api$/.test(RAW_API_URL)
-  ? RAW_API_URL
-  : `${RAW_API_URL}/api`;
 
 const SUBSCRIBE_ENDPOINT = `${API_BASE}/subscribe`;
 
@@ -43,8 +35,9 @@ const SubscribeSection = () => {
      double click could otherwise fire two POSTs before React re-renders. */
   const submittingRef = useRef(false);
 
-  // In-page success feedback (replaces any browser alert()).
-  const [showSuccess, setShowSuccess] = useState(false);
+  // Success UX lives on the shared dedicated page — keep every
+  // field, validation, endpoint, and submission behaviour unchanged.
+  const navigate = useNavigate();
 
   // In-page error feedback — keeps everything the visitor typed.
   const [error, setError] = useState(null);
@@ -83,6 +76,9 @@ const SubscribeSection = () => {
     setSubmitting(true);
 
     try {
+      /* reCAPTCHA v3 token — verified server-side via backend/middleware/recaptcha. */
+      const recaptchaToken = await getRecaptchaToken("subscribe");
+
       const response = await fetch(SUBSCRIBE_ENDPOINT, {
         method: "POST",
         headers: {
@@ -91,6 +87,7 @@ const SubscribeSection = () => {
         body: JSON.stringify({
           email: trimmedEmail,
           agreeToSubscribe: agree,
+          recaptchaToken: recaptchaToken || undefined,
         }),
       });
 
@@ -107,7 +104,11 @@ const SubscribeSection = () => {
       }
 
       // HTTP 201 — the signup is stored in the MySQL `subscribers` table.
-      setShowSuccess(true);
+      // Success UX lives on the shared dedicated page — keep every
+      // field, validation, endpoint, and submission behaviour unchanged.
+      navigate("/form-success?type=subscribe", {
+        state: { type: "subscribe", email: email.trim() },
+      });
       setEmail("");
       setAgree(false);
     } catch (networkError) {
@@ -117,21 +118,6 @@ const SubscribeSection = () => {
       submittingRef.current = false;
       setSubmitting(false);
     }
-  };
-
-  /* Same tokens the success overlays in Hero.jsx / ContactForm.jsx /
-     pages/contact.jsx are built from. */
-  const theme = {
-    cardBg: isDarkMode ? "bg-[#0f1535]/80" : "bg-white/80",
-    borderColor: isDarkMode ? "border-white/10" : "border-gray-200",
-    muted: isDarkMode ? "text-gray-400" : "text-gray-600",
-    gradientText: isDarkMode
-      ? "from-[#d4e157] to-[#06b6d4]"
-      : "from-emerald-500 to-cyan-600",
-    gradientBg: isDarkMode
-      ? "from-[#d4e157] to-[#06b6d4]"
-      : "from-emerald-500 to-cyan-600",
-    btnText: isDarkMode ? "text-[#0a0e27]" : "text-white",
   };
 
   return (
@@ -293,11 +279,7 @@ const SubscribeSection = () => {
                   isDarkMode ? "text-white" : "text-gray-900"
                 } text-3xl sm:text-3xl md:text-5xl lg:text-6xl xl:text-7xl`}
               >
-                <span
-                  className={
-                    isDarkMode ? "text-white" : "text-gray-900"
-                  }
-                >
+                <span className={isDarkMode ? "text-white" : "text-gray-900"}>
                   Helping Brands Unlock Growth Through{" "}
                 </span>
 
@@ -347,9 +329,7 @@ const SubscribeSection = () => {
                 <div className="relative">
                   <div
                     className={`absolute left-4 top-1/2 transform -translate-y-1/2 ${
-                      isDarkMode
-                        ? "text-[#d4e157]"
-                        : "text-emerald-500"
+                      isDarkMode ? "text-[#d4e157]" : "text-emerald-500"
                     }`}
                   >
                     <FaEnvelope className="w-5 h-5" />
@@ -376,7 +356,7 @@ const SubscribeSection = () => {
 
               {/* Privacy Checkbox */}
               <label
-                className={`flex items-start gap-3 text-sm text-start ${
+                className={`flex items-start gap-2.5 md:gap-3 text-sm text-start ${
                   isDarkMode ? "text-gray-400" : "text-gray-600"
                 } cursor-pointer group`}
               >
@@ -392,19 +372,19 @@ const SubscribeSection = () => {
                   />
 
                   <span
-                    className={`flex h-5 w-5 items-center justify-center rounded-md border-2 transition-all duration-200 ${
+                    className={`flex h-4 w-4 md:h-5 md:w-5 items-center justify-center rounded-md border-2 transition-all duration-200 ${
                       agree
                         ? isDarkMode
                           ? "border-[#d4e157] bg-[#d4e157]"
                           : "border-emerald-500 bg-emerald-500"
                         : isDarkMode
-                        ? "border-white/10 bg-white/5"
-                        : "border-gray-300 bg-white"
+                          ? "border-white/10 bg-white/5"
+                          : "border-gray-300 bg-white"
                     }`}
                   >
                     {agree && (
                       <svg
-                        className={`h-3.5 w-3.5 ${
+                        className={`h-3 w-3 md:h-3.5 md:w-3.5 ${
                           isDarkMode ? "text-black" : "text-white"
                         }`}
                         fill="none"
@@ -423,14 +403,15 @@ const SubscribeSection = () => {
                   </span>
                 </span>
 
+                {/* Privacy Text */}
                 <span
-                  className={`leading-relaxed ${
+                  className={`text-sm leading-relaxed max-md:text-[12px] ${
                     isDarkMode ? "text-gray-400" : "text-gray-600"
                   } transition-colors`}
                 >
                   <span className="text-red-500">*</span> I agree to receive
-                  news and other promotional materials from BluConnet Media.
-                  For more information, please view our{" "}
+                  news and other promotional materials from BluConnet Media. For
+                  more information, please view our{" "}
                   <Link
                     to="/privacy-policy"
                     className={`${
@@ -463,7 +444,7 @@ const SubscribeSection = () => {
                 type="submit"
                 whileHover={{ scale: 1.05, y: -4 }}
                 whileTap={{ scale: 0.95 }}
-                className={`relative overflow-hidden group w-full md:w-auto px-8 py-4 rounded-xl font-black text-sm md:text-base uppercase tracking-widest transition-all duration-300 flex items-center justify-center gap-3 ${
+                className={`relative overflow-hidden group w-full md:w-auto px-3 py-3.5 sm:px-5 sm:py-3.5 md:px-8 md:py-4 rounded-xl font-black text-[11px] sm:text-xs md:text-base uppercase tracking-wide md:tracking-widest transition-all duration-300 flex items-center justify-center gap-2 md:gap-3 ${
                   isDarkMode
                     ? "bg-gradient-to-r from-[#d4e157] to-[#06b6d4] text-[#0a0e27] shadow-[0_8px_30px_rgba(212,225,87,0.3)] hover:shadow-[0_15px_40px_rgba(212,225,87,0.5)]"
                     : "bg-gradient-to-r from-emerald-500 to-cyan-600 text-white shadow-[0_8px_30px_rgba(16,185,129,0.3)] hover:shadow-[0_15px_40px_rgba(16,185,129,0.5)]"
@@ -472,118 +453,15 @@ const SubscribeSection = () => {
                 {/* Animated Shine/Sweep Effect on Hover */}
                 <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/40 to-transparent z-10" />
 
-                <span className="relative z-20 flex items-center gap-3">
+                <span className="relative z-20 flex items-center justify-center gap-2 md:gap-3 whitespace-nowrap">
                   SUBSCRIBE FOR UPDATES
-                  <FaArrowRight className="text-lg group-hover:translate-x-1 transition-transform duration-300" />
+                  <FaArrowRight className="shrink-0 text-sm md:text-lg group-hover:translate-x-1 transition-transform duration-300" />
                 </span>
               </motion.button>
             </motion.form>
           </div>
         </motion.div>
       </div>
-
-      {/* =================================================
-          SUCCESS FEEDBACK — in-page (no browser alert).
-          Same overlay pattern as Hero.jsx / ContactForm.jsx /
-          pages/contact.jsx.
-      ================================================= */}
-      <AnimatePresence>
-        {showSuccess && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            onClick={() => setShowSuccess(false)}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="subscribe-success-title"
-            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 px-4 py-6 backdrop-blur-sm"
-          >
-            <motion.div
-              onClick={(e) => e.stopPropagation()}
-              initial={{ opacity: 0, scale: 0.9, y: 24 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 12 }}
-              transition={{
-                type: "spring",
-                stiffness: 260,
-                damping: 22,
-              }}
-              className={`relative w-full max-w-md overflow-hidden rounded-3xl border p-6 text-center backdrop-blur-xl shadow-2xl sm:p-8 ${theme.cardBg} ${theme.borderColor}`}
-            >
-              <div
-                className={`pointer-events-none absolute -top-20 left-1/2 h-44 w-44 -translate-x-1/2 rounded-full blur-3xl ${
-                  isDarkMode
-                    ? "bg-[#d4e157]/20"
-                    : "bg-emerald-400/20"
-                }`}
-              />
-
-              <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center">
-                <motion.span
-                  animate={{
-                    scale: [1, 1.35, 1.35],
-                    opacity: [0.35, 0, 0],
-                  }}
-                  transition={{
-                    duration: 1.8,
-                    repeat: Infinity,
-                    ease: "easeOut",
-                  }}
-                  className={`absolute inset-0 rounded-full bg-gradient-to-r ${theme.gradientBg}`}
-                />
-
-                <motion.div
-                  initial={{ scale: 0, rotate: -30 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{
-                    delay: 0.12,
-                    type: "spring",
-                    stiffness: 280,
-                    damping: 18,
-                  }}
-                  className={`relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-r ${theme.gradientBg} ${theme.btnText} ${
-                    isDarkMode
-                      ? "shadow-[0_8px_30px_rgba(212,225,87,0.35)]"
-                      : "shadow-[0_8px_30px_rgba(16,185,129,0.35)]"
-                  }`}
-                >
-                  <FaCheckCircle className="text-4xl" />
-                </motion.div>
-              </div>
-
-              <h3
-                id="subscribe-success-title"
-                className={`bg-gradient-to-r bg-clip-text text-2xl font-black uppercase tracking-wide text-transparent sm:text-3xl ${theme.gradientText}`}
-              >
-                Successfully Subscribed!
-              </h3>
-
-              <p
-                className={`mt-3 text-sm leading-relaxed ${theme.muted}`}
-              >
-                Thank you! You’re now subscribed to our latest updates and
-                insights.
-              </p>
-
-              <motion.button
-                type="button"
-                whileHover={{ scale: 1.03, y: -2 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setShowSuccess(false)}
-                className={`mt-7 w-full rounded-xl bg-gradient-to-r px-6 py-3.5 text-sm font-bold uppercase tracking-widest transition-all duration-300 ${theme.gradientBg} ${theme.btnText} ${
-                  isDarkMode
-                    ? "shadow-[0_8px_30px_rgba(212,225,87,0.25)] hover:shadow-[0_12px_35px_rgba(212,225,87,0.4)]"
-                    : "shadow-[0_8px_30px_rgba(16,185,129,0.25)] hover:shadow-[0_12px_35px_rgba(16,185,129,0.4)]"
-                }`}
-              >
-                Done
-              </motion.button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </section>
   );
 };

@@ -17,7 +17,7 @@ export const translations = {
       login: "Login",
     },
     hero: {
-      title: "AI Powered Digital Growth.",
+      title: "Qualified Leads & Performance Marketing.",
       subtitle:
         "We build intelligent digital solutions that transform businesses worldwide",
       cta: "Start Your Project",

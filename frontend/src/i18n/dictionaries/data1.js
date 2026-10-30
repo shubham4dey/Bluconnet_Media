@@ -22,7 +22,7 @@ Data Analytics~Datenanalyse~Analyse de données~Analisi dei dati~Análise de dad
 Mobile Marketing~Mobile-Marketing~Marketing mobile~Mobile marketing~Marketing móvel~Marketing móvil
 AI Automation~KI-Automatisierung~Automatisation de l'IA~Automazione AI~Automação com IA~Automatización con IA
 Language~Sprache~Langue~Lingua~Idioma~Idioma
-Digital Growth. AI Powered.~Digitales Wachstum. KI-gestützt.~Croissance digitale. Propulsé par l'IA.~Crescita digitale. Basata sull'IA.~Crescimento digital. Impulsionado por IA.~Crecimiento digital. Impulsado por IA.
+Performance Marketing. Qualified Leads &.~Digitales Wachstum. KI-gestützt.~Croissance digitale. Propulsé par l'IA.~Crescita digitale. Basata sull'IA.~Crescimento digital. Impulsionado por IA.~Crecimiento digital. Impulsado por IA.
 We build intelligent digital solutions that transform businesses worldwide~Wir entwickeln intelligente digitale Lösungen, die Unternehmen weltweit transformieren~Nous créons des solutions numériques intelligentes qui transforment les entreprises du monde entier~Creiamo soluzioni digitali intelligenti che trasformano le aziende in tutto il mondo~Criamos soluções digitais inteligentes que transformam empresas em todo o mundo~Creamos soluciones digitales inteligentes que transforman empresas en todo el mundo
 Start Your Project~Starten Sie Ihr Projekt~Lancez votre projet~Avvia il tuo progetto~Comece seu projeto~Comienza tu proyecto
 View Our Work~Unsere Arbeiten ansehen~Voir nos réalisations~Guarda i nostri lavori~Veja nosso trabalho~Vea nuestro trabajo

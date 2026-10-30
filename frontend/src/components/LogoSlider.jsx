@@ -4,7 +4,7 @@ import { useTheme } from "../context/ThemeContext";
 // Import logo images
 import affiseLogo from "../assets/clients/aff1.png";
 import namecheapLogo from "../assets/clients/namecheap.png";
-import plutoLogo from "../assets/clients/pluto.png";
+// import plutoLogo from "../assets/clients/pluto.png";
 import mindbazLogo from "../assets/clients/mindbaz.png";
 import campaignLogo from "../assets/clients/campaign.png";
 import campaignDarkLogo from "../assets/clients/campaign-night.png";
@@ -23,10 +23,10 @@ const LogoSlider = () => {
       name: "Namecheap",
       logo: namecheapLogo,
     },
-    {
-      name: "PlutoAstro",
-      logo: plutoLogo,
-    },
+    // {
+    //   name: "PlutoAstro",
+    //   logo: plutoLogo,
+    // },
     {
       name: "Mindbaz",
       logo: mindbazLogo,

@@ -40,7 +40,7 @@ const APVision = () => {
     {
       title: "OUR VISION",
       content:
-        "To make digital growth more measurable, transparent, and accessible — enabling businesses, brands, publishers, and audiences to achieve more through smarter connections and innovative technology.",
+        "To make digital marketing more measurable, transparent, and accessible — enabling businesses to achieve 1% extra than the rest through Email, display, social media marketing & innovative technology",
       icon: FaEye,
       dayColor: "from-emerald-500 to-cyan-600",
       nightColor: "from-[#d4e157] to-[#06b6d4]",
@@ -49,7 +49,7 @@ const APVision = () => {
     {
       title: "OUR MISSION",
       content:
-        "To connect brands, publishers, and digital audiences through data-driven solutions, performance-focused strategies, and innovative technology while creating sustainable, long-term value for every partner.",
+        "To connect brands and digital audiences through our online lead generation services and expert on page SEO—utilizing innovative technology to create sustainable, long-term value for every partner.",
       icon: FaRocket,
       dayColor: "from-cyan-600 to-blue-600",
       nightColor: "from-[#06b6d4] to-[#3b82f6]",
@@ -58,7 +58,7 @@ const APVision = () => {
     {
       title: "OUR VALUES",
       content:
-        "We believe in transparency, innovation, accountability, collaboration, and measurable results. Every relationship we build is designed around trust and long-term growth.",
+        "We believe in transparency, accountability, collaboration, and delivering measurable b2b sales leads. Every digital marketing relationship we build is designed around trust and long-term growth.",
       icon: FaHandshake,
       dayColor: "from-emerald-500 to-amber-500",
       nightColor: "from-[#d4e157] to-[#f59e0b]",
@@ -67,7 +67,7 @@ const APVision = () => {
     {
       title: "OUR APPROACH",
       content:
-        "We combine technology, data, creativity, and performance marketing to build smarter digital solutions that adapt to changing markets and help our partners scale what works.",
+        "We combine data, creativity, and data based performance marketing to build smarter solutions that adapt to changing markets and help our partners grow their B2B & B2C sales leads.",
       icon: FaChartLine,
       dayColor: "from-cyan-600 to-emerald-500",
       nightColor: "from-[#06b6d4] to-[#d4e157]",
@@ -76,7 +76,7 @@ const APVision = () => {
     {
       title: "OUR IMPACT",
       content:
-        "Our goal is to create meaningful and measurable impact by helping businesses reach the right audiences, build stronger partnerships, improve performance, and unlock sustainable digital growth.",
+        "Our goal is to create meaningful and measurable impact by helping businesses reach their ideal audiences through engaging advertising and SMART marketing, unlocking truly sustainable growth with the help of artificial models in this fast paced world.",
       icon: FaGlobe,
       dayColor: "from-cyan-600 to-blue-600",
       nightColor: "from-[#06b6d4] to-[#3b82f6]",
@@ -96,17 +96,13 @@ const APVision = () => {
 
       <div
         className={`absolute -top-32 -left-32 w-72 h-72 md:w-96 md:h-96 rounded-full blur-3xl ${
-          isDarkMode
-            ? "bg-[#d4e157]/10"
-            : "bg-emerald-400/10"
+          isDarkMode ? "bg-[#d4e157]/10" : "bg-emerald-400/10"
         }`}
       />
 
       <div
         className={`absolute top-1/3 -right-40 w-80 h-80 md:w-[500px] md:h-[500px] rounded-full blur-3xl ${
-          isDarkMode
-            ? "bg-[#06b6d4]/10"
-            : "bg-cyan-400/10"
+          isDarkMode ? "bg-[#06b6d4]/10" : "bg-cyan-400/10"
         }`}
       />
 
@@ -127,9 +123,7 @@ const APVision = () => {
             <span
               key={index}
               className={`w-1.5 h-1.5 rounded-full ${
-                isDarkMode
-                  ? "bg-[#06b6d4]"
-                  : "bg-cyan-400"
+                isDarkMode ? "bg-[#06b6d4]" : "bg-cyan-400"
               }`}
             />
           ))}
@@ -143,9 +137,7 @@ const APVision = () => {
             <span
               key={index}
               className={`w-1.5 h-1.5 rounded-full ${
-                isDarkMode
-                  ? "bg-[#d4e157]"
-                  : "bg-emerald-400"
+                isDarkMode ? "bg-[#d4e157]" : "bg-emerald-400"
               }`}
             />
           ))}
@@ -162,7 +154,7 @@ const APVision = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
-          className="mb-10 md:mb-12"
+          className="mb-8 sm:mb-10 md:mb-12 text-left lg:text-center"
         >
           {/* Badge */}
           <motion.div
@@ -182,34 +174,27 @@ const APVision = () => {
               <span className="relative flex w-2.5 h-2.5">
                 <span
                   className={`absolute inset-0 rounded-full animate-ping opacity-75 ${
-                    isDarkMode
-                      ? "bg-[#d4e157]"
-                      : "bg-emerald-500"
+                    isDarkMode ? "bg-[#d4e157]" : "bg-emerald-500"
                   }`}
                 />
 
                 <span
                   className={`relative w-2.5 h-2.5 rounded-full ${
-                    isDarkMode
-                      ? "bg-[#d4e157]"
-                      : "bg-emerald-500"
+                    isDarkMode ? "bg-[#d4e157]" : "bg-emerald-500"
                   }`}
                 />
               </span>
-
               OUR VISION & MISSION
             </div>
           </motion.div>
 
           {/* Main Heading */}
           <h2
-            className={`font-black leading-[0.95] tracking-tight text-4xl sm:text-5xl md:text-6xl lg:text-[68px] xl:text-[76px] ${
+            className={`font-black leading-[0.95] tracking-tight text-3xl sm:text-4xl md:text-5xl lg:text-[68px] xl:text-[76px] ${
               isDarkMode ? "text-white" : "text-[#07172f]"
             }`}
           >
-            <span className="block">
-              A BIGGER TOMORROW
-            </span>
+            <span className="block">SHAPING A BRIGHTER</span>
 
             <span
               className={`block text-transparent bg-clip-text bg-gradient-to-r ${
@@ -218,35 +203,35 @@ const APVision = () => {
                   : "from-emerald-500 to-cyan-600"
               }`}
             >
-              BUILT TOGETHER
+              TOMORROW TOGETHER
             </span>
           </h2>
 
           {/* Small tagline */}
           <div
-            className={`mt-5 text-xs md:text-sm font-semibold tracking-[0.3em] uppercase ${
-              isDarkMode
-                ? "text-gray-500"
-                : "text-slate-400"
+            className={`mt-5 text-[10px] sm:text-xs md:text-sm font-semibold tracking-[0.2em] sm:tracking-[0.25em] md:tracking-[0.3em] uppercase ${
+              isDarkMode ? "text-gray-500" : "text-slate-400"
             }`}
           >
-            PEOPLE × TECHNOLOGY × OPPORTUNITY × IMPACT
+            TECHNOLOGY × IMPACT × opportunity × REAL RESULTS
           </div>
 
           {/* Description */}
           <p
-            className={`mt-6 max-w-4xl text-sm md:text-base lg:text-[15px] leading-7 ${
-              isDarkMode
-                ? "text-gray-400"
-                : "text-slate-600"
+            className={`mt-6 max-w-4xl mx-auto text-left lg:text-center text-[13px] sm:text-sm md:text-[15px] lg:text-[15px] leading-6 sm:leading-7 ${
+              isDarkMode ? "text-gray-400" : "text-slate-600"
             }`}
           >
-            At BluConnet Media, our vision is to make digital growth more
-            measurable, transparent, and accessible for every partner. Our
-            mission is to connect brands, publishers, and audiences through
-            innovative technology, data-driven solutions, and long-term
-            collaboration — creating sustainable value across the digital
-            ecosystem.
+            At BluConnet Media, our vision is to shape a brighter tomorrow where
+            your business potential knows no bounds. We believe in crafting
+            digital experiences that inspire trust and drive genuine connection.
+            As your premier lead gen marketing agency, our mission is to
+            illuminate your path to success using transformative digital
+            marketing, precision-crafted on & off page SEO, and scalable
+            affiliate networks. We step in not just as a service provider, but
+            as a devoted sales lead generator, harmonizing your email marketing
+            platforms to deliver the highly qualified B2C sales leads needed to
+            build a lasting, beautiful legacy in the digital world
           </p>
         </motion.div>
 
@@ -267,9 +252,7 @@ const APVision = () => {
           >
             <div
               className={`border-t ${
-                isDarkMode
-                  ? "border-white/10"
-                  : "border-slate-200"
+                isDarkMode ? "border-white/10" : "border-slate-200"
               }`}
             >
               {accordionItems.map((item, index) => {
@@ -283,9 +266,7 @@ const APVision = () => {
                   <div
                     key={index}
                     className={`border-b transition-all duration-500 ${
-                      isDarkMode
-                        ? "border-white/10"
-                        : "border-slate-200"
+                      isDarkMode ? "border-white/10" : "border-slate-200"
                     }`}
                   >
                     {/* Accordion Header */}
@@ -300,15 +281,10 @@ const APVision = () => {
                         {/* Number */}
                         <div
                           className={`flex-shrink-0 w-9 h-9 md:w-10 md:h-10 rounded-lg bg-gradient-to-br ${activeColor} flex items-center justify-center text-white font-bold text-xs md:text-sm shadow-sm transition-transform duration-300 ${
-                            isOpen
-                              ? "scale-110"
-                              : "scale-100"
+                            isOpen ? "scale-110" : "scale-100"
                           }`}
                         >
-                          {String(index + 1).padStart(
-                            2,
-                            "0"
-                          )}
+                          {String(index + 1).padStart(2, "0")}
                         </div>
 
                         {/* Title */}
@@ -319,8 +295,8 @@ const APVision = () => {
                                 ? "text-[#d4e157]"
                                 : "text-emerald-600"
                               : isDarkMode
-                              ? "text-white"
-                              : "text-[#0d1b32]"
+                                ? "text-white"
+                                : "text-[#0d1b32]"
                           }`}
                         >
                           {item.title}
@@ -333,8 +309,8 @@ const APVision = () => {
                           isOpen
                             ? `bg-gradient-to-br ${activeColor} text-white shadow-lg`
                             : isDarkMode
-                            ? "bg-white/5 border border-white/10 text-white"
-                            : "bg-slate-50 border border-slate-200 text-slate-600"
+                              ? "bg-white/5 border border-white/10 text-white"
+                              : "bg-slate-50 border border-slate-200 text-slate-600"
                         }`}
                       >
                         <motion.div
@@ -376,7 +352,7 @@ const APVision = () => {
                           }}
                           className="overflow-hidden"
                         >
-                          <div className="pb-6 pl-12 md:pl-14 pr-4 relative">
+                          <div className="pb-6 pl-12 md:pl-14 pr-4 relative flex flex-col items-start text-left">
                             {/* Accent line */}
                             <div
                               className={`absolute left-5 md:left-6 top-0 bottom-5 w-0.5 bg-gradient-to-b ${activeColor} opacity-50`}
@@ -384,16 +360,15 @@ const APVision = () => {
 
                             {/* Icon */}
                             <div
-                              className={`inline-flex w-10 h-10 rounded-xl bg-gradient-to-br ${activeColor} items-center justify-center mb-3 shadow-md`}
+                              className={`inline-flex w-10 h-10 rounded-xl bg-gradient-to-br ${activeColor} items-center justify-center mb-3 shadow-md self-start`}
                             >
                               <item.icon className="w-4 h-4 text-white" />
                             </div>
 
+                            {/* Paragraph */}
                             <p
-                              className={`text-sm md:text-[15px] leading-7 ${
-                                isDarkMode
-                                  ? "text-gray-400"
-                                  : "text-slate-600"
+                              className={`w-full text-left text-[13px] sm:text-sm md:text-[15px] lg:text-[15px] leading-6 sm:leading-7 ${
+                                isDarkMode ? "text-gray-400" : "text-slate-600"
                               }`}
                             >
                               {item.content}
@@ -406,13 +381,14 @@ const APVision = () => {
                                 e.stopPropagation();
                                 goToPortfolio();
                               }}
-                              className={`mt-4 inline-flex items-center gap-2 text-xs md:text-sm font-bold uppercase tracking-wider transition-all duration-300 group/see-more ${
+                              className={`mt-4 inline-flex items-center justify-start gap-2 text-left text-xs md:text-sm font-bold uppercase tracking-wider transition-all duration-300 group/see-more ${
                                 isDarkMode
                                   ? "text-[#d4e157] hover:text-[#06b6d4]"
                                   : "text-emerald-600 hover:text-cyan-600"
                               }`}
                             >
                               <span>See More</span>
+
                               <FaArrowRight className="text-[10px] group-hover/see-more:translate-x-1 transition-transform duration-300" />
                             </button>
                           </div>
@@ -444,19 +420,15 @@ const APVision = () => {
                 <div>
                   <div
                     className={`text-lg md:text-2xl font-black ${
-                      isDarkMode
-                        ? "text-[#d4e157]"
-                        : "text-emerald-600"
+                      isDarkMode ? "text-[#d4e157]" : "text-emerald-600"
                     }`}
                   >
-                    1000+
+                    100+
                   </div>
 
                   <div
                     className={`text-[9px] md:text-xs ${
-                      isDarkMode
-                        ? "text-gray-500"
-                        : "text-slate-500"
+                      isDarkMode ? "text-gray-500" : "text-slate-500"
                     }`}
                   >
                     Brands Empowered
@@ -479,19 +451,15 @@ const APVision = () => {
                 <div>
                   <div
                     className={`text-lg md:text-2xl font-black ${
-                      isDarkMode
-                        ? "text-[#06b6d4]"
-                        : "text-cyan-600"
+                      isDarkMode ? "text-[#06b6d4]" : "text-cyan-600"
                     }`}
                   >
-                    150+
+                    100+
                   </div>
 
                   <div
                     className={`text-[9px] md:text-xs ${
-                      isDarkMode
-                        ? "text-gray-500"
-                        : "text-slate-500"
+                      isDarkMode ? "text-gray-500" : "text-slate-500"
                     }`}
                   >
                     Countries Reached
@@ -514,19 +482,15 @@ const APVision = () => {
                 <div>
                   <div
                     className={`text-lg md:text-2xl font-black ${
-                      isDarkMode
-                        ? "text-[#d4e157]"
-                        : "text-emerald-600"
+                      isDarkMode ? "text-[#d4e157]" : "text-emerald-600"
                     }`}
                   >
-                    10M+
+                    1M+
                   </div>
 
                   <div
                     className={`text-[9px] md:text-xs ${
-                      isDarkMode
-                        ? "text-gray-500"
-                        : "text-slate-500"
+                      isDarkMode ? "text-gray-500" : "text-slate-500"
                     }`}
                   >
                     Opportunities Created
@@ -584,9 +548,7 @@ const APVision = () => {
               {/* Image */}
               <div
                 className={`relative overflow-hidden rounded-xl aspect-[16/10] ${
-                  isDarkMode
-                    ? "bg-[#1a1f3a]"
-                    : "bg-slate-50"
+                  isDarkMode ? "bg-[#1a1f3a]" : "bg-slate-50"
                 }`}
               >
                 <img
@@ -609,9 +571,7 @@ const APVision = () => {
               <div className="absolute top-[27%] right-[7%] z-20 hidden md:block">
                 <div
                   className={`text-[10px] md:text-xs font-bold leading-7 tracking-wider text-right ${
-                    isDarkMode
-                      ? "text-white"
-                      : "text-white"
+                    isDarkMode ? "text-white" : "text-white"
                   }`}
                 >
                   IDEAS
@@ -632,16 +592,12 @@ const APVision = () => {
               <div className="mt-2.5 md:mt-3 grid grid-cols-3 gap-2">
                 <div
                   className={`rounded-lg p-2 md:p-3 text-center ${
-                    isDarkMode
-                      ? "bg-white/5"
-                      : "bg-slate-50"
+                    isDarkMode ? "bg-white/5" : "bg-slate-50"
                   }`}
                 >
                   <div
                     className={`text-[8px] md:text-[10px] ${
-                      isDarkMode
-                        ? "text-gray-500"
-                        : "text-slate-500"
+                      isDarkMode ? "text-gray-500" : "text-slate-500"
                     }`}
                   >
                     Active Users
@@ -649,9 +605,7 @@ const APVision = () => {
 
                   <div
                     className={`text-sm md:text-base font-bold ${
-                      isDarkMode
-                        ? "text-[#d4e157]"
-                        : "text-emerald-600"
+                      isDarkMode ? "text-[#d4e157]" : "text-emerald-600"
                     }`}
                   >
                     2.4K
@@ -660,16 +614,12 @@ const APVision = () => {
 
                 <div
                   className={`rounded-lg p-2 md:p-3 text-center ${
-                    isDarkMode
-                      ? "bg-white/5"
-                      : "bg-slate-50"
+                    isDarkMode ? "bg-white/5" : "bg-slate-50"
                   }`}
                 >
                   <div
                     className={`text-[8px] md:text-[10px] ${
-                      isDarkMode
-                        ? "text-gray-500"
-                        : "text-slate-500"
+                      isDarkMode ? "text-gray-500" : "text-slate-500"
                     }`}
                   >
                     Reports
@@ -677,9 +627,7 @@ const APVision = () => {
 
                   <div
                     className={`text-sm md:text-base font-bold ${
-                      isDarkMode
-                        ? "text-[#06b6d4]"
-                        : "text-cyan-600"
+                      isDarkMode ? "text-[#06b6d4]" : "text-cyan-600"
                     }`}
                   >
                     180+
@@ -688,16 +636,12 @@ const APVision = () => {
 
                 <div
                   className={`rounded-lg p-2 md:p-3 text-center ${
-                    isDarkMode
-                      ? "bg-white/5"
-                      : "bg-slate-50"
+                    isDarkMode ? "bg-white/5" : "bg-slate-50"
                   }`}
                 >
                   <div
                     className={`text-[8px] md:text-[10px] ${
-                      isDarkMode
-                        ? "text-gray-500"
-                        : "text-slate-500"
+                      isDarkMode ? "text-gray-500" : "text-slate-500"
                     }`}
                   >
                     Insights
@@ -705,9 +649,7 @@ const APVision = () => {
 
                   <div
                     className={`text-sm md:text-base font-bold ${
-                      isDarkMode
-                        ? "text-[#d4e157]"
-                        : "text-emerald-600"
+                      isDarkMode ? "text-[#d4e157]" : "text-emerald-600"
                     }`}
                   >
                     Real-time
@@ -742,9 +684,7 @@ const APVision = () => {
                 <div>
                   <h4
                     className={`font-bold text-sm md:text-base mb-1 ${
-                      isDarkMode
-                        ? "text-white"
-                        : "text-[#0d1b32]"
+                      isDarkMode ? "text-white" : "text-[#0d1b32]"
                     }`}
                   >
                     Our Vision
@@ -752,9 +692,7 @@ const APVision = () => {
 
                   <p
                     className={`text-xs md:text-sm leading-5 ${
-                      isDarkMode
-                        ? "text-gray-400"
-                        : "text-slate-500"
+                      isDarkMode ? "text-gray-400" : "text-slate-500"
                     }`}
                   >
                     A connected digital world where every opportunity creates
@@ -781,9 +719,7 @@ const APVision = () => {
                 <div>
                   <h4
                     className={`font-bold text-sm md:text-base mb-1 ${
-                      isDarkMode
-                        ? "text-white"
-                        : "text-[#0d1b32]"
+                      isDarkMode ? "text-white" : "text-[#0d1b32]"
                     }`}
                   >
                     Our Mission
@@ -791,9 +727,7 @@ const APVision = () => {
 
                   <p
                     className={`text-xs md:text-sm leading-5 ${
-                      isDarkMode
-                        ? "text-gray-400"
-                        : "text-slate-500"
+                      isDarkMode ? "text-gray-400" : "text-slate-500"
                     }`}
                   >
                     To empower businesses through technology, partnerships, and
@@ -835,37 +769,30 @@ const APVision = () => {
             </motion.button>
 
             {/* Bottom Quote */}
-            <div className="flex items-center gap-4 mt-6">
+            <div className="flex items-center gap-3 sm:gap-4 mt-6 w-full">
               <div
-                className={`hidden sm:block h-px flex-1 ${
-                  isDarkMode
-                    ? "bg-[#06b6d4]/40"
-                    : "bg-emerald-300"
+                className={`h-px flex-1 ${
+                  isDarkMode ? "bg-[#06b6d4]/40" : "bg-emerald-300"
                 }`}
               />
 
               <p
-                className={`text-center text-xs md:text-sm italic whitespace-nowrap ${
-                  isDarkMode
-                    ? "text-[#06b6d4]"
-                    : "text-emerald-600"
+                className={`text-center text-[11px] sm:text-sm md:text-base italic whitespace-nowrap ${
+                  isDarkMode ? "text-[#06b6d4]" : "text-emerald-600"
                 }`}
               >
                 “Connecting Today, Creating a Brighter Tomorrow”
               </p>
 
               <div
-                className={`hidden sm:block h-px flex-1 ${
-                  isDarkMode
-                    ? "bg-[#06b6d4]/40"
-                    : "bg-emerald-300"
+                className={`h-px flex-1 ${
+                  isDarkMode ? "bg-[#06b6d4]/40" : "bg-emerald-300"
                 }`}
               />
             </div>
           </motion.div>
         </div>
       </div>
-
     </section>
   );
 };
