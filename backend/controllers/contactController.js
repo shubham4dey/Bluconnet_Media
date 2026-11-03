@@ -133,10 +133,11 @@ exports.createContact = async (req, res) => {
     );
 
     // Fire-and-forget email notification — never blocks the DB response.
+    // Errors are logged (not swallowed) so delivery issues are visible in logs.
     sendFormNotification("contact", {
       ...data,
       id: record.id,
-    }).catch(() => {});
+    }).catch((e) => console.error("[contact] notification failed:", e.message));
 
     return res.status(201).json({
       success: true,

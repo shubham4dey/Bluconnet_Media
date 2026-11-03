@@ -28,9 +28,21 @@ async function getTransporter() {
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     });
     // Safe SMTP diagnostic: verify connection & auth without sending mail.
-    // Never logs SMTP_PASS or other credentials.
-    await transporter.verify();
-    console.log("[notify] transporter verified — SMTP connection and authentication OK");
+    // verify() failure is logged but does NOT prevent caching the transporter —
+    // sendMail may still succeed even when verify() reports a transient issue.
+    try {
+      await transporter.verify();
+      console.log("[notify] transporter verified — SMTP connection and authentication OK");
+    } catch (verifyErr) {
+      const safe = {
+        code: verifyErr.code,
+        command: verifyErr.command,
+        response: verifyErr.response,
+        responseCode: verifyErr.responseCode,
+        message: verifyErr.message,
+      };
+      console.error("[notify] transporter verify warning (sendMail will still be attempted):", JSON.stringify(safe));
+    }
     return transporter;
   } catch (e) {
     const safe = {
@@ -40,7 +52,7 @@ async function getTransporter() {
       responseCode: e.responseCode,
       message: e.message,
     };
-    console.error("[notify] mailer init/verify failed:", JSON.stringify(safe));
+    console.error("[notify] mailer init failed:", JSON.stringify(safe));
     transporter = false;
   }
   return transporter;
@@ -245,6 +257,8 @@ async function sendFormNotification(formType, payload) {
     to,
     subject: `[BluConnet Media] New ${title} submission — ${nameOrEmail}`,
     html: buildFormHtml(formType, payload),
+  }).then((info) => {
+    console.log(`[notify] form email (${formType}) sent — messageId=${info.messageId}, accepted=${JSON.stringify(info.accepted)}, rejected=${JSON.stringify(info.rejected)}`);
   }).catch((e) => {
     const safe = {
       code: e.code,

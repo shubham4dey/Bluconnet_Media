@@ -94,10 +94,11 @@ exports.createSubscriber = async (req, res) => {
     console.log(`[subscribe] stored id=${record.id} email=${data.email}`);
 
     // Fire-and-forget email notification — never blocks the DB response.
+    // Errors are logged (not swallowed) so delivery issues are visible in logs.
     sendFormNotification("newsletter", {
       email: data.email,
       id: record.id,
-    }).catch(() => {});
+    }).catch((e) => console.error("[subscribe] notification failed:", e.message));
 
     return res.status(201).json({
       success: true,
