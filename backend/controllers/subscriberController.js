@@ -20,6 +20,7 @@
  * ============================================================
  */
 const { sanitize, isEmail } = require("../middleware/validate");
+const { sendFormNotification } = require("../services/notify");
 const subscribers = require("../models/subscriberModel");
 
 const EMAIL_MAX_LENGTH = 190; /* matches VARCHAR(190) in migration 002 */
@@ -91,6 +92,12 @@ exports.createSubscriber = async (req, res) => {
     const record = await subscribers.insertSubscriber(data);
 
     console.log(`[subscribe] stored id=${record.id} email=${data.email}`);
+
+    // Fire-and-forget email notification — never blocks the DB response.
+    sendFormNotification("newsletter", {
+      email: data.email,
+      id: record.id,
+    }).catch(() => {});
 
     return res.status(201).json({
       success: true,

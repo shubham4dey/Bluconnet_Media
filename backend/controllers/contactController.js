@@ -19,6 +19,7 @@
  * ============================================================
  */
 const { sanitize, isEmail } = require("../middleware/validate");
+const { sendFormNotification } = require("../services/notify");
 const contacts = require("../models/contactModel");
 
 /* Same options the frontend dropdowns submit — stored verbatim. */
@@ -130,6 +131,12 @@ exports.createContact = async (req, res) => {
     console.log(
       `[contact] stored id=${record.id} source=${data.source} country=${data.country}`
     );
+
+    // Fire-and-forget email notification — never blocks the DB response.
+    sendFormNotification("contact", {
+      ...data,
+      id: record.id,
+    }).catch(() => {});
 
     return res.status(201).json({
       success: true,

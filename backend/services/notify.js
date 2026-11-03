@@ -12,10 +12,11 @@
 const db = require("../config/database");
 
 let transporter = null;
-function getTransporter() {
+async function getTransporter() {
   if (transporter !== null) return transporter;
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
     transporter = false;
+    console.error("[notify] transporter disabled: SMTP_HOST or SMTP_USER not set");
     return transporter;
   }
   try {
@@ -26,8 +27,20 @@ function getTransporter() {
       secure: Number(process.env.SMTP_PORT) === 465,
       auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     });
+    // Safe SMTP diagnostic: verify connection & auth without sending mail.
+    // Never logs SMTP_PASS or other credentials.
+    await transporter.verify();
+    console.log("[notify] transporter verified — SMTP connection and authentication OK");
+    return transporter;
   } catch (e) {
-    console.error("[notify] mailer init failed:", e.message);
+    const safe = {
+      code: e.code,
+      command: e.command,
+      response: e.response,
+      responseCode: e.responseCode,
+      message: e.message,
+    };
+    console.error("[notify] mailer init/verify failed:", JSON.stringify(safe));
     transporter = false;
   }
   return transporter;
@@ -76,14 +89,23 @@ async function notifyAdmin(type, payload) {
   // 3. email
   const to = process.env.NOTIFY_EMAIL;
   if (settings.emailNotify !== false && to) {
-    const tx = getTransporter();
+    const tx = await getTransporter();
     if (tx) {
       tx.sendMail({
         from: `"BluConnet AI Assistant" <${process.env.SMTP_USER}>`,
         to,
         subject: `[AI Assistant] New ${title} — ${payload.name || payload.email || "visitor"}${payload.isUpdate ? " (Updated)" : ""}`,
         text: summary,
-      }).catch((e) => console.error("[notify] email:", e.message));
+      }).catch((e) => {
+    const safe = {
+      code: e.code,
+      command: e.command,
+      response: e.response,
+      responseCode: e.responseCode,
+      message: e.message,
+    };
+    console.error("[notify] email:", JSON.stringify(safe));
+  });
     }
   }
 }
@@ -93,7 +115,7 @@ async function notifyAdmin(type, payload) {
  * Never throws — safe to call without await.
  */
 async function sendCustomerConfirmation(type, payload) {
-  const tx = getTransporter();
+  const tx = await getTransporter();
   if (!tx || !payload.email) return;
 
   const title = type.charAt(0).toUpperCase() + type.slice(1);
@@ -118,4 +140,122 @@ async function sendCustomerConfirmation(type, payload) {
   }).catch((e) => console.error("[notify] customer confirmation:", e.message));
 }
 
-module.exports = { notifyAdmin, sendCustomerConfirmation };
+/* ---------------------------------------------------------------
+ *  sendFormNotification(formType, payload)
+ *  Professional HTML email to NOTIFY_EMAIL after a successful
+ *  public form submission (contact / newsletter).
+ *  Fire-and-forget: never throws, never blocks the DB response.
+ * --------------------------------------------------------------- */
+function labelize(key) {
+  return String(key)
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (c) => c.toUpperCase())
+    .trim();
+}
+
+function escapeHtml(text) {
+  if (text === null || text === undefined) return "";
+  return String(text)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+const SKIP_FIELDS = new Set([
+  "id", "submittedAt", "lang", "sessionId", "page", "ip", "userAgent",
+  "referrer", "leadSource", "isUpdate", "recaptchaToken", "website",
+]);
+
+function buildFormHtml(formType, payload) {
+  const rows = Object.entries(payload)
+    .filter(([k]) => !SKIP_FIELDS.has(k))
+    .map(([k, v]) => {
+      let value = v;
+      if (typeof value === "boolean") value = value ? "Yes" : "No";
+      if (value === null || value === undefined) value = "—";
+      return `<tr>
+        <td style="padding: 8px 12px; font-weight: bold; color: #333; border-bottom: 1px solid #eee; width: 34%;">${escapeHtml(labelize(k))}</td>
+        <td style="padding: 8px 12px; border-bottom: 1px solid #eee; color: #555;">${escapeHtml(value)}</td>
+      </tr>`;
+    })
+    .join("");
+
+  const title = formType.charAt(0).toUpperCase() + formType.slice(1);
+  const submittedAt = new Date().toLocaleString("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Asia/Kolkata",
+  });
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>New ${title} Submission</title>
+</head>
+<body style="margin: 0; padding: 0; background: #f4f6f8; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 640px; margin: 24px auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+    <tr>
+      <td align="center" style="background: linear-gradient(90deg, #10b981, #06b6d4); padding: 24px; color: #ffffff;">
+        <h1 style="margin: 0; font-size: 22px; font-weight: 800; letter-spacing: -0.5px;">BluConnet Media</h1>
+        <p style="margin: 6px 0 0; font-size: 13px; opacity: 0.92; font-weight: 600;">New ${title} Form Submission</p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding: 22px 26px; font-size: 14px; color: #1f2933; line-height: 1.6;">
+        <p style="margin: 0 0 16px; font-size: 14px;">A new ${title} submission has been received and saved to the database.</p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; font-size: 14px;">
+          <tr>
+            <td style="padding: 9px 12px; font-weight: 700; color: #374151; border-bottom: 1px solid #eef2f5; width: 34%;">Form Type</td>
+            <td style="padding: 9px 12px; color: #059669; font-weight: 700; border-bottom: 1px solid #eef2f5;">${escapeHtml(title)}</td>
+          </tr>
+          <tr>
+            <td style="padding: 9px 12px; font-weight: 700; color: #374151; border-bottom: 1px solid #eef2f5;">Submitted At</td>
+            <td style="padding: 9px 12px; color: #555; border-bottom: 1px solid #eef2f5;">${escapeHtml(submittedAt)}</td>
+          </tr>
+          ${rows}
+        </table>
+        <p style="margin: 20px 0 0; font-size: 13px; color: #6b7280;">This is an automated notification from BluConnet Media. Please do not reply to this email.</p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+async function sendFormNotification(formType, payload) {
+  const to = process.env.NOTIFY_EMAIL;
+  console.log(`[notify] sendFormNotification(${formType}) called — to=${to || "(none)"}`);
+  if (!to) return;
+
+  const tx = await getTransporter();
+  if (!tx) {
+    console.error(`[notify] sendFormNotification(${formType}) — transporter unavailable`);
+    return;
+  }
+
+  const title = formType.charAt(0).toUpperCase() + formType.slice(1);
+  const nameOrEmail = payload.name || payload.email || "visitor";
+
+  tx.sendMail({
+    from: `"BluConnet Media" <${process.env.SMTP_USER}>`,
+    to,
+    subject: `[BluConnet Media] New ${title} submission — ${nameOrEmail}`,
+    html: buildFormHtml(formType, payload),
+  }).catch((e) => {
+    const safe = {
+      code: e.code,
+      command: e.command,
+      response: e.response,
+      responseCode: e.responseCode,
+      message: e.message,
+    };
+    console.error(`[notify] form email (${formType}) failed:`, JSON.stringify(safe));
+  });
+}
+
+module.exports = { notifyAdmin, sendCustomerConfirmation, sendFormNotification };
+
