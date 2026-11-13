@@ -4,58 +4,20 @@
  *  application / handoff:
  *    1. Outgoing webhook (Slack / Zapier / Make)
  *    2. CRM webhook (HubSpot / Zoho via passthrough)
- *    3. Email via SMTP (optional, nodemailer)
+ *    3. Email via Resend (replaces SMTP/nodemailer)
  *    4. Customer confirmation email
  *  All failures are logged, never thrown (fire-and-forget).
  * ============================================================
  */
 const db = require("../config/database");
 
-let transporter = null;
-async function getTransporter() {
-  if (transporter !== null) return transporter;
-  if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
-    transporter = false;
-    console.error("[notify] transporter disabled: SMTP_HOST or SMTP_USER not set");
-    return transporter;
-  }
-  try {
-    const nodemailer = require("nodemailer");
-    transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: Number(process.env.SMTP_PORT) === 465,
-      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-    });
-    // Safe SMTP diagnostic: verify connection & auth without sending mail.
-    // verify() failure is logged but does NOT prevent caching the transporter —
-    // sendMail may still succeed even when verify() reports a transient issue.
-    try {
-      await transporter.verify();
-      console.log("[notify] transporter verified — SMTP connection and authentication OK");
-    } catch (verifyErr) {
-      const safe = {
-        code: verifyErr.code,
-        command: verifyErr.command,
-        response: verifyErr.response,
-        responseCode: verifyErr.responseCode,
-        message: verifyErr.message,
-      };
-      console.error("[notify] transporter verify warning (sendMail will still be attempted):", JSON.stringify(safe));
-    }
-    return transporter;
-  } catch (e) {
-    const safe = {
-      code: e.code,
-      command: e.command,
-      response: e.response,
-      responseCode: e.responseCode,
-      message: e.message,
-    };
-    console.error("[notify] mailer init failed:", JSON.stringify(safe));
-    transporter = false;
-  }
-  return transporter;
+// Initialize Resend client securely using environment variable
+const { Resend } = require("resend");
+let resendClient = null;
+try {
+  resendClient = new Resend(process.env.RESEND_API_KEY);
+} catch (e) {
+  console.error("[notify] Resend initialization failed:", e.message);
 }
 
 async function postJson(url, body) {
@@ -101,34 +63,46 @@ async function notifyAdmin(type, payload) {
   // 3. email
   const to = process.env.NOTIFY_EMAIL;
   if (settings.emailNotify !== false && to) {
-    const tx = await getTransporter();
-    if (tx) {
-      tx.sendMail({
-        from: `"BluConnet AI Assistant" <${process.env.SMTP_USER}>`,
+      if (!resendClient) {
+        console.error(
+          "[notify] admin email failed: Resend client not initialized. " +
+            "Check RESEND_API_KEY environment variable."
+        );
+        return;
+      }
+      const { data, error } = await resendClient.emails.send({
+        from: process.env.FROM_EMAIL,
         to,
         subject: `[AI Assistant] New ${title} — ${payload.name || payload.email || "visitor"}${payload.isUpdate ? " (Updated)" : ""}`,
         text: summary,
-      }).catch((e) => {
-    const safe = {
-      code: e.code,
-      command: e.command,
-      response: e.response,
-      responseCode: e.responseCode,
-      message: e.message,
-    };
-    console.error("[notify] email:", JSON.stringify(safe));
-  });
+      });
+
+      if (error) {
+        const safe = {
+          code: error.code,
+          message: error.message,
+        };
+        console.error("[notify] admin email failed:", JSON.stringify(safe));
+      } else {
+        console.log(`[notify] admin email sent — messageId=${data.id}`);
+      }
     }
   }
-}
 
 /**
  * Send confirmation email to customer after lead/meeting submission.
  * Never throws — safe to call without await.
  */
 async function sendCustomerConfirmation(type, payload) {
-  const tx = await getTransporter();
-  if (!tx || !payload.email) return;
+  if (!payload.email) return;
+
+  if (!resendClient) {
+    console.error(
+      "[notify] customer confirmation failed: Resend client not initialized. " +
+        "Check RESEND_API_KEY environment variable."
+    );
+    return;
+  }
 
   const title = type.charAt(0).toUpperCase() + type.slice(1);
   let subject = "";
@@ -144,12 +118,30 @@ async function sendCustomerConfirmation(type, payload) {
     return; // No confirmation for other types
   }
 
-  tx.sendMail({
-    from: `"BluConnet Media" <${process.env.SMTP_USER}>`,
-    to: payload.email,
-    subject,
-    text,
-  }).catch((e) => console.error("[notify] customer confirmation:", e.message));
+  try {
+    const { data, error } = await resendClient.emails.send({
+      from: process.env.FROM_EMAIL,
+      to: payload.email,
+      subject,
+      text,
+    });
+
+    if (error) {
+      const safe = {
+        code: error.code,
+        message: error.message,
+      };
+      console.error("[notify] customer confirmation failed:", JSON.stringify(safe));
+    } else {
+      console.log(`[notify] customer confirmation sent — messageId=${data.id}`);
+    }
+  } catch (e) {
+    const safe = {
+      code: e.code,
+      message: e.message,
+    };
+    console.error("[notify] customer confirmation failed:", JSON.stringify(safe));
+  }
 }
 
 /* ---------------------------------------------------------------
@@ -243,32 +235,41 @@ async function sendFormNotification(formType, payload) {
   console.log(`[notify] sendFormNotification(${formType}) called — to=${to || "(none)"}`);
   if (!to) return;
 
-  const tx = await getTransporter();
-  if (!tx) {
-    console.error(`[notify] sendFormNotification(${formType}) — transporter unavailable`);
+  if (!resendClient) {
+    console.error(
+      "[notify] form email failed: Resend client not initialized. " +
+        "Check RESEND_API_KEY environment variable."
+    );
     return;
   }
 
   const title = formType.charAt(0).toUpperCase() + formType.slice(1);
   const nameOrEmail = payload.name || payload.email || "visitor";
 
-  tx.sendMail({
-    from: `"BluConnet Media" <${process.env.SMTP_USER}>`,
-    to,
-    subject: `[BluConnet Media] New ${title} submission — ${nameOrEmail}`,
-    html: buildFormHtml(formType, payload),
-  }).then((info) => {
-    console.log(`[notify] form email (${formType}) sent — messageId=${info.messageId}, accepted=${JSON.stringify(info.accepted)}, rejected=${JSON.stringify(info.rejected)}`);
-  }).catch((e) => {
+  try {
+    const { data, error } = await resendClient.emails.send({
+      from: process.env.FROM_EMAIL,
+      to,
+      subject: `[BluConnet Media] New ${title} submission — ${payload.name || payload.email || "visitor"}`,
+      html: buildFormHtml(formType, payload),
+    });
+
+    if (error) {
+      const safe = {
+        code: error.code,
+        message: error.message,
+      };
+      console.error(`[notify] form email (${formType}) failed:`, JSON.stringify(safe));
+    } else {
+      console.log(`[notify] form email (${formType}) sent — messageId=${data.id}`);
+    }
+  } catch (e) {
     const safe = {
       code: e.code,
-      command: e.command,
-      response: e.response,
-      responseCode: e.responseCode,
       message: e.message,
     };
     console.error(`[notify] form email (${formType}) failed:`, JSON.stringify(safe));
-  });
+  }
 }
 
 module.exports = { notifyAdmin, sendCustomerConfirmation, sendFormNotification };
